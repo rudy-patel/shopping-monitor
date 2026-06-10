@@ -44,6 +44,7 @@ See `AGENTS.md` for lint/test commands and environment details.
 
 ## Documentation
 
+- [Product Requirements (V1)](docs/PRD.md)
 - [Database conventions & RLS](docs/DATABASE.md)
 - [Authentication](docs/AUTHENTICATION.md)
 - [Deployment (Vercel + Render + Supabase)](docs/DEPLOYMENT.md)
