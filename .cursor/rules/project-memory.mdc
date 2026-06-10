@@ -1,0 +1,15 @@
+---
+description: Project history and known issues for shopping-monitor
+alwaysApply: true
+---
+
+# Project Memory
+
+Before making changes, read **MEMORY.md** (project root) for:
+- Chronological project history and completed work
+- Files changed per feature
+- Known bugs and their solutions (with doc/code references)
+
+**Database:** Any new table in `public` must enable **RLS** in the migration (see `docs/DATABASE.md` — backend-only tables can use RLS with no `authenticated` policies). Never ship new `public` tables without RLS.
+
+Include it in context via **@MEMORY.md** when starting a new task.
