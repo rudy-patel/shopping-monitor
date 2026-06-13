@@ -1,8 +1,8 @@
 # Shopping Monitor — Product Requirements (V1)
 
-> **Status:** Draft v1.0 — locked scope for the first working prototype.
+> **Status:** Draft v1.1 — revised technical direction for the first working prototype.
 > **Owner:** Product (you). **Audience:** Engineering, AI agents implementing the prototype.
-> **Last updated:** 2026-06-10.
+> **Last updated:** 2026-06-11.
 
 ---
 
@@ -43,7 +43,7 @@ The following are deliberately **out of scope** for V1. They are documented in �
 - Periodic re-discovery of new retailers for an existing product (one-shot at add time only).
 - AI auto-categorization (manual category selection with an LLM-friendly hook for V2).
 - Variant "families" — one product entry equals one specific variant (size + color, etc.).
-- Paid data sources (scraping vendors, premium LLM APIs, exact landed-cost services).
+- Paid data sources (hosted scraping APIs, premium LLM APIs, exact landed-cost services).
 
 ---
 
@@ -208,7 +208,7 @@ Runs once, asynchronously, after a product is added.
 
 **Algorithm:**
 
-1. Compose a prompt for the configured free LLM (Gemini Flash with Google Search grounding by default; see §10.6) asking it to find URLs of the *exact same variant* of this product at any of the natively supported retailers (§11), restricted to `.ca` domains or each retailer's Canadian region.
+1. Compose a prompt for the configured free LLM (current Gemini Flash free-tier model with Google Search grounding by default; see §10.7) asking it to find URLs of the *exact same variant* of this product at any of the natively supported retailers (§11), restricted to `.ca` domains or each retailer's Canadian region.
 2. The LLM returns up to 8 candidate URLs with a one-line justification each.
 3. For each candidate URL, backend runs the appropriate retailer scraper to extract `title`, `brand`, `variant_attributes`, `image_url`, `current_price_cad`, `is_in_stock`.
 4. Backend computes a **confidence score** for each candidate using:
@@ -275,7 +275,7 @@ Evaluated after every successful scrape (scheduled or manual).
 ### 7.6 Email digest
 
 - Sent at most once per day per user, at user-local 08:00 (default America/Toronto unless user changes time zone).
-- Provider: **Resend** free tier (see §10.7). Pluggable behind a `MailService` interface so providers can swap.
+- Provider: **Resend** free tier (see §10.4). Pluggable behind a `MailService` interface so providers can swap.
 - Template: plain text + simple HTML. Lists each event with product title, change summary, and a deep link back to the app.
 - Skipped entirely if the user has zero unread notifications since the previous digest, or if they have email notifications disabled.
 
@@ -290,12 +290,38 @@ Evaluated after every successful scrape (scheduled or manual).
 
 For URLs from any unsupported retailer:
 
-- Use `httpx` to fetch the page with a realistic User-Agent.
+- Use the shared scraper pipeline (§10.6), starting with a lightweight browser-like HTTP request (`curl_cffi` preferred for TLS/browser impersonation; `httpx` acceptable only for sites that do not block it).
 - Apply schema.org `Product` JSON-LD extraction first (most retailers expose this).
 - Fall back to OpenGraph tags (`og:title`, `og:image`, `og:price:amount`, `og:price:currency`, `product:availability`).
 - If neither yields a price, mark the listing `scrape_status='blocked'` and surface "Couldn't read price from this site" to the user; product stays in their list with manual refresh available.
 
 The generic scraper never participates in cross-retailer discovery (it can't reliably normalize variants).
+
+### 7.9 Scraper benchmark pipeline
+
+Before implementing the full supported-retailer list, engineering must add a small benchmark harness that can run a candidate URL through multiple extraction strategies and record comparable results. The goal is to learn which approach works for each retailer before committing to a brittle scraper implementation.
+
+**Benchmark inputs:**
+
+- A curated fixture file of representative product URLs across the V1 retailers, including at least one easy Shopify-style store, one JSON-LD-friendly store, and one bot-protected store.
+- Expected fields when known: title, price, stock state, image URL, selected variant, available variants.
+
+**Strategies to compare:**
+
+1. Embedded structured data only: schema.org JSON-LD, retailer-specific embedded JSON, and OpenGraph/product meta tags.
+2. `curl_cffi` + parser: browser-like TLS/HTTP fingerprinting plus BeautifulSoup/lxml extraction.
+3. Playwright: real browser rendering for sites that need JavaScript execution or stronger bot-evasion.
+
+**Out of scope for the benchmark:** hosted scraping APIs such as Firecrawl. V1 must remain free to operate indefinitely, so paid or one-time-credit scraping vendors are excluded from the core plan.
+
+**Benchmark output:**
+
+- Per-strategy success/failure for title, price, stock, image, and variant fields.
+- Runtime and retry count.
+- Blocked/CAPTCHA/403/429 markers.
+- Recommended default strategy per retailer and fallback order.
+
+The retailer registry (§11) should store each retailer's selected default strategy and allowed fallbacks so the app can switch approaches without changing product/business logic.
 
 ---
 
@@ -455,8 +481,9 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 
 - **Runner:** GitHub Actions cron workflow under `.github/workflows/scrape.yml`, scheduled at `0 8 * * *` UTC (≈ 04:00 America/Toronto).
 - **Action runs:** a Python entrypoint in `backend/workers/scrape_all.py` that calls `POST /internal/jobs/scrape-all` on the deployed backend (`X-Worker-Token` from `WORKER_TOKEN` secret). The backend does the actual scraping inline using its own scraper modules — this keeps scraper code in one place.
-- **Headless browser for protected sites:** `playwright` in the backend, used only by retailers that need it (Nike, Apple, Lululemon-style Cloudflare/Akamai). Render free tier can run Playwright (with installed deps in the build step).
-- **Rationale for this split:** GitHub Actions provides free reliable scheduling; the backend hosts the actual logic and DB credentials. This avoids duplicating scraping code between an Actions runner and the API.
+- **Repository visibility:** public GitHub repository is preferred if Actions minutes ever become a free-tier constraint. A private repository is acceptable while included free minutes comfortably cover once-daily jobs.
+- **Headless browser for protected sites:** `playwright` in the backend, used only by retailers that need JavaScript execution or cannot be handled by structured data / `curl_cffi`. Render free tier can run Playwright (with installed deps in the build step), but cold starts and memory pressure make it a fallback, not the default.
+- **Rationale for this split:** GitHub Actions provides free scheduling with visible workflow logs; the backend hosts the actual logic and DB credentials. This avoids duplicating scraping code between an Actions runner and the API.
 
 ### 10.4 Email
 
@@ -470,13 +497,27 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 - Backend fetches and caches in `fx_rates_cache` for 24 hours.
 - Frontend never calls FX providers directly — always via `GET /api/fx/rates`.
 
-### 10.6 LLM (cross-retailer discovery)
+### 10.6 Scraping implementation strategy
 
-- **Provider:** Google Gemini API, model `gemini-2.0-flash` (or successor in the free tier at implementation time) with Google Search as a grounding tool.
+V1 should optimize for a free, maintainable, Python-native scraping stack rather than relying on hosted scraping vendors.
+
+**Default extraction pipeline, in order:**
+
+1. **Structured data / retailer JSON:** parse schema.org JSON-LD, embedded app state JSON, retailer APIs discovered from product pages, and OpenGraph/product meta tags.
+2. **Browser-like HTTP:** use `curl_cffi` with current Chrome/Safari impersonation, realistic headers, cookies/session reuse where useful, and BeautifulSoup/lxml/selectolax-style parsing.
+3. **Playwright fallback:** render with a real browser only when the benchmark harness proves the retailer requires JavaScript execution or stronger browser behavior.
+
+**Explicit V1 exclusion:** Firecrawl and similar hosted scraping APIs are not part of the V1 operating plan. They may be useful for manual research outside the product, but the production app must not depend on one-time credits or paid scraping vendors.
+
+**Design contract:** scraper modules expose the same `scrape(url) -> ProductSnapshot` interface regardless of strategy. Product, notification, and UI code should not know whether a listing was scraped through structured data, `curl_cffi`, or Playwright.
+
+### 10.7 LLM (cross-retailer discovery)
+
+- **Provider:** Google Gemini API, using the current Flash-family model available on the free tier at implementation time, with Google Search as a grounding tool when available.
 - **Free-tier guardrails:** discovery is one-shot per product, the prompt is bounded in size, and we cap candidates at 8. If the free-tier quota is exceeded, discovery is skipped silently and a notification is recorded ("Cross-retailer discovery temporarily unavailable").
 - **Pluggable interface:** a `DiscoveryProvider` abstraction so we can swap LLMs later without rewriting the discovery pipeline.
 
-### 10.7 Secrets & environment
+### 10.8 Secrets & environment
 
 Add to `backend/.env.example`:
 
@@ -500,15 +541,15 @@ GitHub Actions secrets needed: `WORKER_TOKEN`, `BACKEND_BASE_URL`.
 
 ## 11. Supported Retailers (V1)
 
-Each natively supported retailer needs a scraper module exposing a `scrape(url) -> ProductSnapshot` function and metadata about whether it requires Playwright.
+Each natively supported retailer needs a scraper module exposing a `scrape(url) -> ProductSnapshot` function and metadata describing its default extraction strategy and fallback order.
 
 | Slug | Domain(s) | Default category | Notes |
 |---|---|---|---|
-| `amazon_ca` | amazon.ca | other | Strict 1P only — must verify "Sold by Amazon.ca" or "Ships from and sold by Amazon.ca" in scraper. Likely needs Playwright. |
-| `bestbuy_ca` | bestbuy.ca | tech | Cloudflare-protected; Playwright likely required. |
+| `amazon_ca` | amazon.ca | other | Strict 1P only — must verify "Sold by Amazon.ca" or "Ships from and sold by Amazon.ca" in scraper. Benchmark first; likely needs `curl_cffi` or Playwright fallback. |
+| `bestbuy_ca` | bestbuy.ca | tech | Cloudflare-protected; benchmark structured data / `curl_cffi` before Playwright. |
 | `apple_ca` | apple.com/ca | tech | JSON endpoints often available without a browser. |
-| `nike_ca` | nike.com/ca | shoes | Aggressive bot protection; Playwright + stealth needed. |
-| `sportchek` | sportchek.ca | clothing | Akamai-protected. |
+| `nike_ca` | nike.com/ca | shoes | Aggressive bot protection; benchmark `curl_cffi`; Playwright may be needed. |
+| `sportchek` | sportchek.ca | clothing | Akamai-protected; benchmark before selecting default strategy. |
 | `indigo` | indigo.ca | other | Generally scrape-friendly. |
 | `canadiantire` | canadiantire.ca | home | Region-aware (asks for store); use the central/online price. |
 | `costco_ca` | costco.ca | other | Some pages behind member login — we restrict to public listings only. |
@@ -520,19 +561,19 @@ Each natively supported retailer needs a scraper module exposing a `scrape(url) 
 | `dimemtl` | dimemtl.com | clothing | Small Shopify store; easy. |
 | `tikiroomskate` | tikiroomskateboards.com | other | Small Shopify store; easy. |
 | `eatyourwater` | eatyourwater.com | clothing | Small Shopify store; easy. |
-| `generic` | (any other domain) | `other` | Best-effort, JSON-LD/OG only, no Playwright. |
+| `generic` | (any other domain) | `other` | Best-effort structured data / OG with lightweight HTTP only; no Playwright. |
 
 **Per-retailer scraper checklist (engineering contract):** title, brand (best-effort), image URL, current price in CAD cents, in-stock boolean, list of available variant attribute combinations, and the selected variant attributes for the input URL (when inferable from URL or page state).
 
-**Engineering note on scraper reliability:** several of the above retailers run aggressive bot protection. Expect scrapers for Amazon, Best Buy, Nike, Sport Chek to need Playwright with a realistic browser fingerprint, and expect periodic breakage when sites change. V1 accepts this brittleness as a known limitation; see §13.
+**Engineering note on scraper reliability:** several of the above retailers run aggressive bot protection. Do not assume Playwright is required until the benchmark harness proves it; try structured data and `curl_cffi` first, then use Playwright as the measured fallback. Expect periodic breakage when sites change. V1 accepts this brittleness as a known limitation; see §13.
 
 ---
 
 ## 12. Non-Functional Requirements
 
-- **Performance:** product list page loads in < 2s with up to 200 products. Manual refresh of one product completes in < 30s (Playwright cold start dominates).
+- **Performance:** product list page loads in < 2s with up to 200 products. Manual refresh of one product should complete in < 30s for non-Playwright retailers; Playwright-backed retailers may be slower because browser cold start dominates.
 - **Reliability:** daily scrape job retries each listing up to 2 times with exponential backoff. A run is considered successful if at least 80% of listings scrape successfully.
-- **Cost:** $0/month for V1. All providers used (Supabase, Vercel, Render, GitHub Actions, Gemini, Resend, Frankfurter) have free tiers that comfortably accommodate ≤ 10 users with ≤ 200 products each, scraping once per day.
+- **Cost:** $0/month for V1. All providers used in the core product (Supabase, Vercel, Render, GitHub Actions, Gemini, Resend, Frankfurter) have free tiers that should accommodate a personal user plus a few friends with once-daily scraping. The core plan excludes hosted scraping APIs such as Firecrawl because one-time credits or paid monthly quotas are incompatible with indefinite free operation.
 - **Security:**
   - RLS on every `public` table.
   - Service-role key never reaches the frontend.
@@ -550,8 +591,9 @@ Each natively supported retailer needs a scraper module exposing a `scrape(url) 
 | Risk / limitation | Impact | V1 mitigation |
 |---|---|---|
 | Scrapers break when retailer HTML changes | Listings stop refreshing | `scrape_failing` notification after 3 consecutive failures; structured logs; per-retailer scraper is a small isolated module |
-| Bot-protected retailers (Nike, Amazon, Best Buy) block server IPs | Some listings refresh inconsistently | Use Playwright with realistic UA; accept best-effort, mark failures clearly to user |
+| Bot-protected retailers (Nike, Amazon, Best Buy) block server IPs | Some listings refresh inconsistently | Benchmark structured data, `curl_cffi`, and Playwright per retailer; accept best-effort, mark failures clearly to user |
 | Gemini free tier rate-limited or quota exhausted | Discovery silently fails | Pluggable provider interface; skip + notify user; one-shot per product caps usage |
+| Gemini model names / free-tier limits change | Implementation docs become stale | Select the current Flash-family free-tier model at implementation time and keep discovery behind `DiscoveryProvider` |
 | Render free tier cold-starts (15-min idle sleep) | First post-idle request is slow (~30s) | Acceptable for V1; daily worker stays warm during its run; manual refresh users see a spinner |
 | Single-region (Canada) hardcoded assumption | Non-Canadian friend can't really use it | V1 explicitly Canada-only; document in onboarding |
 | Variant inference is fragile across diverse retailer URL patterns | Users will see "Needs input" more often than ideal | Explicit "Needs input" UX; not a crash |
@@ -559,6 +601,7 @@ Each natively supported retailer needs a scraper module exposing a `scrape(url) 
 | Amazon 1P-only rule is hard to verify programmatically | Could accidentally track a 3P seller | Scraper requires literal "Sold by Amazon.ca" string; otherwise reject with friendly error |
 | Email digest could land in spam | User misses sale alerts | In-app notifications are the source of truth; email is convenience layer |
 | GitHub Actions cron is best-effort (can run late) | Daily scrape may shift by minutes | Acceptable; not a correctness issue |
+| GitHub Actions free minutes differ by repository visibility | Private repo could eventually consume included minutes | Prefer public repo if Actions minutes become a constraint; daily V1 jobs are low-volume |
 | ToS / scraping ethics | Long-term legal exposure if app grows | V1 is personal-use; revisit before any public launch |
 
 ---
@@ -589,13 +632,14 @@ Captured here so they aren't lost.
 V1 is considered complete when:
 
 1. A user can sign in with Google, paste a URL from any of the 16 supported retailers (or any other site), and have it appear in their list within 10 seconds with a current price.
-2. The daily scrape runs on schedule for 7 consecutive days with ≥ 80% per-listing success rate across the user's products.
-3. Cross-retailer discovery finds at least one additional listing for at least 60% of products that exist at multiple supported retailers (acknowledging some products genuinely only exist at one).
-4. A user receives a daily digest email containing accurate price-drop and back-in-stock events when those events occur.
-5. The 30-day trend chip is visibly correct for products with ≥ 7 days of data.
-6. The display-currency switcher correctly converts and renders for CAD/USD/EUR/GBP.
-7. A user can archive, restore, delete, and re-categorize products.
-8. A user can delete their account and verify (via Supabase dashboard) that their data is gone.
+2. The scraper benchmark harness has been run against representative URLs for every supported retailer and records the selected default strategy plus fallback order.
+3. The daily scrape runs on schedule for 7 consecutive days with ≥ 80% per-listing success rate across the user's products.
+4. Cross-retailer discovery finds at least one additional listing for at least 60% of products that exist at multiple supported retailers (acknowledging some products genuinely only exist at one).
+5. A user receives a daily digest email containing accurate price-drop and back-in-stock events when those events occur.
+6. The 30-day trend chip is visibly correct for products with ≥ 7 days of data.
+7. The display-currency switcher correctly converts and renders for CAD/USD/EUR/GBP.
+8. A user can archive, restore, delete, and re-categorize products.
+9. A user can delete their account and verify (via Supabase dashboard) that their data is gone.
 
 ---
 
