@@ -1,6 +1,6 @@
 # Shopping Monitor — Product Requirements (V1)
 
-> **Status:** Draft v1.2 — reframed around the wishlist surface, AI categorization, design polish, revisit nudges, and dev-iteration cost guardrails.
+> **Status:** Draft v1.3 — clarified worker boundaries, fixed digest timing, data-model gaps, product-level price semantics, and first vertical-slice scope for AI-agent implementation.
 > **Owner:** Product (you). **Audience:** Engineering, AI agents implementing the prototype.
 > **Last updated:** 2026-06-13.
 
@@ -87,6 +87,22 @@ There is **one product** in V1 — it serves both personas identically. There is
 | Local retailer fixture/mock harness so engineers and agents iterate without hitting real retailers                             | Recording new fixtures automatically from production scrapes        |
 
 
+### 4.1 Implementation sequencing boundary
+
+The PRD describes **complete V1**, but implementation should start with a **first integrated vertical slice** before parallel feature expansion. This slice is not a smaller product vision; it is the minimum path that proves the architecture end-to-end.
+
+**First integrated vertical slice:**
+
+- Google sign-in, profile bootstrap, and private user-owned data access.
+- Core schema/migrations/RLS for profiles, products, listings, price history, notifications, and FX cache.
+- Add-by-URL, product detail, dashboard, archive/restore/delete, category assignment, notification threshold, and fixture-backed scraping for **one established retailer**.
+- Initial recommended retailer: `bestbuy_ca`, because it is a large Canadian retailer with enough bot-protection and structured-data variability to validate the scraper benchmark, fixture harness, and fallback strategy before expanding the registry.
+- `SCRAPER_MODE=fixtures` works in local dev, CI, and automated agent tests with no outbound retailer requests.
+- Scheduled scrape and fixed-time digest paths run against fixture data in tests.
+
+After this slice is working, agents can expand in parallel across UI polish, remaining notification workflows, LLM discovery/categorization hardening, additional retailer modules, drift detection, deployment docs, and fixture coverage. Completing a reliable app with fewer retailers is higher priority than shipping many flaky retailer modules.
+
+
 ---
 
 ## 5. User Stories
@@ -132,7 +148,7 @@ Each story below is a V1 commitment.
   - **Green** "Down in the last 30 days"
   - **Neutral** "Same in the last 30 days" (also the default when we have less than 7 days of data)
   - **Red** "Up in the last 30 days"
-- **U-TREND-2.** The trend is computed off the **best listing's** price history over a rolling 30-day window (see §7.4 for the exact rule).
+- **U-TREND-2.** The trend is computed from the product-level daily minimum price over a rolling 30-day window (see §7.4 for the exact rule).
 
 ### 5.6 Notifications
 
@@ -157,7 +173,7 @@ Each story below is a V1 commitment.
 
 ### 5.9 Settings
 
-- **U-SET-1.** Settings include: display currency, global default notification threshold %, daily email digest on/off, time zone (for digest scheduling), light/dark theme toggle, revisit-prompt cadence + on/off, and "Delete my account."
+- **U-SET-1.** Settings include: display currency, global notifications on/off, global default notification threshold %, daily email digest on/off, light/dark theme toggle, revisit-prompt cadence + on/off, and "Delete my account."
 
 ### 5.10 Revisit prompts (healthy-consumerism nudges)
 
@@ -182,7 +198,7 @@ V1 frontend routes (all behind auth except `/login`):
 | `/products/:id/variants` | Variant picker for "Needs input" products                                                            |
 | `/notifications`         | Bell-icon page; full notification log                                                                |
 | `/history`               | Archived products                                                                                    |
-| `/settings`              | Global preferences (currency, threshold, digest, theme, revisit prompts, time zone) + delete account |
+| `/settings`              | Global preferences (currency, threshold, digest, theme, revisit prompts) + delete account |
 
 
 A persistent top nav contains: app title/logo, "Add Product" CTA, currency switcher, bell icon (notifications), avatar menu (settings, sign out).
@@ -233,7 +249,7 @@ Runs once, asynchronously, after a product is added.
   - Brand exact match (weight 0.2)
   - Variant attribute exact match across all attributes (weight 0.3)
   - Image perceptual-hash similarity (weight 0.1, optional in V1 — drop to 0 and renormalize weights if it adds complexity)
-5. **Auto-add** candidates with score ≥ 0.85, up to a cap of 4 non-primary listings (5 total per product). **Queue** candidates with 0.6 ≤ score < 0.85 to the product's "Needs review" list. **Discard** the rest.
+5. **Auto-add** candidates with score ≥ 0.85, up to a cap of 4 non-primary listings (5 total per product). **Queue** candidates with 0.6 ≤ score < 0.85 to the product's "Needs review" list. **Discard** the rest. Needs-review candidates are stored as `product_listings` rows with `review_status='needs_review'` and count toward the 5-listing cap until accepted, rejected, or deleted.
 6. Stop scoring more candidates as soon as the auto-add cap is hit.
 7. Mark the discovery job complete on the `products` row and write an in-app notification to the user.
 
@@ -243,21 +259,23 @@ Runs once, asynchronously, after a product is added.
 
 ### 7.4 Price monitoring & trend
 
-**Daily scrape job (GitHub Actions cron, ~04:00 America/Toronto):**
+**Daily scrape job (GitHub Actions cron, `0 8 * * *` UTC, ~04:00 America/Toronto):**
 
 1. Fetch every active `product_listings` row.
 2. For each, invoke the appropriate retailer scraper (or the generic scraper).
 3. Persist a `price_history` row with the observed price, stock state, and timestamp.
 4. Update the listing's `last_known_price_cents`, `is_in_stock`, `last_scraped_at`, and `scrape_status` columns.
 5. Increment `scrape_failure_count` on failure; reset to 0 on success.
-6. After all scrapes finish, evaluate notification triggers (§7.5).
-7. Evaluate revisit-prompt triggers (§7.10) for every active product whose owner has revisit prompts enabled.
-8. Send daily digest emails to users with at least one new event since their last digest.
+6. After all scrapes finish, evaluate notification triggers (§7.5) and write in-app notification rows.
+7. Evaluate revisit-prompt triggers (§7.10) for every active product whose owner has revisit prompts enabled, writing in-app notification rows.
+8. Stop. Email sending is handled by the separate digest job below so users receive messages at a predictable morning time rather than immediately after the scrape.
 
 **Manual refresh:**
-Endpoint `POST /api/products/:id/refresh`. Cooldown = last `refreshed_at` on product must be ≥ 1 hour ago. Runs the same scrape logic synchronously across the product's listings, returns updated state, evaluates notification triggers for that product only.
+Endpoint `POST /api/products/:id/refresh`. Cooldown = `products.last_refresh_at` must be ≥ 1 hour ago. Runs the same scrape logic synchronously across the product's listings, returns updated state, evaluates notification triggers for that product only.
 
-**Trend computation:** For each product, take the lowest in-stock price observed each day over the past 30 days from the product's best listing (whichever listing currently has the lowest price). Compute:
+**Product-level daily minimum:** For each product/day, compute the lowest in-stock CAD price observed across eligible listings (`review_status IN ('auto_added', 'accepted')`; primary listings use `accepted`). Needs-review and rejected listings do not affect the displayed best price, trend, thresholds, or notifications until accepted, although needs-review rows still count toward the listing cap.
+
+**Trend computation:** For each product, use the product-level daily minimum over the past 30 days. Compute:
 
 - `delta_pct = (price_today - price_30d_ago) / price_30d_ago`
 
@@ -274,13 +292,15 @@ Evaluated after every successful scrape (scheduled or manual).
 
 **Price-drop trigger:**
 
-- Let `baseline = MAX(price_history) over the trailing 30 days, restricted to in-stock observations` for the product's currently-best listing.
-- Let `current = newest observed in-stock price` for that listing.
+- Skip entirely if `profiles.notifications_enabled = false` or `products.notifications_enabled = false`.
+- Let `baseline = MAX(product-level daily minimum)` over the trailing 30 days, restricted to in-stock observations from accepted/auto-added/primary listings.
+- Let `current = newest product-level daily minimum` for the product.
 - If `(baseline - current) / baseline ≥ product.notification_threshold_pct / 100`, fire a `price_drop` notification.
 - **Debounce:** suppress if a `price_drop` notification was already created for this product in the last 24 hours.
 
 **Back-in-stock trigger:**
 
+- Skip entirely if `profiles.notifications_enabled = false` or `products.notifications_enabled = false`.
 - Fire a `back_in_stock` notification when any listing's `is_in_stock` transitions from `false` to `true`.
 - Debounce: suppress if a `back_in_stock` notification was already created for the same listing in the last 24 hours.
 
@@ -294,7 +314,7 @@ Evaluated after every successful scrape (scheduled or manual).
 
 ### 7.6 Email digest
 
-- Sent at most once per day per user, at user-local 08:00 (default America/Toronto unless user changes time zone).
+- Sent at most once per day, by a separate GitHub Actions cron at `0 14 * * *` UTC. This is a fixed UTC time chosen to land in the Pacific morning; V1 does not implement timezone or daylight-saving adjustments.
 - Provider: **Resend** free tier (see §10.4). Pluggable behind a `MailService` interface so providers can swap.
 - Template: plain text + simple HTML. Lists each event with product title, change summary, and a deep link back to the app.
 - Skipped entirely if the user has zero unread notifications since the previous digest, or if they have email notifications disabled.
@@ -306,8 +326,8 @@ Evaluated after every successful scrape (scheduled or manual).
 - If the dropdown is left on "Auto", category assignment runs **synchronously** as part of the add request, in this priority order:
   1. **LLM categorizer** (Gemini Flash via `LlmProvider`, see §10.7) given the scraped `title`, `brand`, `retailer_slug`, and any retailer breadcrumbs. The prompt hard-instructs the model to choose exactly one of the 5 slugs and return a JSON object so the response is trivially parseable.
   2. **Heuristic fallback** (retailer-slug default → breadcrumb keyword match → title/brand keyword match → retailer's mapped category) if the LLM call fails, times out, returns an invalid slug, or quota is exhausted.
-  3. `**other`** if even the heuristic can't classify.
-- The whole categorization step is wrapped in a **1.5s timeout** so the add flow stays under 1s end-to-end whenever the LLM is healthy and degrades gracefully to the heuristic on slow days. The UI shows a brief loading shimmer on the category chip while the response resolves.
+  3. **`other`** if even the heuristic can't classify.
+- The whole categorization step is wrapped in a **1.5s timeout** so the add flow stays responsive and degrades gracefully to the heuristic on slow days. The UI shows a brief loading shimmer on the category chip while the response resolves.
 - The user can re-categorize from the product detail page at any time. Manual overrides are sticky — the categorizer never reruns automatically and won't undo a manual choice.
 - All category-assignment logic lives behind a single `Categorizer` interface so swapping providers or adding a "suggest with confidence" mode in V2 is a no-schema change.
 
@@ -358,16 +378,18 @@ Runs once per day after the daily scrape, before digest send.
 - The user must have `profiles.revisit_prompts_enabled = true`.
 - A product is only ever revisited if no `revisit_on_sale` or `revisit_stale` notification has fired for it in the previous 30 days (debounce).
 
-`**revisit_on_sale` trigger:**
+**`revisit_on_sale` trigger:**
 
 - `now() - products.created_at >= 30 days`.
-- The product's best-listing `last_known_price_cents` is at least 15% below the 30-day rolling baseline (same baseline definition as §7.5 price-drop).
-- The product's best listing is currently in stock.
+- `profiles.revisit_on_sale_enabled = true`.
+- The product's current product-level daily minimum is at least 15% below the 30-day rolling baseline (same baseline definition as §7.5 price-drop).
+- At least one accepted/auto-added/primary listing contributing to the product-level daily minimum is currently in stock.
 - The user has not already received a regular `price_drop` notification for this product in the last 7 days (so we don't double-ping on the same event).
 
-`**revisit_stale` trigger:**
+**`revisit_stale` trigger:**
 
 - `now() - products.created_at >= profiles.revisit_stale_days` (default 30).
+- `profiles.revisit_stale_enabled = true`.
 - `products.last_user_interaction_at IS NULL` OR `now() - products.last_user_interaction_at >= profiles.revisit_stale_days`.
 - "Interaction" = manual refresh, threshold edit, category change, listing accept/reject, archive/restore, or mark-read of any notification for this product.
 - Stale prompts are mutually exclusive with `revisit_on_sale` on the same product on the same day; if both would fire, only `revisit_on_sale` is created.
@@ -399,9 +421,8 @@ All new tables live in `public` with **RLS enabled** per `docs/DATABASE.md`. Mig
 | `user_id`                  | `uuid` PK     | References `auth.users(id)` ON DELETE CASCADE                                                       |
 | `display_currency`         | `text`        | Default `'CAD'`. Allowed: CAD, USD, EUR, GBP.                                                       |
 | `default_threshold_pct`    | `int`         | Default `20`. Range 1–95.                                                                           |
+| `notifications_enabled`    | `bool`        | Default `true`. Master switch for in-app notifications and notification-trigger evaluation.         |
 | `email_digest_enabled`     | `bool`        | Default `true`.                                                                                     |
-| `digest_local_hour`        | `int`         | Default `8`.                                                                                        |
-| `time_zone`                | `text`        | IANA tz, default `'America/Toronto'`.                                                               |
 | `theme`                    | `text`        | `'light'` or `'dark'`. Default `'light'`. Drives the `dark` class on the frontend `<html>` element. |
 | `revisit_prompts_enabled`  | `bool`        | Default `true`. Master switch for §7.10.                                                            |
 | `revisit_on_sale_enabled`  | `bool`        | Default `true`. Disables only the `revisit_on_sale` prompt type.                                    |
@@ -445,9 +466,11 @@ All new tables live in `public` with **RLS enabled** per `docs/DATABASE.md`. Mig
 | `retailer_slug`            | `text`         | e.g. `amazon_ca`, `nike_ca`, `generic`               |
 | `url`                      | `text`         | the canonical product URL                            |
 | `variant_attributes`       | `jsonb`        | e.g. `{"size":"10","color":"white"}`                 |
+| `available_variants`       | `jsonb`        | nullable list of variant combinations from the latest scrape; used by the variant picker when `products.status='needs_input'` |
+| `scrape_snapshot`          | `jsonb`        | nullable normalized raw fields from the latest successful scrape for debugging/fixture parity, excluding full HTML |
 | `is_primary`               | `bool`         | true for the URL the user pasted                     |
 | `match_confidence`         | `numeric(4,3)` | nullable; only set for discovered listings           |
-| `review_status`            | `text`         | `auto_added`, `needs_review`, `accepted`, `rejected` |
+| `review_status`            | `text`         | `auto_added`, `needs_review`, `accepted`, `rejected`; primary listings use `accepted` |
 | `last_known_price_cents`   | `int`          | nullable; CAD cents                                  |
 | `is_in_stock`              | `bool`         | nullable until first scrape                          |
 | `last_scraped_at`          | `timestamptz`  |                                                      |
@@ -455,6 +478,8 @@ All new tables live in `public` with **RLS enabled** per `docs/DATABASE.md`. Mig
 | `scrape_failure_count`     | `int`          | default 0                                            |
 | `created_at`, `updated_at` | `timestamptz`  |                                                      |
 
+
+Needs-review listings count toward the 5-listing cap but are excluded from best-price, trend, threshold, digest, and stock notification calculations until accepted. Rejected listings remain for audit/debugging unless hard-deleted, but never count toward user-facing price calculations.
 
 **RLS:** Pattern A via join on `products.user_id`.
 
@@ -526,6 +551,7 @@ REST under `/api`, all behind auth (Supabase JWT).
 | `DELETE` | `/api/products/:id/listings/:listing_id`        | Remove a non-primary listing                                                |
 | `GET`    | `/api/notifications`                            | Paginated notification list                                                 |
 | `POST`   | `/api/notifications/mark-read`                  | Bulk mark-read                                                              |
+| `POST`   | `/api/notifications/:id/action`                 | Handle one-click notification actions such as revisit `keep` or `archive`   |
 | `GET`    | `/api/profile`                                  | Current user's settings                                                     |
 | `PATCH`  | `/api/profile`                                  | Update settings                                                             |
 | `DELETE` | `/api/account`                                  | Delete account + all data                                                   |
@@ -573,10 +599,12 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 - **DB client:** `supabase-py` (service-role for backend writes; PostgREST-via-RLS optional).
 - **Hosting:** Render free tier (web service). The free tier sleeps after 15 minutes idle; first request after sleep is slow. Acceptable for V1.
 
-### 10.3 Background scraping
+### 10.3 Background jobs
 
-- **Runner:** GitHub Actions cron workflow under `.github/workflows/scrape.yml`, scheduled at `0 8 * * `* UTC (≈ 04:00 America/Toronto).
-- **Action runs:** a Python entrypoint in `backend/workers/scrape_all.py` that calls `POST /internal/jobs/scrape-all` on the deployed backend (`X-Worker-Token` from `WORKER_TOKEN` secret). The backend does the actual scraping inline using its own scraper modules — this keeps scraper code in one place.
+- **Daily scrape runner:** GitHub Actions cron workflow under `.github/workflows/scrape.yml`, scheduled at `0 8 * * *` UTC (≈ 04:00 America/Toronto).
+- **Daily digest runner:** GitHub Actions cron workflow under `.github/workflows/digest.yml`, scheduled at `0 14 * * *` UTC. This is a fixed UTC time chosen to land in the Pacific morning and keeps V1 simple by avoiding timezone/daylight-saving scheduling.
+- **Action entrypoints:** small Python scripts in `backend/workers/` call the deployed backend's internal endpoints (`POST /internal/jobs/scrape-all`, `POST /internal/jobs/send-digests`) with `X-Worker-Token` from `WORKER_TOKEN`.
+- **Business logic location:** the real scrape, notification, revisit, and digest logic lives in importable backend service modules used by the FastAPI internal endpoints. Worker scripts stay thin wrappers around HTTP calls so deployed jobs exercise the same path as production, while unit tests can call service modules directly with fixtures.
 - **Repository visibility:** public GitHub repository is preferred if Actions minutes ever become a free-tier constraint. A private repository is acceptable while included free minutes comfortably cover once-daily jobs.
 - **Headless browser for protected sites:** `playwright` in the backend, used only by retailers that need JavaScript execution or cannot be handled by structured data / `curl_cffi`. Render free tier can run Playwright (with installed deps in the build step), but cold starts and memory pressure make it a fallback, not the default.
 - **Rationale for this split:** GitHub Actions provides free scheduling with visible workflow logs; the backend hosts the actual logic and DB credentials. This avoids duplicating scraping code between an Actions runner and the API.
@@ -584,7 +612,7 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 ### 10.4 Email
 
 - **Provider:** Resend free tier (3,000 emails/month, 100/day). Requires a verified domain or use Resend's `onboarding@resend.dev` sandbox sender for V1 if no domain is wired up.
-- **Sent by:** the daily digest worker (`POST /internal/jobs/send-digests`), triggered by a second GitHub Actions cron at `0 12 * * `* UTC (≈ 08:00 America/Toronto). For users in other time zones, the worker filters by `profiles.digest_local_hour` and `profiles.time_zone` and only sends to users whose local time matches.
+- **Sent by:** the daily digest worker (`POST /internal/jobs/send-digests`), triggered by the GitHub Actions cron in §10.3. V1 sends one fixed Canada-wide morning digest and does not implement per-user timezone scheduling.
 
 ### 10.5 FX rates
 
@@ -630,11 +658,12 @@ GEMINI_API_KEY=
 RESEND_API_KEY=
 WORKER_TOKEN=          # shared secret for /internal/jobs/* endpoints
 APP_BASE_URL=          # used in email links
+SCRAPER_MODE=fixtures  # fixtures|live|record; fixtures in local dev/CI, live in production
 ```
 
 `frontend/.env.example` is unchanged from the scaffold.
 
-GitHub Actions secrets needed: `WORKER_TOKEN`, `BACKEND_BASE_URL`.
+GitHub Actions secrets needed: `WORKER_TOKEN`, `BACKEND_BASE_URL`. CI sets `SCRAPER_MODE=fixtures` and must not require retailer network access.
 
 ### 10.9 Development load assumptions
 
@@ -731,7 +760,7 @@ Each natively supported retailer needs a scraper module exposing a `scrape(url) 
 - **Security:**
   - RLS on every `public` table.
   - Service-role key never reaches the frontend.
-  - Internal `/internal/jobs/`* endpoints require `X-Worker-Token`.
+  - Internal `/internal/jobs/*` endpoints require `X-Worker-Token`.
   - All outbound user-facing links in emails go to the deployed app, not to retailers directly (to avoid affiliate-link-injection accusations).
 - **Privacy:** Account-delete erases all user data; aggregated price history for shared listings is also deleted in V1 (we don't yet have a cross-user shared catalog).
 - **Observability:** structured logs from backend (stdout JSON), GitHub Actions workflow logs for the cron worker. No paid telemetry in V1.

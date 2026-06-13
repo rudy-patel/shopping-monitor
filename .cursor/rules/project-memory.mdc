@@ -3,13 +3,21 @@ description: Project history and known issues for shopping-monitor
 alwaysApply: true
 ---
 
-# Project Memory
+# Project Context
 
-Before making changes, read **MEMORY.md** (project root) for:
+Before making feature changes, read these files in order:
+
+1. **MEMORY.md** (project root) for:
 - Chronological project history and completed work
 - Files changed per feature
 - Known bugs and their solutions (with doc/code references)
+2. **docs/PRD.md** for product scope, V1 boundaries, user stories, data model, and non-goals.
+3. **AGENTS.md** for local setup, test commands, environment variables, and Cursor Cloud gotchas.
+
+Use the PRD as the source of truth for behavior. If implementation details are ambiguous, update the PRD/docs before building broad feature work.
 
 **Database:** Any new table in `public` must enable **RLS** in the migration (see `docs/DATABASE.md` — backend-only tables can use RLS with no `authenticated` policies). Never ship new `public` tables without RLS.
 
-Include it in context via **@MEMORY.md** when starting a new task.
+**Scrapers:** Automated tests, CI, and local agent work default to `SCRAPER_MODE=fixtures`. Do not hit live retailer URLs unless the task explicitly requires live benchmarking, drift checking, or fixture recording.
+
+Include these files in context via **@MEMORY.md**, **@docs/PRD.md**, and **@AGENTS.md** when starting feature work.
