@@ -27,7 +27,7 @@ Open **http://localhost:3000**.
 |------|---------|
 | `backend/` | FastAPI API (`uvicorn main:app`) |
 | `frontend/` | React/Vite UI |
-| `docs/` | Auth, database, deployment guides |
+| `docs/` | PRD, roadmap, auth, database, and deployment guides |
 | `AGENTS.md` | Instructions for AI agents / Cursor Cloud |
 | `MEMORY.md` | Chronological project history for agents |
 | `.cursor/rules/` | Cursor project rules |
@@ -45,6 +45,7 @@ See `AGENTS.md` for lint/test commands and environment details.
 ## Documentation
 
 - [Product Requirements (V1)](docs/PRD.md)
+- [Development Roadmap](docs/ROADMAP.md)
 - [Database conventions & RLS](docs/DATABASE.md)
 - [Authentication](docs/AUTHENTICATION.md)
 - [Deployment (Vercel + Render + Supabase)](docs/DEPLOYMENT.md)
