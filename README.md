@@ -17,7 +17,7 @@ Open **http://localhost:3000**.
 
 ## Prerequisites
 
-- **Python 3.11+** recommended
+- **Python 3.12** recommended
 - **Node.js 20+** (see `.nvmrc`)
 - **Supabase** project (optional until you need persistence/auth)
 

@@ -47,6 +47,21 @@ ALTER TABLE my_table ENABLE ROW LEVEL SECURITY;
 
 Use Pattern B when all reads/writes go through the API and the browser must not query the table directly.
 
+### Supabase schema checklist
+
+Before opening a PR that adds or changes Supabase schema:
+
+1. Enable RLS on every new `public` table in the same migration.
+2. Choose the narrowest access model:
+   - Pattern A for user-owned rows the browser/API may read by user.
+   - Pattern B for backend-only tables such as caches, job state, advisory-lock helpers, or operational metadata.
+3. Never use `user_metadata` for authorization decisions. Use `auth.uid()`, app-owned tables, or trusted `app_metadata` only when necessary.
+4. Keep `SUPABASE_SERVICE_ROLE_KEY` server-only; frontend code may only use the publishable/anon key.
+5. Add indexes for every expected ownership join and high-volume filter (`user_id`, `product_id`, `listing_id`, status fields, and timestamp windows).
+6. Use `TIMESTAMPTZ` for timestamps and integer cents for money.
+7. If creating views in an exposed schema, use `security_invoker = true` where supported or keep the view out of exposed schemas.
+8. Update this document's table list and migration list in the same change.
+
 ---
 
 ## Extending the Schema

@@ -4,13 +4,20 @@
 
 ### Overview
 
-**Shopping Monitor** — **Python/FastAPI** backend (port 8000) and **React/Vite/TypeScript** frontend (port 3000). Data lives in a remote **Supabase** instance (no local database). See `README.md` for full documentation.
+**Shopping Monitor** — **Python/FastAPI** backend (port 8000) and **React/Vite/TypeScript** frontend (port 3000). Data lives in a remote **Supabase** instance (no local database). See `README.md` and `docs/PRD.md` for full documentation.
+
+Before feature work, read `MEMORY.md`, `docs/PRD.md`, and this file. The PRD is the source of truth for V1 scope, non-goals, data model, worker boundaries, and the first integrated vertical slice.
 
 ### Environment variables
 
-Two `.env` files are needed (not committed). Backend secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`) should be injected as environment variables in the Cursor Cloud secrets panel when using Cloud Agents.
+Two `.env` files are needed (not committed). Backend secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`, `RESEND_API_KEY`, `WORKER_TOKEN`) should be injected as environment variables in the Cursor Cloud secrets panel when using Cloud Agents.
 
-- `backend/.env` — Supabase credentials + `AUTH_BYPASS_ENABLED=true` for local dev (optional until auth is implemented).
+- `backend/.env` — Supabase credentials + `AUTH_BYPASS_ENABLED=true` for local dev (optional until auth is implemented), plus optional V1 service vars:
+  - `GEMINI_API_KEY` — LLM discovery/categorization provider key.
+  - `RESEND_API_KEY` — daily digest email provider key.
+  - `WORKER_TOKEN` — shared secret required by `/internal/jobs/*` endpoints.
+  - `APP_BASE_URL` — deployed frontend origin used in email links.
+  - `SCRAPER_MODE=fixtures` — local/CI default; valid values: `fixtures`, `live`, `record`.
 - `frontend/.env` — `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_API_URL=http://localhost:8000`.
 
 See `backend/.env.example` and `frontend/.env.example` for placeholders.
@@ -38,6 +45,8 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 | Frontend build | `cd frontend && npm run build` | `tsc && vite build` |
 | All unit tests | `make test` | Backend pytest (`-m "not integration"`) + frontend vitest |
 
+CI and local automated tests must run scraper code with `SCRAPER_MODE=fixtures` so no test hits live retailer URLs. Use `live` only for explicit benchmark/drift tasks and `record` only when intentionally capturing fixtures.
+
 ### Gotchas
 
 - **Python venv is mandatory.** Always `source backend/venv/bin/activate` before running any backend Python command. The venv is at `backend/venv/`.
@@ -45,3 +54,4 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 - **Integration tests** use `@pytest.mark.integration` and are excluded from `make test` / `make test-backend`. Run `make test-integration` or `pytest -m integration` with Supabase env and migrations applied.
 - **No local database.** All persistence is via remote Supabase.
 - **Auth bypass:** Set `AUTH_BYPASS_ENABLED=true` in `backend/.env` for local development without real Supabase auth (when auth routes exist).
+- **Supabase security:** Never expose `SUPABASE_SERVICE_ROLE_KEY` to frontend code. Every new `public` table must enable RLS in the same migration and be documented in `docs/DATABASE.md`.
