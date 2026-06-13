@@ -1,16 +1,16 @@
 # Shopping Monitor — Product Requirements (V1)
 
-> **Status:** Draft v1.1 — revised technical direction for the first working prototype.
+> **Status:** Draft v1.2 — reframed around the wishlist surface, AI categorization, design polish, revisit nudges, and dev-iteration cost guardrails.
 > **Owner:** Product (you). **Audience:** Engineering, AI agents implementing the prototype.
-> **Last updated:** 2026-06-11.
+> **Last updated:** 2026-06-13.
 
 ---
 
 ## 1. Overview
 
-**Shopping Monitor** is a personal-use web app that lets a user paste a product URL from a Canadian online store and have the app monitor its price (and stock) over time, automatically find the same product at up to four other retailers for side-by-side comparison, surface meaningful price drops and back-in-stock events in a daily summary, and organize everything into a tidy categorized shopping list.
+**Shopping Monitor** is a personal-use web app that gives a user **one organized home for everything they want to buy**. Paste a product URL, and the app slots the item into the right category for you, watches its price and stock over time, surfaces the same product at up to four other Canadian retailers, and nudges you when something is genuinely worth buying — or quietly suggests letting go of items you've outgrown.
 
-The goal is to make the user **confident they are paying a fair price for things they want**, without having to manually check stores or scroll deal sites.
+The product's pitch is **practicing healthy consumerism**: consolidate every "I want this" thought into one calm list, wait for the right sale, and avoid impulse purchases. The app is not a coupon firehose; it's a wishlist with price intelligence wrapped around it.
 
 V1 is a free, low-traffic prototype optimized for a single primary user plus a handful of friends — not a public consumer product. We pay nothing for infrastructure, scraping, LLM, FX, or email in this phase.
 
@@ -20,15 +20,17 @@ V1 is a free, low-traffic prototype optimized for a single primary user plus a h
 
 ### 2.1 Vision
 
-A user pastes a URL for a thing they want. The app quietly takes care of the rest — finding the best price across retailers, watching for sales, telling them when something is worth buying — and presents a clean, organized "wishlist" of everything they're tracking.
+A user pastes a URL for a thing they want. The app quietly takes care of the rest — sorting the item into the right bucket, watching its price across retailers, telling the user when it's genuinely on sale, and gently checking in on items that have been on the list a long time. The result is a clean, organized wishlist of everything they're tracking that practices healthy consumerism by default.
 
 ### 2.2 V1 goals (in priority order)
 
-1. **Reliable price tracking** for a curated set of Canadian retailers, plus best-effort tracking of any other pasted URL.
-2. **Multi-retailer comparison** on add: surface up to 4 alternates for the same product when they exist.
-3. **Honest sale signal**: a clear, color-coded indicator of whether a product's price has trended down, up, or stayed flat over the past 30 days, plus opt-in notifications when a price meaningfully drops.
-4. **Tidy organization** of the user's shopping list into a small fixed set of categories.
-5. **Frictionless sign-in** with Google so the user (and friends) can be onboarded in seconds.
+1. **One organized home for things you want.** A self-organizing wishlist where pasted URLs land in the right category automatically (with manual override) and are easy to scan and tend over time.
+2. **Reliable price tracking** for a curated set of Canadian retailers, plus best-effort tracking of any other pasted URL.
+3. **Multi-retailer comparison** on add: surface up to 4 alternates for the same product when they exist.
+4. **Honest sale signal**: a clear, color-coded indicator of whether a product's price has trended down, up, or stayed flat over the past 30 days, plus opt-in notifications when a price meaningfully drops.
+5. **Healthy-consumerism nudges.** Periodic revisit prompts that either celebrate a real sale on an old wishlist item or invite the user to let it go if it's been sitting unused.
+6. **A clean, modern, snappy feel.** Light by default, shadcn/ui aesthetic, optimistic interactions, instant-feeling navigation.
+7. **Frictionless sign-in** with Google so the user (and friends) can be onboarded in seconds.
 
 ### 2.3 Non-goals for V1 (explicit)
 
@@ -41,7 +43,6 @@ The following are deliberately **out of scope** for V1. They are documented in �
 - Sharing or collaborative lists between users.
 - Public registration / anti-abuse / terms of service / GDPR tooling beyond basic auth + delete-my-account.
 - Periodic re-discovery of new retailers for an existing product (one-shot at add time only).
-- AI auto-categorization (manual category selection with an LLM-friendly hook for V2).
 - Variant "families" — one product entry equals one specific variant (size + color, etc.).
 - Paid data sources (hosted scraping APIs, premium LLM APIs, exact landed-cost services).
 
@@ -61,25 +62,30 @@ There is **one product** in V1 — it serves both personas identically. There is
 
 ## 4. V1 Scope Summary
 
-| In scope | Out of scope |
-|---|---|
-| Google SSO sign-in via Supabase | Email/password, magic links, other SSO |
-| Per-user private shopping list | Shared/collaborative lists |
-| Add product by pasting URL | Search, browser extension, share-sheet |
-| Variant inference from URL/page | Variant family grouping |
-| "Needs input" flag when variant unclear | Auto-guessing variants |
-| Daily scheduled price + stock scrape | Real-time / sub-daily monitoring |
-| Manual "refresh now" button (1-hour cooldown per product) | Unlimited manual refresh |
-| Agentic cross-retailer discovery, one-shot at add | Periodic re-discovery |
-| Up to 5 listings per product (1 user-pasted + up to 4 discovered) | Unlimited listings per product |
-| Auto-add high-confidence matches; queue medium-confidence for review | Auto-add everything |
-| 30-day price trend chip (down / same / up) with color coding | Historical price chart, MSRP comparison, cross-retailer rating |
-| Per-product notification threshold (default 20%, configurable) | Per-listing thresholds, smart predictions |
-| Daily digest email + persistent in-app notification list | Per-event emails, push/SMS |
-| Back-in-stock notifications (separate from price drops) | Real-time stock alerts |
-| 5 fixed categories: Clothing / Shoes / Home / Tech / Other | Custom user categories, AI auto-categorization |
-| Archive (instead of delete) on purchase, with a history view | Detailed purchase analytics |
-| CAD as canonical currency; cosmetic display-currency switcher with free FX API | Multi-currency monitoring or thresholds |
+
+| In scope                                                                                                                       | Out of scope                                                        |
+| ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
+| Google SSO sign-in via Supabase                                                                                                | Email/password, magic links, other SSO                              |
+| Per-user private shopping list                                                                                                 | Shared/collaborative lists                                          |
+| Add product by pasting URL                                                                                                     | Search, browser extension, share-sheet                              |
+| Variant inference from URL/page                                                                                                | Variant family grouping                                             |
+| "Needs input" flag when variant unclear                                                                                        | Auto-guessing variants                                              |
+| Daily scheduled price + stock scrape                                                                                           | Real-time / sub-daily monitoring                                    |
+| Manual "refresh now" button (1-hour cooldown per product)                                                                      | Unlimited manual refresh                                            |
+| Agentic cross-retailer discovery, one-shot at add                                                                              | Periodic re-discovery                                               |
+| Up to 5 listings per product (1 user-pasted + up to 4 discovered)                                                              | Unlimited listings per product                                      |
+| Auto-add high-confidence matches; queue medium-confidence for review                                                           | Auto-add everything                                                 |
+| 30-day price trend chip (down / same / up) with color coding                                                                   | Historical price chart, MSRP comparison, cross-retailer rating      |
+| Per-product notification threshold (default 20%, configurable)                                                                 | Per-listing thresholds, smart predictions                           |
+| Daily digest email + persistent in-app notification list                                                                       | Per-event emails, push/SMS                                          |
+| Back-in-stock notifications (separate from price drops)                                                                        | Real-time stock alerts                                              |
+| 5 fixed categories: Clothing / Shoes / Home / Tech / Other, with **AI auto-categorization** on add (manual override available) | Custom user categories beyond the fixed 5; AI inventing new buckets |
+| Archive (instead of delete) on purchase, with a history view                                                                   | Detailed purchase analytics                                         |
+| CAD as canonical currency; cosmetic display-currency switcher with free FX API                                                 | Multi-currency monitoring or thresholds                             |
+| Revisit prompts: "still want this, it's on sale?" and "let this go?" for old wishlist items                                    | Behavioral analytics, in-depth purchase coaching                    |
+| Light + dark theme with toggle in settings                                                                                     | System-theme auto-detection (V2)                                    |
+| Local retailer fixture/mock harness so engineers and agents iterate without hitting real retailers                             | Recording new fixtures automatically from production scrapes        |
+
 
 ---
 
@@ -102,6 +108,7 @@ Each story below is a V1 commitment.
 - **U-ADD-5.** If the URL is from a retailer **not** on our supported list, the app still creates a tracked product using a best-effort generic scraper, and labels the listing "Generic scraper — may be unreliable."
 - **U-ADD-6.** Immediately after I add a product, the app kicks off background cross-retailer discovery. I see a "Looking for other retailers…" indicator on the product card.
 - **U-ADD-7.** When discovery completes, high-confidence matches are added automatically, medium-confidence matches go into a **"Needs review"** list under the product, and I receive an in-app notification telling me discovery finished.
+- **U-ADD-8.** When I add a product, the app puts it into one of the 5 fixed categories automatically using AI on the page title, brand, and breadcrumbs. The Add Product modal also has an optional category dropdown (defaults to **"Auto"**) if I want to choose manually. I can re-categorize at any time from the product detail page.
 
 ### 5.3 Viewing & organizing products
 
@@ -150,7 +157,14 @@ Each story below is a V1 commitment.
 
 ### 5.9 Settings
 
-- **U-SET-1.** Settings include: display currency, global default notification threshold %, daily email digest on/off, time zone (for digest scheduling), and "Delete my account."
+- **U-SET-1.** Settings include: display currency, global default notification threshold %, daily email digest on/off, time zone (for digest scheduling), light/dark theme toggle, revisit-prompt cadence + on/off, and "Delete my account."
+
+### 5.10 Revisit prompts (healthy-consumerism nudges)
+
+- **U-REV-1.** When an item has been on my list for ≥ 30 days and is currently ≥ 15% below its 30-day baseline, I get a playful "still want this? it's on sale" prompt in the next daily digest and in-app, with one-click buttons to keep tracking or archive.
+- **U-REV-2.** When an item has been on my list for ≥ 30 days with no recent interaction (no manual refresh, no threshold edits, no acceptance of discovered listings), I get a gentle "let this go?" prompt with one-click archive.
+- **U-REV-3.** I can change the stale-prompt threshold (default 30 days), disable revisit prompts entirely, or disable just one of the two prompt types from settings.
+- **U-REV-4.** Revisit prompts never repeat for the same product within 30 days, and the tone of all prompt copy is playful, empathetic, and human — never robotic or guilt-trippy.
 
 ---
 
@@ -158,16 +172,18 @@ Each story below is a V1 commitment.
 
 V1 frontend routes (all behind auth except `/login`):
 
-| Route | Purpose |
-|---|---|
-| `/login` | Google SSO landing |
-| `/` | Dashboard, default = grouped by category |
-| `/list` | Flat list + filters |
-| `/products/:id` | Product detail (listings, history, settings, needs-review queue) |
-| `/products/:id/variants` | Variant picker for "Needs input" products |
-| `/notifications` | Bell-icon page; full notification log |
-| `/history` | Archived products |
-| `/settings` | Global preferences + delete account |
+
+| Route                    | Purpose                                                                                              |
+| ------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `/login`                 | Google SSO landing                                                                                   |
+| `/`                      | Dashboard, default = grouped by category                                                             |
+| `/list`                  | Flat list + filters                                                                                  |
+| `/products/:id`          | Product detail (listings, history, settings, needs-review queue)                                     |
+| `/products/:id/variants` | Variant picker for "Needs input" products                                                            |
+| `/notifications`         | Bell-icon page; full notification log                                                                |
+| `/history`               | Archived products                                                                                    |
+| `/settings`              | Global preferences (currency, threshold, digest, theme, revisit prompts, time zone) + delete account |
+
 
 A persistent top nav contains: app title/logo, "Add Product" CTA, currency switcher, bell icon (notifications), avatar menu (settings, sign out).
 
@@ -189,13 +205,14 @@ The "Add Product" CTA opens a modal with a single URL input. On submit, the moda
 
 **Adding flow (synchronous portion):**
 
-1. Frontend POSTs `{ url }` to `POST /api/products`.
+1. Frontend POSTs `{ url, category? }` to `POST /api/products`. `category` is optional — populated when the user explicitly picked a category in the Add modal; omitted (or `"auto"`) means defer to AI categorization.
 2. Backend identifies the retailer by matching `url` against the supported-retailer registry (see §11). If no match, falls back to the `generic` scraper.
-3. Backend invokes the retailer's scraper to extract: `title`, `brand`, `image_url`, `current_price_cad`, `currency_seen`, `is_in_stock`, `available_variants` (list of `{attribute_name, attribute_value}`), `selected_variant` (if inferable from URL).
-4. Backend creates one `products` row and one `product_listings` row (the user-pasted URL, marked `is_primary=true`).
-5. If `selected_variant` is unambiguous → product status = `active`. If multiple variants and URL is ambiguous → product status = `needs_input`; the variant picker route loads `available_variants` from the listing's stored snapshot.
-6. Backend records the first `price_history` snapshot.
-7. Backend enqueues the cross-retailer discovery job (see §7.3) and returns the new product to the client. The client navigates to `/products/:id`.
+3. Backend invokes the retailer's scraper to extract: `title`, `brand`, `image_url`, `current_price_cad`, `currency_seen`, `is_in_stock`, `available_variants` (list of `{attribute_name, attribute_value}`), `selected_variant` (if inferable from URL), and `breadcrumbs` (best-effort).
+4. **Categorization (§7.7)** runs synchronously: if the request supplied a category, use it (`category_source='manual'`); otherwise call the LLM categorizer with `title`/`brand`/`retailer_slug`/`breadcrumbs` under a 1.5s timeout, falling back to the heuristic (and ultimately `other`) if needed. The resolved `category` and `category_source` are set on the new product row.
+5. Backend creates one `products` row and one `product_listings` row (the user-pasted URL, marked `is_primary=true`).
+6. If `selected_variant` is unambiguous → product status = `active`. If multiple variants and URL is ambiguous → product status = `needs_input`; the variant picker route loads `available_variants` from the listing's stored snapshot.
+7. Backend records the first `price_history` snapshot.
+8. Backend enqueues the cross-retailer discovery job (see §7.3) and returns the new product to the client. The client navigates to `/products/:id`.
 
 **Currency on add:**
 If the source page shows a non-CAD price (e.g., a US-only retailer URL), the scraper marks `currency_seen` and the listing is **rejected** with a friendly error to the user: "This product appears to be priced in USD. V1 only supports Canadian listings." This guards the user from accidentally tracking US store URLs.
@@ -212,10 +229,10 @@ Runs once, asynchronously, after a product is added.
 2. The LLM returns up to 8 candidate URLs with a one-line justification each.
 3. For each candidate URL, backend runs the appropriate retailer scraper to extract `title`, `brand`, `variant_attributes`, `image_url`, `current_price_cad`, `is_in_stock`.
 4. Backend computes a **confidence score** for each candidate using:
-   - Title token Jaccard similarity vs. reference (weight 0.4)
-   - Brand exact match (weight 0.2)
-   - Variant attribute exact match across all attributes (weight 0.3)
-   - Image perceptual-hash similarity (weight 0.1, optional in V1 — drop to 0 and renormalize weights if it adds complexity)
+  - Title token Jaccard similarity vs. reference (weight 0.4)
+  - Brand exact match (weight 0.2)
+  - Variant attribute exact match across all attributes (weight 0.3)
+  - Image perceptual-hash similarity (weight 0.1, optional in V1 — drop to 0 and renormalize weights if it adds complexity)
 5. **Auto-add** candidates with score ≥ 0.85, up to a cap of 4 non-primary listings (5 total per product). **Queue** candidates with 0.6 ≤ score < 0.85 to the product's "Needs review" list. **Discard** the rest.
 6. Stop scoring more candidates as soon as the auto-add cap is hit.
 7. Mark the discovery job complete on the `products` row and write an in-app notification to the user.
@@ -234,7 +251,8 @@ Runs once, asynchronously, after a product is added.
 4. Update the listing's `last_known_price_cents`, `is_in_stock`, `last_scraped_at`, and `scrape_status` columns.
 5. Increment `scrape_failure_count` on failure; reset to 0 on success.
 6. After all scrapes finish, evaluate notification triggers (§7.5).
-7. Send daily digest emails to users with at least one new event since their last digest.
+7. Evaluate revisit-prompt triggers (§7.10) for every active product whose owner has revisit prompts enabled.
+8. Send daily digest emails to users with at least one new event since their last digest.
 
 **Manual refresh:**
 Endpoint `POST /api/products/:id/refresh`. Cooldown = last `refreshed_at` on product must be ≥ 1 hour ago. Runs the same scrape logic synchronously across the product's listings, returns updated state, evaluates notification triggers for that product only.
@@ -271,6 +289,8 @@ Evaluated after every successful scrape (scheduled or manual).
 - `discovery_complete` — written exactly once when cross-retailer discovery finishes.
 - `needs_input` — written exactly once when a product is created in `needs_input` status.
 - `scrape_failing` — written when a listing fails 3 consecutive scheduled scrapes; user can hide it from settings if noisy.
+- `revisit_on_sale` — written when a product on the list ≥ 30 days is currently ≥ 15% below its 30-day baseline. See §7.10.
+- `revisit_stale` — written when a product on the list ≥ `profiles.revisit_stale_days` days has no recent user interaction. See §7.10.
 
 ### 7.6 Email digest
 
@@ -281,10 +301,15 @@ Evaluated after every successful scrape (scheduled or manual).
 
 ### 7.7 Categories
 
-- Five fixed categories: `clothing`, `shoes`, `home`, `tech`, `other`.
-- On product creation, backend assigns a category using **retailer breadcrumbs first, keyword heuristics second, `other` last** (e.g., a Foot Locker product gets `shoes` because Foot Locker is mapped to `shoes`; a Best Buy laptop gets `tech` via breadcrumb keywords; everything that can't be classified goes to `other`).
-- Users can re-categorize manually at any time; this overrides the heuristic permanently.
-- LLM auto-categorization is **out of V1** but the column accepts arbitrary values and the heuristic function is isolated so we can swap it for an LLM call later without schema changes.
+- Five fixed categories: `clothing`, `shoes`, `home`, `tech`, `other`. AI is **not** allowed to invent new categories in V1; the categorizer must return exactly one of these five slugs.
+- The Add Product modal has an optional category dropdown that defaults to **"Auto"**. If the user explicitly picks a specific category, that wins and no LLM call is made.
+- If the dropdown is left on "Auto", category assignment runs **synchronously** as part of the add request, in this priority order:
+  1. **LLM categorizer** (Gemini Flash via `LlmProvider`, see §10.7) given the scraped `title`, `brand`, `retailer_slug`, and any retailer breadcrumbs. The prompt hard-instructs the model to choose exactly one of the 5 slugs and return a JSON object so the response is trivially parseable.
+  2. **Heuristic fallback** (retailer-slug default → breadcrumb keyword match → title/brand keyword match → retailer's mapped category) if the LLM call fails, times out, returns an invalid slug, or quota is exhausted.
+  3. `**other`** if even the heuristic can't classify.
+- The whole categorization step is wrapped in a **1.5s timeout** so the add flow stays under 1s end-to-end whenever the LLM is healthy and degrades gracefully to the heuristic on slow days. The UI shows a brief loading shimmer on the category chip while the response resolves.
+- The user can re-categorize from the product detail page at any time. Manual overrides are sticky — the categorizer never reruns automatically and won't undo a manual choice.
+- All category-assignment logic lives behind a single `Categorizer` interface so swapping providers or adding a "suggest with confidence" mode in V2 is a no-schema change.
 
 ### 7.8 Generic fallback scraper
 
@@ -323,6 +348,43 @@ Before implementing the full supported-retailer list, engineering must add a sma
 
 The retailer registry (§11) should store each retailer's selected default strategy and allowed fallbacks so the app can switch approaches without changing product/business logic.
 
+### 7.10 Revisit prompt evaluation
+
+Runs once per day after the daily scrape, before digest send.
+
+**Eligibility filter:**
+
+- Only `status = 'active'` products are considered.
+- The user must have `profiles.revisit_prompts_enabled = true`.
+- A product is only ever revisited if no `revisit_on_sale` or `revisit_stale` notification has fired for it in the previous 30 days (debounce).
+
+`**revisit_on_sale` trigger:**
+
+- `now() - products.created_at >= 30 days`.
+- The product's best-listing `last_known_price_cents` is at least 15% below the 30-day rolling baseline (same baseline definition as §7.5 price-drop).
+- The product's best listing is currently in stock.
+- The user has not already received a regular `price_drop` notification for this product in the last 7 days (so we don't double-ping on the same event).
+
+`**revisit_stale` trigger:**
+
+- `now() - products.created_at >= profiles.revisit_stale_days` (default 30).
+- `products.last_user_interaction_at IS NULL` OR `now() - products.last_user_interaction_at >= profiles.revisit_stale_days`.
+- "Interaction" = manual refresh, threshold edit, category change, listing accept/reject, archive/restore, or mark-read of any notification for this product.
+- Stale prompts are mutually exclusive with `revisit_on_sale` on the same product on the same day; if both would fire, only `revisit_on_sale` is created.
+
+**Surfaces:**
+
+- Each revisit prompt is written as a row in `notifications` (in-app) AND included in the next daily digest if the user has email digests enabled. This keeps revisit nudges consistent with every other notification type.
+- Each prompt includes one-click actions (`Keep on list`, `Archive it`). The `Archive` action sets `products.status = 'archived'` and writes `products.last_user_interaction_at = now()`. The `Keep on list` action just marks the notification read and writes `last_user_interaction_at = now()` so the same product won't qualify for `revisit_stale` again immediately.
+
+**Copy guidelines:**
+
+- Playful, empathetic, human. Avoid robotic, fake-friendly, or guilt-trippy phrasings.
+- No exclamation marks in default microcopy. No fake urgency.
+- Final copy lives in the frontend, not this doc, but reviewers should hold the bar at these examples or better:
+  - On-sale: "This has been quietly waiting on your list for a month and it's now {{pct}}% off. Worth a second look?"
+  - Stale: "Past you wanted this {{days}} days ago. Still feeling it, or time to let it go?"
+
 ---
 
 ## 8. Data Model
@@ -331,84 +393,101 @@ All new tables live in `public` with **RLS enabled** per `docs/DATABASE.md`. Mig
 
 ### 8.1 `profiles`
 
-| Column | Type | Notes |
-|---|---|---|
-| `user_id` | `uuid` PK | References `auth.users(id)` ON DELETE CASCADE |
-| `display_currency` | `text` | Default `'CAD'`. Allowed: CAD, USD, EUR, GBP. |
-| `default_threshold_pct` | `int` | Default `20`. Range 1–95. |
-| `email_digest_enabled` | `bool` | Default `true`. |
-| `digest_local_hour` | `int` | Default `8`. |
-| `time_zone` | `text` | IANA tz, default `'America/Toronto'`. |
-| `created_at`, `updated_at` | `timestamptz` | |
+
+| Column                     | Type          | Notes                                                                                               |
+| -------------------------- | ------------- | --------------------------------------------------------------------------------------------------- |
+| `user_id`                  | `uuid` PK     | References `auth.users(id)` ON DELETE CASCADE                                                       |
+| `display_currency`         | `text`        | Default `'CAD'`. Allowed: CAD, USD, EUR, GBP.                                                       |
+| `default_threshold_pct`    | `int`         | Default `20`. Range 1–95.                                                                           |
+| `email_digest_enabled`     | `bool`        | Default `true`.                                                                                     |
+| `digest_local_hour`        | `int`         | Default `8`.                                                                                        |
+| `time_zone`                | `text`        | IANA tz, default `'America/Toronto'`.                                                               |
+| `theme`                    | `text`        | `'light'` or `'dark'`. Default `'light'`. Drives the `dark` class on the frontend `<html>` element. |
+| `revisit_prompts_enabled`  | `bool`        | Default `true`. Master switch for §7.10.                                                            |
+| `revisit_on_sale_enabled`  | `bool`        | Default `true`. Disables only the `revisit_on_sale` prompt type.                                    |
+| `revisit_stale_enabled`    | `bool`        | Default `true`. Disables only the `revisit_stale` prompt type.                                      |
+| `revisit_stale_days`       | `int`         | Default `30`. Range 7–365.                                                                          |
+| `created_at`, `updated_at` | `timestamptz` |                                                                                                     |
+
 
 **RLS:** Pattern A — users select/update their own row.
 
 ### 8.2 `products`
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | `uuid` PK | |
-| `user_id` | `uuid` | FK to `auth.users`, indexed |
-| `title` | `text` | |
-| `brand` | `text` | nullable |
-| `image_url` | `text` | nullable |
-| `category` | `text` | enum-like; one of `clothing/shoes/home/tech/other` |
-| `status` | `text` | `active`, `needs_input`, `archived` |
-| `notification_threshold_pct` | `int` | nullable; falls back to `profiles.default_threshold_pct` |
-| `notifications_enabled` | `bool` | Default `true`. |
-| `discovery_status` | `text` | `pending`, `running`, `complete`, `failed` |
-| `last_refresh_at` | `timestamptz` | nullable; used to enforce manual refresh cooldown |
-| `created_at`, `updated_at` | `timestamptz` | |
+
+| Column                       | Type          | Notes                                                                                                                                                                                   |
+| ---------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                         | `uuid` PK     |                                                                                                                                                                                         |
+| `user_id`                    | `uuid`        | FK to `auth.users`, indexed                                                                                                                                                             |
+| `title`                      | `text`        |                                                                                                                                                                                         |
+| `brand`                      | `text`        | nullable                                                                                                                                                                                |
+| `image_url`                  | `text`        | nullable                                                                                                                                                                                |
+| `category`                   | `text`        | enum-like; one of `clothing/shoes/home/tech/other`                                                                                                                                      |
+| `status`                     | `text`        | `active`, `needs_input`, `archived`                                                                                                                                                     |
+| `notification_threshold_pct` | `int`         | nullable; falls back to `profiles.default_threshold_pct`                                                                                                                                |
+| `notifications_enabled`      | `bool`        | Default `true`.                                                                                                                                                                         |
+| `discovery_status`           | `text`        | `pending`, `running`, `complete`, `failed`                                                                                                                                              |
+| `category_source`            | `text`        | `manual`, `llm`, `heuristic`, `default_other`. Used to skip future auto-categorization when value is `manual`.                                                                          |
+| `last_refresh_at`            | `timestamptz` | nullable; used to enforce manual refresh cooldown                                                                                                                                       |
+| `last_user_interaction_at`   | `timestamptz` | nullable; updated on manual refresh, threshold/category edits, listing accept/reject, archive/restore, or notification mark-read for this product. Used by §7.10 stale revisit prompts. |
+| `created_at`, `updated_at`   | `timestamptz` |                                                                                                                                                                                         |
+
 
 **RLS:** Pattern A. Index on `(user_id, status)`.
 
 ### 8.3 `product_listings`
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | `uuid` PK | |
-| `product_id` | `uuid` | FK products, indexed |
-| `retailer_slug` | `text` | e.g. `amazon_ca`, `nike_ca`, `generic` |
-| `url` | `text` | the canonical product URL |
-| `variant_attributes` | `jsonb` | e.g. `{"size":"10","color":"white"}` |
-| `is_primary` | `bool` | true for the URL the user pasted |
-| `match_confidence` | `numeric(4,3)` | nullable; only set for discovered listings |
-| `review_status` | `text` | `auto_added`, `needs_review`, `accepted`, `rejected` |
-| `last_known_price_cents` | `int` | nullable; CAD cents |
-| `is_in_stock` | `bool` | nullable until first scrape |
-| `last_scraped_at` | `timestamptz` | |
-| `scrape_status` | `text` | `ok`, `failing`, `blocked` |
-| `scrape_failure_count` | `int` | default 0 |
-| `created_at`, `updated_at` | `timestamptz` | |
+
+| Column                     | Type           | Notes                                                |
+| -------------------------- | -------------- | ---------------------------------------------------- |
+| `id`                       | `uuid` PK      |                                                      |
+| `product_id`               | `uuid`         | FK products, indexed                                 |
+| `retailer_slug`            | `text`         | e.g. `amazon_ca`, `nike_ca`, `generic`               |
+| `url`                      | `text`         | the canonical product URL                            |
+| `variant_attributes`       | `jsonb`        | e.g. `{"size":"10","color":"white"}`                 |
+| `is_primary`               | `bool`         | true for the URL the user pasted                     |
+| `match_confidence`         | `numeric(4,3)` | nullable; only set for discovered listings           |
+| `review_status`            | `text`         | `auto_added`, `needs_review`, `accepted`, `rejected` |
+| `last_known_price_cents`   | `int`          | nullable; CAD cents                                  |
+| `is_in_stock`              | `bool`         | nullable until first scrape                          |
+| `last_scraped_at`          | `timestamptz`  |                                                      |
+| `scrape_status`            | `text`         | `ok`, `failing`, `blocked`                           |
+| `scrape_failure_count`     | `int`          | default 0                                            |
+| `created_at`, `updated_at` | `timestamptz`  |                                                      |
+
 
 **RLS:** Pattern A via join on `products.user_id`.
 
 ### 8.4 `price_history`
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | `bigserial` PK | |
-| `listing_id` | `uuid` | FK product_listings, indexed |
-| `price_cents` | `int` | CAD cents, NOT NULL |
-| `is_in_stock` | `bool` | |
-| `observed_at` | `timestamptz` | indexed |
-| `source` | `text` | `scheduled`, `manual` |
+
+| Column        | Type           | Notes                        |
+| ------------- | -------------- | ---------------------------- |
+| `id`          | `bigserial` PK |                              |
+| `listing_id`  | `uuid`         | FK product_listings, indexed |
+| `price_cents` | `int`          | CAD cents, NOT NULL          |
+| `is_in_stock` | `bool`         |                              |
+| `observed_at` | `timestamptz`  | indexed                      |
+| `source`      | `text`         | `scheduled`, `manual`        |
+
 
 **RLS:** Pattern A via join. Retain forever in V1 (volume is tiny — one row per listing per day, ~365 rows per listing per year).
 
 ### 8.5 `notifications`
 
-| Column | Type | Notes |
-|---|---|---|
-| `id` | `uuid` PK | |
-| `user_id` | `uuid` | FK auth.users |
-| `product_id` | `uuid` | nullable |
-| `listing_id` | `uuid` | nullable |
-| `type` | `text` | `price_drop`, `back_in_stock`, `discovery_complete`, `needs_input`, `scrape_failing` |
-| `payload` | `jsonb` | type-specific data (old price, new price, retailer, etc.) |
-| `is_read` | `bool` | default false |
-| `email_sent_at` | `timestamptz` | nullable; populated when included in a digest |
-| `created_at` | `timestamptz` | indexed |
+
+| Column          | Type          | Notes                                                                                                                    |
+| --------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `id`            | `uuid` PK     |                                                                                                                          |
+| `user_id`       | `uuid`        | FK auth.users                                                                                                            |
+| `product_id`    | `uuid`        | nullable                                                                                                                 |
+| `listing_id`    | `uuid`        | nullable                                                                                                                 |
+| `type`          | `text`        | `price_drop`, `back_in_stock`, `discovery_complete`, `needs_input`, `scrape_failing`, `revisit_on_sale`, `revisit_stale` |
+| `payload`       | `jsonb`       | type-specific data (old price, new price, retailer, etc.)                                                                |
+| `is_read`       | `bool`        | default false                                                                                                            |
+| `email_sent_at` | `timestamptz` | nullable; populated when included in a digest                                                                            |
+| `created_at`    | `timestamptz` | indexed                                                                                                                  |
+
 
 **RLS:** Pattern A.
 
@@ -416,11 +495,13 @@ All new tables live in `public` with **RLS enabled** per `docs/DATABASE.md`. Mig
 
 Backend-only table; Pattern B (service-role-only).
 
-| Column | Type |
-|---|---|
-| `pair` | `text` PK (e.g. `'CAD_USD'`) |
-| `rate` | `numeric` |
-| `fetched_at` | `timestamptz` |
+
+| Column       | Type                         |
+| ------------ | ---------------------------- |
+| `pair`       | `text` PK (e.g. `'CAD_USD'`) |
+| `rate`       | `numeric`                    |
+| `fetched_at` | `timestamptz`                |
+
 
 **Retailer config does not live in the DB** in V1 — it's a Python module so adding a retailer is a code change reviewed in PR (intentional; see §11).
 
@@ -430,31 +511,35 @@ Backend-only table; Pattern B (service-role-only).
 
 REST under `/api`, all behind auth (Supabase JWT).
 
-| Method | Path | Purpose |
-|---|---|---|
-| `POST` | `/api/products` | Add a new product from a URL |
-| `GET` | `/api/products` | List user's products with filters (`status`, `category`) |
-| `GET` | `/api/products/:id` | Product detail (includes listings + recent history) |
-| `PATCH` | `/api/products/:id` | Update category, threshold, notifications-enabled, status (archive/restore) |
-| `DELETE` | `/api/products/:id` | Hard delete |
-| `POST` | `/api/products/:id/refresh` | Trigger manual refresh (enforces 1h cooldown) |
-| `POST` | `/api/products/:id/select-variant` | Resolve `needs_input` by selecting a variant |
-| `POST` | `/api/products/:id/listings/:listing_id/accept` | Accept a `needs_review` discovery candidate |
-| `POST` | `/api/products/:id/listings/:listing_id/reject` | Reject one |
-| `DELETE` | `/api/products/:id/listings/:listing_id` | Remove a non-primary listing |
-| `GET` | `/api/notifications` | Paginated notification list |
-| `POST` | `/api/notifications/mark-read` | Bulk mark-read |
-| `GET` | `/api/profile` | Current user's settings |
-| `PATCH` | `/api/profile` | Update settings |
-| `DELETE` | `/api/account` | Delete account + all data |
-| `GET` | `/api/fx/rates` | Convenience: current FX rates for supported display currencies |
+
+| Method   | Path                                            | Purpose                                                                     |
+| -------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
+| `POST`   | `/api/products`                                 | Add a new product from a URL                                                |
+| `GET`    | `/api/products`                                 | List user's products with filters (`status`, `category`)                    |
+| `GET`    | `/api/products/:id`                             | Product detail (includes listings + recent history)                         |
+| `PATCH`  | `/api/products/:id`                             | Update category, threshold, notifications-enabled, status (archive/restore) |
+| `DELETE` | `/api/products/:id`                             | Hard delete                                                                 |
+| `POST`   | `/api/products/:id/refresh`                     | Trigger manual refresh (enforces 1h cooldown)                               |
+| `POST`   | `/api/products/:id/select-variant`              | Resolve `needs_input` by selecting a variant                                |
+| `POST`   | `/api/products/:id/listings/:listing_id/accept` | Accept a `needs_review` discovery candidate                                 |
+| `POST`   | `/api/products/:id/listings/:listing_id/reject` | Reject one                                                                  |
+| `DELETE` | `/api/products/:id/listings/:listing_id`        | Remove a non-primary listing                                                |
+| `GET`    | `/api/notifications`                            | Paginated notification list                                                 |
+| `POST`   | `/api/notifications/mark-read`                  | Bulk mark-read                                                              |
+| `GET`    | `/api/profile`                                  | Current user's settings                                                     |
+| `PATCH`  | `/api/profile`                                  | Update settings                                                             |
+| `DELETE` | `/api/account`                                  | Delete account + all data                                                   |
+| `GET`    | `/api/fx/rates`                                 | Convenience: current FX rates for supported display currencies              |
+
 
 Internal (service-role, called from GitHub Actions worker, not exposed to browser):
 
-| Method | Path | Purpose |
-|---|---|---|
-| `POST` | `/internal/jobs/scrape-all` | Daily worker entry point |
+
+| Method | Path                          | Purpose                  |
+| ------ | ----------------------------- | ------------------------ |
+| `POST` | `/internal/jobs/scrape-all`   | Daily worker entry point |
 | `POST` | `/internal/jobs/send-digests` | Daily worker entry point |
+
 
 Internal endpoints require a shared-secret header (`X-Worker-Token`).
 
@@ -465,10 +550,21 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 ### 10.1 Frontend
 
 - **React + Vite + TypeScript** (already scaffolded in `frontend/`).
-- **State/data:** TanStack Query for server data; React Context for session & display currency.
-- **UI library:** Tailwind CSS + shadcn/ui (or similar lightweight component kit). No heavy design system in V1.
+- **State/data:** TanStack Query for server data; React Context for session, display currency, and theme.
+- **UI library:** Tailwind CSS + **shadcn/ui** (committed, not "or similar"). `sonner` for toasts.
+- **Motion:** Framer Motion for state transitions (item add, category change, notification appear). Subtle, never showy.
+- **Theme:** Light by default with a toggle in `/settings` that writes `profiles.theme` and applies the `dark` class on `<html>`. No system-theme auto-detection in V1.
 - **Auth:** `@supabase/supabase-js` with Google OAuth.
 - **Hosting:** Vercel free tier per `docs/DEPLOYMENT.md`.
+
+**Design principles (V1):**
+
+1. **Minimal and modern.** Monochrome base, generous whitespace, one accent color, shadcn's default radius and typography. Resist adding chrome.
+2. **Snappy by default.** Every user action surfaces visible feedback within 100ms. Mutations are optimistic; only roll back on server error. Skeleton loaders, never spinners, for first-paint and route changes.
+3. **Calm voice.** Microcopy is playful and empathetic (see §7.10 revisit prompts). No exclamation marks in default UI strings, no robotic tone, no fake urgency.
+4. **Content over chrome.** The category-grouped dashboard is the hero surface; nav is a thin, persistent top bar.
+5. **Accessible.** Color-coded chips always pair with text. Lighthouse Performance and Accessibility ≥ 95 are hard targets (see §12).
+6. **No keyboard shortcuts / command palette in V1.** Deferred to V2 to keep scope tight; mouse and touch are first-class.
 
 ### 10.2 Backend
 
@@ -479,7 +575,7 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 
 ### 10.3 Background scraping
 
-- **Runner:** GitHub Actions cron workflow under `.github/workflows/scrape.yml`, scheduled at `0 8 * * *` UTC (≈ 04:00 America/Toronto).
+- **Runner:** GitHub Actions cron workflow under `.github/workflows/scrape.yml`, scheduled at `0 8 * * `* UTC (≈ 04:00 America/Toronto).
 - **Action runs:** a Python entrypoint in `backend/workers/scrape_all.py` that calls `POST /internal/jobs/scrape-all` on the deployed backend (`X-Worker-Token` from `WORKER_TOKEN` secret). The backend does the actual scraping inline using its own scraper modules — this keeps scraper code in one place.
 - **Repository visibility:** public GitHub repository is preferred if Actions minutes ever become a free-tier constraint. A private repository is acceptable while included free minutes comfortably cover once-daily jobs.
 - **Headless browser for protected sites:** `playwright` in the backend, used only by retailers that need JavaScript execution or cannot be handled by structured data / `curl_cffi`. Render free tier can run Playwright (with installed deps in the build step), but cold starts and memory pressure make it a fallback, not the default.
@@ -488,7 +584,7 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 ### 10.4 Email
 
 - **Provider:** Resend free tier (3,000 emails/month, 100/day). Requires a verified domain or use Resend's `onboarding@resend.dev` sandbox sender for V1 if no domain is wired up.
-- **Sent by:** the daily digest worker (`POST /internal/jobs/send-digests`), triggered by a second GitHub Actions cron at `0 12 * * *` UTC (≈ 08:00 America/Toronto). For users in other time zones, the worker filters by `profiles.digest_local_hour` and `profiles.time_zone` and only sends to users whose local time matches.
+- **Sent by:** the daily digest worker (`POST /internal/jobs/send-digests`), triggered by a second GitHub Actions cron at `0 12 * * `* UTC (≈ 08:00 America/Toronto). For users in other time zones, the worker filters by `profiles.digest_local_hour` and `profiles.time_zone` and only sends to users whose local time matches.
 
 ### 10.5 FX rates
 
@@ -511,11 +607,14 @@ V1 should optimize for a free, maintainable, Python-native scraping stack rather
 
 **Design contract:** scraper modules expose the same `scrape(url) -> ProductSnapshot` interface regardless of strategy. Product, notification, and UI code should not know whether a listing was scraped through structured data, `curl_cffi`, or Playwright.
 
-### 10.7 LLM (cross-retailer discovery)
+### 10.7 LLM (cross-retailer discovery + categorization)
 
-- **Provider:** Google Gemini API, using the current Flash-family model available on the free tier at implementation time, with Google Search as a grounding tool when available.
-- **Free-tier guardrails:** discovery is one-shot per product, the prompt is bounded in size, and we cap candidates at 8. If the free-tier quota is exceeded, discovery is skipped silently and a notification is recorded ("Cross-retailer discovery temporarily unavailable").
-- **Pluggable interface:** a `DiscoveryProvider` abstraction so we can swap LLMs later without rewriting the discovery pipeline.
+- **Provider:** Google Gemini API, using the current Flash-family model available on the free tier at implementation time, with Google Search as a grounding tool when available (discovery only).
+- **Use cases in V1:**
+  1. **Cross-retailer discovery** (§7.3) — one call per product creation, Search-grounded, returns up to 8 candidate URLs.
+  2. **Categorization** (§7.7) — one call per product creation when the user leaves the Add modal's category dropdown on "Auto". Plain Gemini call, no Search grounding, hard-capped at ~256 output tokens, instructed to return exactly one of the 5 fixed slugs as JSON.
+- **Free-tier guardrails:** prompts are bounded; discovery candidates are capped at 8; categorization is wrapped in a 1.5s hard timeout; if quota or the API itself is exhausted, both flows fall back gracefully (discovery: skip + notify user; categorization: heuristic).
+- **Pluggable interface:** a single `LlmProvider` abstraction (renamed from the earlier `DiscoveryProvider`) handles both discovery and categorization so we can swap LLMs later without rewriting either pipeline. Discovery and categorization are separate methods on the same interface.
 
 ### 10.8 Secrets & environment
 
@@ -537,33 +636,86 @@ APP_BASE_URL=          # used in email links
 
 GitHub Actions secrets needed: `WORKER_TOKEN`, `BACKEND_BASE_URL`.
 
+### 10.9 Development load assumptions
+
+V1 is designed to remain free even while multiple engineers and AI agents iterate. Working assumption: **manual job triggering up to ~30 times per day across parallel agents during heavy development**, plus normal once-daily scheduled runs and ad-hoc adds.
+
+Free-tier headroom check at that load:
+
+
+| Provider                      | Free tier                            | ~30×/day budget                                                              | Verdict                                                                                                                                                                    |
+| ----------------------------- | ------------------------------------ | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GitHub Actions (private repo) | 2,000 min/mo included                | 30 runs × ~3 min × 30 days ≈ 2,700 min worst case                            | ⚠️ Tight at sustained ceiling. Workflows target ≤ 3 min and use job-level timeouts. If we exceed the monthly cap, move repo to public (unlimited minutes). Tracked in §13. |
+| Render web service            | 750 hrs/mo                           | Each wake ≈ 5 min ≪ 750 hrs                                                  | ✅                                                                                                                                                                          |
+| Supabase (DB / Auth)          | 500 MB DB, 50k MAU                   | Trivial volume in V1                                                         | ✅                                                                                                                                                                          |
+| Gemini Flash                  | ~1,500 RPD typical free-tier ceiling | 1 discovery + 1 categorization call per *add*. Even 100 adds/day = 200 calls | ✅ ~7× headroom over a heavy add day                                                                                                                                        |
+| Resend                        | 100 emails/day, 3,000/mo             | At most 1 digest/user/day                                                    | ✅                                                                                                                                                                          |
+| Frankfurter                   | Unlimited, no key                    | 1 cached call/day                                                            | ✅                                                                                                                                                                          |
+| Vercel                        | Generous static + edge               | Negligible                                                                   | ✅                                                                                                                                                                          |
+
+
+**The risk that's not about provider quotas:** retailers with aggressive bot protection (Nike, Best Buy, Amazon, Foot Locker, Sport Chek) can rate-limit or ban our server IP if engineers iterate against live URLs. The fix is §10.10 (fixture mode), which is a hard V1 deliverable.
+
+**Concurrency safety:** the `/internal/jobs/scrape-all` endpoint takes a Postgres advisory lock so two parallel agents triggering the worker on the same minute don't double-scrape every listing or duplicate `price_history` rows.
+
+### 10.10 Retailer fixture / mock mode
+
+V1 must ship with a lightweight harness that lets engineers and AI agents iterate on scraper, categorization, discovery, notification, and UI code **without making real outbound requests to retailer sites**. 
+
+**Mode switch:**
+
+- Environment variable `SCRAPER_MODE` ∈ `live` | `fixtures` | `record`.
+  - `live` (default in production): scrapers hit real retailer URLs.
+  - `fixtures` (default in local dev and CI): scrapers read from `backend/test/fixtures/retailers/<retailer_slug>/<fixture_name>.html` (or `.json` for API responses) and parse them through the normal extraction pipeline. No outbound network calls.
+  - `record`: same as `live`, but every successful scrape is written to `backend/test/fixtures/retailers/<slug>/...` for future replay. Used sparingly, only when manually capturing a new fixture.
+
+**Fixture coverage requirement:**
+
+- Every supported retailer (§11) ships with at least one in-stock, one out-of-stock, and one multi-variant fixture.
+- The generic scraper ships with three fixtures: a JSON-LD-friendly site, an OG-only site, and a site that yields nothing extractable.
+- Fixtures are stored alongside the scraper module so adding a retailer always includes its fixtures in the same PR.
+
+**Drift detection:**
+
+- A scheduled GitHub Actions workflow (`.github/workflows/retailer-drift.yml`, runs weekly) executes each retailer's scraper against one canonical live URL and compares the extracted fields to a stored snapshot. Any mismatch opens (or updates) a GitHub issue tagged `retailer-drift` so engineers know when a retailer changed their page shape.
+- The same parity check is available locally via `make check-retailer-drift` for manual triage.
+- CI (`.github/workflows/ci.yml`) always runs scrapers in `fixtures` mode so PRs never hit live retailers. PRs that change fixtures must update the parity snapshot in the same commit.
+
+**Why this is V1, not nice-to-have:**
+
+- Without fixtures, every iteration cycle burns retailer bot-protection budget.
+- Without drift detection, the daily scrape can silently degrade and the team only finds out when users complain.
+- Both pieces are small (one shared `FixtureLoader`, one workflow, one make target) and unblock all downstream development.
+
 ---
 
 ## 11. Supported Retailers (V1)
 
 Each natively supported retailer needs a scraper module exposing a `scrape(url) -> ProductSnapshot` function and metadata describing its default extraction strategy and fallback order.
 
-| Slug | Domain(s) | Default category | Notes |
-|---|---|---|---|
-| `amazon_ca` | amazon.ca | other | Strict 1P only — must verify "Sold by Amazon.ca" or "Ships from and sold by Amazon.ca" in scraper. Benchmark first; likely needs `curl_cffi` or Playwright fallback. |
-| `bestbuy_ca` | bestbuy.ca | tech | Cloudflare-protected; benchmark structured data / `curl_cffi` before Playwright. |
-| `apple_ca` | apple.com/ca | tech | JSON endpoints often available without a browser. |
-| `nike_ca` | nike.com/ca | shoes | Aggressive bot protection; benchmark `curl_cffi`; Playwright may be needed. |
-| `sportchek` | sportchek.ca | clothing | Akamai-protected; benchmark before selecting default strategy. |
-| `indigo` | indigo.ca | other | Generally scrape-friendly. |
-| `canadiantire` | canadiantire.ca | home | Region-aware (asks for store); use the central/online price. |
-| `costco_ca` | costco.ca | other | Some pages behind member login — we restrict to public listings only. |
-| `abercrombie` | abercrombie.com (Canada region) | clothing | |
-| `oakley` | oakley.com/en-ca | other | |
-| `footlocker_ca` | footlocker.ca | shoes | |
-| `vans_ca` | vans.ca | shoes | |
-| `palmisleskate` | palmisle.com | other | Small Shopify store; easy. |
-| `dimemtl` | dimemtl.com | clothing | Small Shopify store; easy. |
-| `tikiroomskate` | tikiroomskateboards.com | other | Small Shopify store; easy. |
-| `eatyourwater` | eatyourwater.com | clothing | Small Shopify store; easy. |
-| `generic` | (any other domain) | `other` | Best-effort structured data / OG with lightweight HTTP only; no Playwright. |
 
-**Per-retailer scraper checklist (engineering contract):** title, brand (best-effort), image URL, current price in CAD cents, in-stock boolean, list of available variant attribute combinations, and the selected variant attributes for the input URL (when inferable from URL or page state).
+| Slug            | Domain(s)                       | Default category | Notes                                                                                                                                                                |
+| --------------- | ------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `amazon_ca`     | amazon.ca                       | other            | Strict 1P only — must verify "Sold by Amazon.ca" or "Ships from and sold by Amazon.ca" in scraper. Benchmark first; likely needs `curl_cffi` or Playwright fallback. |
+| `bestbuy_ca`    | bestbuy.ca                      | tech             | Cloudflare-protected; benchmark structured data / `curl_cffi` before Playwright.                                                                                     |
+| `apple_ca`      | apple.com/ca                    | tech             | JSON endpoints often available without a browser.                                                                                                                    |
+| `nike_ca`       | nike.com/ca                     | shoes            | Aggressive bot protection; benchmark `curl_cffi`; Playwright may be needed.                                                                                          |
+| `sportchek`     | sportchek.ca                    | clothing         | Akamai-protected; benchmark before selecting default strategy.                                                                                                       |
+| `indigo`        | indigo.ca                       | other            | Generally scrape-friendly.                                                                                                                                           |
+| `canadiantire`  | canadiantire.ca                 | home             | Region-aware (asks for store); use the central/online price.                                                                                                         |
+| `costco_ca`     | costco.ca                       | other            | Some pages behind member login — we restrict to public listings only.                                                                                                |
+| `abercrombie`   | abercrombie.com (Canada region) | clothing         |                                                                                                                                                                      |
+| `oakley`        | oakley.com/en-ca                | other            |                                                                                                                                                                      |
+| `footlocker_ca` | footlocker.ca                   | shoes            |                                                                                                                                                                      |
+| `vans_ca`       | vans.ca                         | shoes            |                                                                                                                                                                      |
+| `palmisleskate` | palmisle.com                    | other            | Small Shopify store; easy.                                                                                                                                           |
+| `dimemtl`       | dimemtl.com                     | clothing         | Small Shopify store; easy.                                                                                                                                           |
+| `tikiroomskate` | tikiroomskateboards.com         | other            | Small Shopify store; easy.                                                                                                                                           |
+| `eatyourwater`  | eatyourwater.com                | clothing         | Small Shopify store; easy.                                                                                                                                           |
+| `generic`       | (any other domain)              | `other`          | Best-effort structured data / OG with lightweight HTTP only; no Playwright.                                                                                          |
+
+
+**Per-retailer scraper checklist (engineering contract):** title, brand (best-effort), image URL, current price in CAD cents, in-stock boolean, list of available variant attribute combinations, and the selected variant attributes for the input URL (when inferable from URL or page state). Each retailer also ships with the fixture coverage required by §10.10.
 
 **Engineering note on scraper reliability:** several of the above retailers run aggressive bot protection. Do not assume Playwright is required until the benchmark harness proves it; try structured data and `curl_cffi` first, then use Playwright as the measured fallback. Expect periodic breakage when sites change. V1 accepts this brittleness as a known limitation; see §13.
 
@@ -572,12 +724,14 @@ Each natively supported retailer needs a scraper module exposing a `scrape(url) 
 ## 12. Non-Functional Requirements
 
 - **Performance:** product list page loads in < 2s with up to 200 products. Manual refresh of one product should complete in < 30s for non-Playwright retailers; Playwright-backed retailers may be slower because browser cold start dominates.
+- **Perceived performance:** every user action surfaces visible feedback within 100ms. All mutations (add, archive, re-categorize, accept/reject discovered match, mark-read) render optimistically and only roll back on server error. The Add Product modal shows a category-shimmer placeholder while AI categorization resolves and degrades to the heuristic at the 1.5s timeout (§7.7).
+- **Design quality:** dashboard and product detail routes target **Lighthouse Performance ≥ 95** and **Accessibility ≥ 95** on a desktop run with throttled CPU. Visual style follows §10.1 design principles.
 - **Reliability:** daily scrape job retries each listing up to 2 times with exponential backoff. A run is considered successful if at least 80% of listings scrape successfully.
-- **Cost:** $0/month for V1. All providers used in the core product (Supabase, Vercel, Render, GitHub Actions, Gemini, Resend, Frankfurter) have free tiers that should accommodate a personal user plus a few friends with once-daily scraping. The core plan excludes hosted scraping APIs such as Firecrawl because one-time credits or paid monthly quotas are incompatible with indefinite free operation.
+- **Cost:** $0/month for V1 even while engineers iterate at ~30 manual job triggers/day across parallel agents (see §10.9). All providers used in the core product (Supabase, Vercel, Render, GitHub Actions, Gemini, Resend, Frankfurter) have free tiers that accommodate that load. The core plan excludes hosted scraping APIs such as Firecrawl because one-time credits or paid monthly quotas are incompatible with indefinite free operation.
 - **Security:**
   - RLS on every `public` table.
   - Service-role key never reaches the frontend.
-  - Internal `/internal/jobs/*` endpoints require `X-Worker-Token`.
+  - Internal `/internal/jobs/`* endpoints require `X-Worker-Token`.
   - All outbound user-facing links in emails go to the deployed app, not to retailers directly (to avoid affiliate-link-injection accusations).
 - **Privacy:** Account-delete erases all user data; aggregated price history for shared listings is also deleted in V1 (we don't yet have a cross-user shared catalog).
 - **Observability:** structured logs from backend (stdout JSON), GitHub Actions workflow logs for the cron worker. No paid telemetry in V1.
@@ -588,21 +742,28 @@ Each natively supported retailer needs a scraper module exposing a `scrape(url) 
 
 ## 13. Risks & Known Limitations
 
-| Risk / limitation | Impact | V1 mitigation |
-|---|---|---|
-| Scrapers break when retailer HTML changes | Listings stop refreshing | `scrape_failing` notification after 3 consecutive failures; structured logs; per-retailer scraper is a small isolated module |
-| Bot-protected retailers (Nike, Amazon, Best Buy) block server IPs | Some listings refresh inconsistently | Benchmark structured data, `curl_cffi`, and Playwright per retailer; accept best-effort, mark failures clearly to user |
-| Gemini free tier rate-limited or quota exhausted | Discovery silently fails | Pluggable provider interface; skip + notify user; one-shot per product caps usage |
-| Gemini model names / free-tier limits change | Implementation docs become stale | Select the current Flash-family free-tier model at implementation time and keep discovery behind `DiscoveryProvider` |
-| Render free tier cold-starts (15-min idle sleep) | First post-idle request is slow (~30s) | Acceptable for V1; daily worker stays warm during its run; manual refresh users see a spinner |
-| Single-region (Canada) hardcoded assumption | Non-Canadian friend can't really use it | V1 explicitly Canada-only; document in onboarding |
-| Variant inference is fragile across diverse retailer URL patterns | Users will see "Needs input" more often than ideal | Explicit "Needs input" UX; not a crash |
-| Currency switcher could mislead user if FX rates are stale | User sees a price they can't actually pay in that currency | 24h cache is acceptable for cosmetic display; thresholds are always CAD |
-| Amazon 1P-only rule is hard to verify programmatically | Could accidentally track a 3P seller | Scraper requires literal "Sold by Amazon.ca" string; otherwise reject with friendly error |
-| Email digest could land in spam | User misses sale alerts | In-app notifications are the source of truth; email is convenience layer |
-| GitHub Actions cron is best-effort (can run late) | Daily scrape may shift by minutes | Acceptable; not a correctness issue |
-| GitHub Actions free minutes differ by repository visibility | Private repo could eventually consume included minutes | Prefer public repo if Actions minutes become a constraint; daily V1 jobs are low-volume |
-| ToS / scraping ethics | Long-term legal exposure if app grows | V1 is personal-use; revisit before any public launch |
+
+| Risk / limitation                                                    | Impact                                                                                   | V1 mitigation                                                                                                                                                                                                                           |
+| -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Scrapers break when retailer HTML changes                            | Listings stop refreshing                                                                 | `scrape_failing` notification after 3 consecutive failures; structured logs; per-retailer scraper is a small isolated module                                                                                                            |
+| Bot-protected retailers (Nike, Amazon, Best Buy) block server IPs    | Some listings refresh inconsistently                                                     | Benchmark structured data, `curl_cffi`, and Playwright per retailer; accept best-effort, mark failures clearly to user                                                                                                                  |
+| Gemini free tier rate-limited or quota exhausted                     | Discovery silently fails; categorization falls back to heuristic                         | Single `LlmProvider` interface (§10.7); discovery is one-shot per product, categorization has a 1.5s hard timeout and heuristic fallback (§7.7)                                                                                         |
+| Gemini model names / free-tier limits change                         | Implementation docs become stale                                                         | Select the current Flash-family free-tier model at implementation time and keep both discovery and categorization behind `LlmProvider` (§10.7)                                                                                          |
+| Render free tier cold-starts (15-min idle sleep)                     | First post-idle backend request is slow (~30s) and undermines the "snappy" frontend feel | Acceptable for V1 backend; frontend hosted on Vercel edge so first paint is instant; TanStack Query stale-while-revalidate keeps the dashboard usable while the backend warms; manual refresh users see a skeleton on the affected card |
+| Single-region (Canada) hardcoded assumption                          | Non-Canadian friend can't really use it                                                  | V1 explicitly Canada-only; document in onboarding                                                                                                                                                                                       |
+| Variant inference is fragile across diverse retailer URL patterns    | Users will see "Needs input" more often than ideal                                       | Explicit "Needs input" UX; not a crash                                                                                                                                                                                                  |
+| Currency switcher could mislead user if FX rates are stale           | User sees a price they can't actually pay in that currency                               | 24h cache is acceptable for cosmetic display; thresholds are always CAD                                                                                                                                                                 |
+| Amazon 1P-only rule is hard to verify programmatically               | Could accidentally track a 3P seller                                                     | Scraper requires literal "Sold by Amazon.ca" string; otherwise reject with friendly error                                                                                                                                               |
+| Email digest could land in spam                                      | User misses sale alerts                                                                  | In-app notifications are the source of truth; email is convenience layer                                                                                                                                                                |
+| GitHub Actions cron is best-effort (can run late)                    | Daily scrape may shift by minutes                                                        | Acceptable; not a correctness issue                                                                                                                                                                                                     |
+| GitHub Actions free minutes differ by repository visibility          | Private repo could eventually consume included minutes                                   | Stay private for V1; flip the repo to public if monthly minute usage approaches the 2,000-min cap (see §10.9 budget)                                                                                                                    |
+| AI categorization mislabels a product                                | User sees the wrong bucket on the dashboard                                              | Manual re-categorize from product detail page; manual overrides are sticky (§7.7) and stop future auto runs from undoing them; `category_source='manual'` recorded on the row                                                           |
+| Heavy dev iteration burns retailer bot-protection budget             | Scrapers get rate-limited or IP-banned mid-build                                         | `SCRAPER_MODE=fixtures` is the default in local dev and CI (§10.10); live mode is reserved for the daily scheduled job, weekly drift checks, and explicit benchmark runs                                                                |
+| Two parallel agents trigger `/internal/jobs/scrape-all` concurrently | Double scrapes, duplicated `price_history` rows                                          | Postgres advisory lock around the scrape entrypoint (§10.9)                                                                                                                                                                             |
+| Revisit prompts feel naggy or robotic                                | User disables them or stops trusting the digest                                          | 30-day per-product debounce; settings toggles to disable each prompt type independently; copy guidelines in §7.10 enforced in design review                                                                                             |
+| Retailer page structure changes silently                             | Scraped fields drift without anyone noticing                                             | Weekly drift-detection workflow opens a GitHub issue per affected retailer (§10.10)                                                                                                                                                     |
+| ToS / scraping ethics                                                | Long-term legal exposure if app grows                                                    | V1 is personal-use; revisit before any public launch                                                                                                                                                                                    |
+
 
 ---
 
@@ -611,7 +772,10 @@ Each natively supported retailer needs a scraper module exposing a `scrape(url) 
 Captured here so they aren't lost.
 
 - **Cross-retailer "cheaper elsewhere" indicator** (requires reliable matching at scale).
-- **AI auto-categorization** (LLM call swappable behind the existing category heuristic).
+- **Keyboard shortcuts / command palette** (e.g., ⌘K to add, `/` to filter) — explicitly deferred in V1 to keep scope tight.
+- **System-theme auto-detection** alongside the existing light/dark toggle.
+- **AI categorization with confidence + user confirm** (suggest with score; only auto-apply when score ≥ threshold).
+- **Self-recording fixtures** that capture real scrape responses automatically when a retailer changes shape.
 - **MSRP-based pricing context** ("This is at MSRP" / "This is below MSRP").
 - **Real-time / sub-daily monitoring** for selected high-priority products.
 - **Periodic re-discovery** of new retailers for existing products.
@@ -631,15 +795,20 @@ Captured here so they aren't lost.
 
 V1 is considered complete when:
 
-1. A user can sign in with Google, paste a URL from any of the 16 supported retailers (or any other site), and have it appear in their list within 10 seconds with a current price.
-2. The scraper benchmark harness has been run against representative URLs for every supported retailer and records the selected default strategy plus fallback order.
-3. The daily scrape runs on schedule for 7 consecutive days with ≥ 80% per-listing success rate across the user's products.
-4. Cross-retailer discovery finds at least one additional listing for at least 60% of products that exist at multiple supported retailers (acknowledging some products genuinely only exist at one).
-5. A user receives a daily digest email containing accurate price-drop and back-in-stock events when those events occur.
-6. The 30-day trend chip is visibly correct for products with ≥ 7 days of data.
-7. The display-currency switcher correctly converts and renders for CAD/USD/EUR/GBP.
-8. A user can archive, restore, delete, and re-categorize products.
-9. A user can delete their account and verify (via Supabase dashboard) that their data is gone.
+1. A user can sign in with Google, paste a URL from any of the 16 supported retailers (or any other site), and have it appear in their list within 10 seconds with a current price and an auto-assigned category.
+2. AI categorization places ≥ 80% of a 20-product manual-review sample into the bucket a human would have picked. Heuristic fallback runs when the LLM is unavailable.
+3. The scraper benchmark harness has been run against representative URLs for every supported retailer and records the selected default strategy plus fallback order.
+4. The daily scrape runs on schedule for 7 consecutive days with ≥ 80% per-listing success rate across the user's products.
+5. Cross-retailer discovery finds at least one additional listing for at least 60% of products that exist at multiple supported retailers (acknowledging some products genuinely only exist at one).
+6. A user receives a daily digest email containing accurate price-drop, back-in-stock, and revisit-prompt events when those events occur.
+7. Revisit prompts fire per §7.10 logic in a dry-run unit test against a synthetic 90-day product/price-history fixture, and never repeat within the 30-day debounce window.
+8. The 30-day trend chip is visibly correct for products with ≥ 7 days of data.
+9. The display-currency switcher correctly converts and renders for CAD/USD/EUR/GBP.
+10. A user can archive, restore, delete, and re-categorize products.
+11. A user can toggle between light and dark theme from `/settings`; the preference survives reload.
+12. The dashboard and product detail pages hit Lighthouse Performance ≥ 95 and Accessibility ≥ 95 on a desktop throttled run.
+13. `SCRAPER_MODE=fixtures` lets engineers run the full backend test suite and a local dev session end-to-end with zero outbound requests to retailer domains, and the weekly drift-detection workflow opens an issue when a canonical fixture diverges from a fresh live scrape.
+14. A user can delete their account and verify (via Supabase dashboard) that their data is gone.
 
 ---
 
@@ -653,6 +822,9 @@ These are deliberate trade-offs in V1, written down so the next planning round c
 - Should "Needs review" matches expire automatically after N days if untouched?
 - Is the 3% trend deadband the right value, or should it scale with product price?
 - Do we need a shared, anonymized cross-user price history (de-duplicated by URL) so new users get instant trend data?
+- Should the `revisit_on_sale` threshold (default 15% off) scale with item price (e.g., 5% off a $1,000 item is meaningful, 15% off a $20 item isn't)?
+- Should AI categorization run in a "confidence + suggest" mode (asks user to confirm if score < threshold) instead of always auto-applying?
+- Should the drift-detection workflow auto-disable a retailer's scraper after N consecutive drift failures, or only ever open an issue?
 
 ---
 
