@@ -6,7 +6,7 @@
 
 **Shopping Monitor** — **Python/FastAPI** backend (port 8000) and **React/Vite/TypeScript** frontend (port 3000). Data lives in a remote **Supabase** instance (no local database). See `README.md` and `docs/PRD.md` for full documentation.
 
-Before feature work, read `MEMORY.md`, `docs/PRD.md`, and this file. The PRD is the source of truth for V1 scope, non-goals, data model, worker boundaries, and the first integrated vertical slice.
+Before feature work, read `MEMORY.md`, `docs/PRD.md`, `docs/ROADMAP.md`, and this file. The PRD is the source of truth for V1 scope, non-goals, data model, worker boundaries, and the first integrated vertical slice. The roadmap is the source of truth for milestone/task status, prioritized implementation sequencing, parallel-agent lanes, and just-in-time human-setup checkpoints.
 
 ### Environment variables
 
