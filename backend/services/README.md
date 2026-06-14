@@ -6,7 +6,7 @@ This package defines the service-interface boundary for Shopping Monitor V1: LLM
 
 | Surface | T1.5 ships | Concrete impl lands in |
 | --- | --- | --- |
-| `LlmProvider` (discover, categorize) | Protocol + Pydantic I/O types + exceptions + `NoOpLlmProvider` + `FakeLlmProvider` + `GeminiFlashLlmProvider` categorize | T3.1 discover |
+| `LlmProvider` (discover, categorize) | Protocol + Pydantic I/O types + exceptions + `NoOpLlmProvider` + `FakeLlmProvider` + `GeminiFlashLlmProvider` categorize + discover | — |
 | `Categorizer` | Protocol + `DefaultCategorizer` orchestrator + `heuristic_category()` + `get_categorizer()` factory | T2.5 wires into product API |
 | `FxService` | Protocol + `StaticFxService` + `FxRate`/`FxRates` types + `convert_cad_cents()` | T4.1 (Frankfurter primary + exchangerate.host fallback + 24h cache) |
 | `MailService` | Protocol + `NoOpMailService` + `DigestEmail`/`DigestNotificationEntry` models | T3.6 (Resend client + template rendering) |
@@ -41,6 +41,14 @@ python scripts/smoke_gemini_categorize.py --expect-heuristic   # assert no LLM p
 python scripts/smoke_gemini_categorize.py --live               # real Gemini (H3 only)
 ```
 
+### Human smoke — discovery (H3)
+
+```bash
+cd backend && source venv/bin/activate
+python scripts/smoke_gemini_discover.py                        # dry-run no-op path
+python scripts/smoke_gemini_discover.py --live                 # real Gemini Search-grounded discover (H3 only)
+```
+
 ## LlmProvider
 
 ```python
@@ -53,7 +61,21 @@ llm = FakeLlmProvider(
 )
 ```
 
-`GeminiFlashLlmProvider` uses Gemini structured JSON output with a 1.5s categorize timeout (override via `GEMINI_CATEGORIZE_TIMEOUT_S`). `discover()` is a no-op stub until T3.1.
+`GeminiFlashLlmProvider` uses Gemini structured JSON output with a 1.5s categorize timeout (`GEMINI_CATEGORIZE_TIMEOUT_S`) and a 30s discover timeout (`GEMINI_DISCOVER_TIMEOUT_S`). Discover uses Google Search grounding when available. `get_llm_provider()` returns `NoOpLlmProvider` when `GEMINI_API_KEY` is unset.
+
+## Discovery (T3.1)
+
+`run_discovery_for_product(product_id)` runs as a FastAPI `BackgroundTasks` job after `POST /api/products`. It calls `LlmProvider.discover()`, scrapes candidates through the retailer registry, scores matches via `services.matching`, auto-adds or queues needs-review listings, and writes a `discovery_complete` notification only when at least one listing was auto-added or queued.
+
+```python
+from uuid import UUID
+
+from services.discovery import run_discovery_for_product
+
+run_discovery_for_product(UUID("..."))
+```
+
+Match scoring weights (no image pHash in T3.1): title Jaccard 0.444, brand exact 0.222, variant exact 0.333. Thresholds: auto-add ≥ 0.85, needs-review 0.60–0.849, discard < 0.60. Empty reference variants score 1.0 on the variant term (supports `needs_input` products).
 
 ## FxService
 
@@ -148,8 +170,7 @@ trend = compute_trend(observations, today=date(2026, 6, 14))
 
 ## Deferred to later tasks
 
-- **T2.5** — Wire `get_categorizer()` into `POST /api/products` and persist `category_source`.
-- **T3.1** — Gemini Flash `LlmProvider` discover implementation.
+- **T3.2** — Listing accept/reject/delete API + UI for `needs_review` rows.
 - **T3.4** — Evaluator bodies; tightening `NotificationEvaluationContext` placeholder `dict[str, Any]` fields into typed snapshots.
 - **T3.6** — Resend `MailService` + HTML/text digest templates; swap `DigestEmail.to_email` to `EmailStr` once `email-validator` is added.
 - **T4.1** — Frankfurter primary + `exchangerate.host` fallback + 24h `fx_rates_cache`.

@@ -65,6 +65,7 @@ class LlmProvider(Protocol):
         retailer_slug: str,
         variant_attributes: Mapping[str, str],
         image_url: str | None,
+        reference_price_cents: int | None = None,
     ) -> LlmDiscoveryResult:
         ...
 
@@ -91,6 +92,7 @@ class NoOpLlmProvider:
         retailer_slug: str,
         variant_attributes: Mapping[str, str],
         image_url: str | None,
+        reference_price_cents: int | None = None,
     ) -> LlmDiscoveryResult:
         return LlmDiscoveryResult(candidates=[])
 
@@ -134,6 +136,7 @@ class FakeLlmProvider:
         retailer_slug: str,
         variant_attributes: Mapping[str, str],
         image_url: str | None,
+        reference_price_cents: int | None = None,
     ) -> LlmDiscoveryResult:
         self.discover_calls.append(
             {
@@ -142,6 +145,7 @@ class FakeLlmProvider:
                 "retailer_slug": retailer_slug,
                 "variant_attributes": dict(variant_attributes),
                 "image_url": image_url,
+                "reference_price_cents": reference_price_cents,
             }
         )
         if self.raise_on_discover is not None:

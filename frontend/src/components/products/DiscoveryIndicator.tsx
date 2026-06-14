@@ -5,7 +5,8 @@ interface DiscoveryIndicatorProps {
 }
 
 const LABELS: Record<string, string> = {
-  pending: 'Finding more retailers',
+  pending: 'Looking for other retailers…',
+  running: 'Looking for other retailers…',
   complete: 'Discovery complete',
   failed: 'Discovery unavailable',
 }

@@ -50,7 +50,7 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 
 CI and local automated tests must run scraper code with `SCRAPER_MODE=fixtures` so no test hits live retailer URLs. Use `live` only for explicit benchmark/drift tasks and `record` only when intentionally capturing fixtures.
 
-**Gemini:** pytest and CI never call the live Gemini API. `backend/test/conftest.py` clears `GEMINI_API_KEY` and mocks `genai.Client` for every test. Manual live verification uses `python scripts/smoke_gemini_categorize.py --live` only (H3); the default smoke script path is dry-run/heuristic.
+**Gemini:** pytest and CI never call the live Gemini API. `backend/test/conftest.py` clears `GEMINI_API_KEY` and mocks `genai.Client` for every test. Manual live verification uses `python scripts/smoke_gemini_categorize.py --live` or `python scripts/smoke_gemini_discover.py --live` only (H3); default smoke script paths are dry-run/no-op.
 
 ### Integration tests (Supabase RLS smoke)
 

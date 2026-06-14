@@ -17,6 +17,7 @@ DEFAULT_APP_BASE_URL = "http://localhost:3000"  # pragma: allowlist secret
 DEFAULT_SCRAPER_MODE = "fixtures"  # pragma: allowlist secret
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S = 1.5
+DEFAULT_GEMINI_DISCOVER_TIMEOUT_S = 30.0
 DEFAULT_CORS_ORIGINS = [DEFAULT_APP_BASE_URL, "http://127.0.0.1:3000"]
 ScraperMode = Literal["fixtures", "live", "record"]  # pragma: allowlist secret
 
@@ -37,6 +38,7 @@ class Settings(BaseSettings):
     gemini_api_key: str = ""
     gemini_model: str = DEFAULT_GEMINI_MODEL
     gemini_categorize_timeout_s: float = DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S
+    gemini_discover_timeout_s: float = DEFAULT_GEMINI_DISCOVER_TIMEOUT_S
     resend_api_key: str = ""
     app_base_url: str = DEFAULT_APP_BASE_URL
     scraper_mode: ScraperMode = DEFAULT_SCRAPER_MODE

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -19,6 +20,29 @@ import {
   type ProductSummary,
   type UpdateProductInput,
 } from '@/lib/products'
+
+const PRODUCT_DETAIL_POLL_MS = 3_000
+const PRODUCT_LIST_POLL_MS = 5_000
+
+function isDiscoveryInFlight(status: ProductSummary['discovery_status'] | undefined) {
+  return status === 'pending' || status === 'running'
+}
+
+export function productDetailRefetchInterval(
+  data: ProductDetail | undefined,
+): number | false {
+  if (!data) return false
+  return isDiscoveryInFlight(data.discovery_status) ? PRODUCT_DETAIL_POLL_MS : false
+}
+
+export function productListRefetchInterval(
+  items: ProductSummary[] | undefined,
+): number | false {
+  if (!items?.some((product) => isDiscoveryInFlight(product.discovery_status))) {
+    return false
+  }
+  return PRODUCT_LIST_POLL_MS
+}
 
 function rollbackListCaches(
   queryClient: ReturnType<typeof useQueryClient>,
@@ -54,18 +78,57 @@ export function useProducts(filters: ProductFilters = ACTIVE_FILTERS) {
   return useQuery<ProductSummary[]>({
     queryKey: productsQueryKey(filters),
     queryFn: () => listProducts(filters),
+    refetchInterval: (query) => productListRefetchInterval(query.state.data),
   })
 }
 
 export function useProduct(id: string | undefined) {
-  return useQuery<ProductDetail>({
+  const queryClient = useQueryClient()
+  const wasInFlightRef = useRef(false)
+  const listingCountAtStartRef = useRef<number | undefined>()
+
+  useEffect(() => {
+    wasInFlightRef.current = false
+    listingCountAtStartRef.current = undefined
+  }, [id])
+
+  const query = useQuery<ProductDetail>({
     queryKey: productQueryKey(id ?? ''),
     queryFn: () => {
       if (!id) throw new Error('Product id is required')
       return getProduct(id)
     },
     enabled: Boolean(id),
+    refetchInterval: (query) => productDetailRefetchInterval(query.state.data),
   })
+
+  useEffect(() => {
+    const data = query.data
+    if (!data) return
+
+    const inFlight = isDiscoveryInFlight(data.discovery_status)
+    if (inFlight) {
+      wasInFlightRef.current = true
+      if (listingCountAtStartRef.current === undefined) {
+        listingCountAtStartRef.current = data.listing_count
+      }
+      return
+    }
+
+    if (
+      wasInFlightRef.current &&
+      data.discovery_status === 'complete' &&
+      listingCountAtStartRef.current !== undefined &&
+      listingCountAtStartRef.current !== data.listing_count
+    ) {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+    }
+
+    wasInFlightRef.current = false
+    listingCountAtStartRef.current = undefined
+  }, [query.data, queryClient])
+
+  return query
 }
 
 export function useCreateProduct() {

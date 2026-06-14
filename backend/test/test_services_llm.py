@@ -114,6 +114,7 @@ def test_fake_records_call_args():
             "retailer_slug": "slug",
             "variant_attributes": {"color": "red"},
             "image_url": "https://img.example/x.jpg",
+            "reference_price_cents": None,
         }
     ]
     assert provider.categorize_calls == [

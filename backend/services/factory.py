@@ -10,11 +10,13 @@ from services.llm import LlmProvider, NoOpLlmProvider
 
 def build_retailer_default_categories() -> dict[str, str]:
     from scrapers.bestbuy_ca import register_bestbuy_ca
+    from scrapers.dimemtl import register_dimemtl
     from scrapers.generic import register_generic
     from scrapers.registry import all_retailers
 
     register_generic()
     register_bestbuy_ca()
+    register_dimemtl()
     return {entry.slug: entry.default_category for entry in all_retailers()}
 
 
@@ -25,6 +27,7 @@ def get_llm_provider(settings: Settings | None = None) -> LlmProvider:
             api_key=settings.gemini_api_key,
             model=settings.gemini_model,
             default_timeout_s=settings.gemini_categorize_timeout_s,
+            discover_timeout_s=settings.gemini_discover_timeout_s,
         )
     return NoOpLlmProvider()
 

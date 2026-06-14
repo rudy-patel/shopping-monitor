@@ -4,6 +4,20 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T3.1 Cross-retailer discovery engine
+
+**What:** Implemented the cross-retailer discovery engine: `services.matching` confidence scoring (renormalized weights without pHash), `services.discovery` background orchestrator with auto-add/needs-review/discard caps, `GeminiFlashLlmProvider.discover()` with Google Search grounding and structured JSON, `gemini_discover_timeout_s` setting, H3 smoke script `scripts/smoke_gemini_discover.py`, frontend conditional polling (detail 3s / list 5s) with list-cache invalidation on discovery complete, and embedded `dimemtl` Shopify fixture scraper for two-retailer fixture validation.
+
+**Locked behavior:** `discovery_complete` notification only when ≥1 listing auto-added or queued; discovery runs immediately for `needs_input` products with empty variants; first candidate per retailer slug; early stop at 4 non-primary auto-adds (no further needs-review).
+
+**Files:** `backend/services/matching.py`, `backend/services/discovery.py`, `backend/services/gemini.py`, `backend/services/factory.py`, `backend/core/settings.py`, `backend/routers/products.py`, `backend/scrapers/dimemtl.py`, `backend/scrapers/bootstrap.py`, `backend/scripts/smoke_gemini_discover.py`, `backend/test/test_matching.py`, `backend/test/test_discovery.py`, `backend/test/test_dimemtl_scraper.py`, `backend/test/discovery_test_retailers.py`, `backend/test/test_services_gemini.py`, `backend/test/test_products_router.py`, `backend/test/fixtures/retailers/discovery_*`, `backend/test/fixtures/retailers/dimemtl/*`, `frontend/src/hooks/useProducts.ts`, `frontend/src/components/products/DiscoveryIndicator.tsx`, `frontend/src/test/product-polling.test.ts`, `backend/services/README.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Removed:** `backend/services/discovery_stub.py`.
+
+**Verification:** `ruff check .`, `pytest -m "not integration"` (288 passed), `npm run lint`, `npm run test:run` with `SCRAPER_MODE=fixtures`.
+
+**Deferred:** Listing accept/reject → T3.2; notifications bell → T3.3; image pHash → future.
+
 ## [2026-06-14] T2.8 Controlled live Best Buy validation
 
 **What:** Completed controlled live validation for Nintendo Switch 2 Console (`https://www.bestbuy.ca/en-ca/product/nintendo-switch-2-console/19296507`). Tier A/B/C all pass with live scrape, live Gemini categorization, and full UI add flow. HTML PDP requests returned Akamai **403 Access Denied** from the agent environment (curl_cffi and Playwright); live scrape succeeded via Best Buy JSON product API fallback (`/api/v2/json/product/{sku}` → `ScrapeSource.HTTP_PARSE`). Recorded `switch_2_in_stock` fixture (JSON-LD HTML synthesized from API + raw `.json` snapshot).

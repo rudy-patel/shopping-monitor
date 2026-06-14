@@ -71,7 +71,7 @@ def fake_client(monkeypatch):
     client = FakeSupabaseClient()
     monkeypatch.setattr("services.product_service.get_client", lambda: client)
     monkeypatch.setattr("services.profile_service.get_client", lambda: client)
-    monkeypatch.setattr("services.discovery_stub.get_service_role_client", lambda: client)
+    monkeypatch.setattr("services.discovery.get_service_role_client", lambda: client)
     return client
 
 

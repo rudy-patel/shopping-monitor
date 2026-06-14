@@ -9,7 +9,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, ConfigDict, Field
 
 from core.auth import CurrentUser, get_current_user
-from services.discovery_stub import complete_discovery_stub
+from services.discovery import run_discovery_for_product
 from services.product_service import (
     ProductCategory,
     ProductStatus,
@@ -104,7 +104,7 @@ async def post_product(
 ) -> ProductDetail:
     category = None if body.category in (None, "auto") else body.category
     detail = create_product(user_id=user.user_id, url=body.url, category=category)
-    background_tasks.add_task(complete_discovery_stub, UUID(detail["id"]))
+    background_tasks.add_task(run_discovery_for_product, UUID(detail["id"]))
     return ProductDetail.model_validate(detail)
 
 
