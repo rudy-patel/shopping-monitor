@@ -36,11 +36,12 @@ from services.categorizer import CategorizationContext, CategorySource
 from services.factory import get_categorizer
 from services.pricing import (
     ELIGIBLE_REVIEW_STATUSES,
-    ListingDailyObservation,
     TrendDirection,
     TrendResult,
     compute_trend,
 )
+from services.pricing_data import load_price_observations
+from services.notification_evaluation import run_post_scrape_evaluation
 from db.supabase_client import response_first_row
 from services.profile_service import get_or_create_profile
 
@@ -314,46 +315,6 @@ def _load_listings(client: Client, product_id: str) -> list[dict[str, Any]]:
     return result.data or []
 
 
-def _load_price_observations(
-    client: Client, listings: list[dict[str, Any]], *, today: date
-) -> list[ListingDailyObservation]:
-    if not listings:
-        return []
-    listing_ids = [row["id"] for row in listings]
-    listing_by_id = {row["id"]: row for row in listings}
-    window_start = today - timedelta(days=30)
-    history = (
-        client.table("price_history")
-        .select("listing_id,price_cents,is_in_stock,observed_at")
-        .in_("listing_id", listing_ids)
-        .execute()
-    )
-    observations: list[ListingDailyObservation] = []
-    for row in history.data or []:
-        observed_at = _parse_ts(row["observed_at"])
-        if observed_at is None:
-            continue
-        observed_on = observed_at.date()
-        if observed_on < window_start or observed_on > today:
-            continue
-        listing = listing_by_id.get(row["listing_id"])
-        if listing is None:
-            continue
-        observations.append(
-            ListingDailyObservation(
-                listing_id=UUID(row["listing_id"]),
-                observed_on=observed_on,
-                price_cents=row["price_cents"],
-                is_in_stock=row.get("is_in_stock")
-                if row.get("is_in_stock") is not None
-                else bool(listing.get("is_in_stock")),
-                review_status=listing["review_status"],
-                is_primary=bool(listing.get("is_primary")),
-            )
-        )
-    return observations
-
-
 def trend_label(direction: TrendDirection) -> str:
     labels = {
         TrendDirection.DOWN: "Down in the last 30 days",
@@ -440,7 +401,7 @@ def build_product_detail(
     today = today or date.today()
     sorted_listings = _sort_listings(listings)
     best_price_cents, best_retailer_slug = _best_price(sorted_listings)
-    observations = _load_price_observations(
+    observations = load_price_observations(
         get_client(), sorted_listings, today=today
     )
     trend = compute_trend(observations, today=today)
@@ -681,7 +642,15 @@ def refresh_product(*, user_id: UUID, product_id: UUID) -> dict[str, Any]:
         raise HTTPException(status_code=429, detail="Refresh cooldown active")
 
     listings = _load_listings(client, product["id"])
-    now = datetime.now(UTC).isoformat()
+    now_dt = datetime.now(UTC)
+    now = now_dt.isoformat()
+    listings_before = {
+        str(listing["id"]): {
+            "is_in_stock": listing.get("is_in_stock"),
+            "scrape_failure_count": int(listing.get("scrape_failure_count") or 0),
+        }
+        for listing in listings
+    }
 
     for listing in listings:
         outcome = scrape_listing_url(
@@ -696,6 +665,7 @@ def refresh_product(*, user_id: UUID, product_id: UUID) -> dict[str, Any]:
             update_payload["scrape_snapshot"] = _build_scrape_snapshot(outcome.snapshot)
             update_payload["last_known_price_cents"] = outcome.price_cents
             update_payload["is_in_stock"] = outcome.snapshot.is_in_stock
+            update_payload["scrape_failure_count"] = 0
         elif outcome.scrape_status != "ok":
             update_payload["scrape_failure_count"] = int(
                 listing.get("scrape_failure_count") or 0
@@ -715,7 +685,14 @@ def refresh_product(*, user_id: UUID, product_id: UUID) -> dict[str, Any]:
                 }
             ).execute()
 
-        # TODO T3.4: run notification evaluators after refresh
+    run_post_scrape_evaluation(
+        client,
+        user_id=user_id,
+        product_id=product_id,
+        evaluated_at=now_dt,
+        scrape_source="manual",
+        listings_before=listings_before,
+    )
 
     client.table("products").update(
         {

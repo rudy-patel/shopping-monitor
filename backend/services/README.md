@@ -10,8 +10,8 @@ This package defines the service-interface boundary for Shopping Monitor V1: LLM
 | `Categorizer` | Protocol + `DefaultCategorizer` orchestrator + `heuristic_category()` + `get_categorizer()` factory | T2.5 wires into product API |
 | `FxService` | Protocol + `StaticFxService` + `FxRate`/`FxRates` types + `convert_cad_cents()` | T4.1 (Frankfurter primary + exchangerate.host fallback + 24h cache) |
 | `MailService` | Protocol + `NoOpMailService` + `DigestEmail`/`DigestNotificationEntry` models | T3.6 (Resend client + template rendering) |
-| Notification evaluators | `NotificationEvaluator` Protocol + per-kind stub classes (return `[]`) + `Null`/`Recording`/`Composite` evaluators + `NotificationProposal`/`NotificationEvaluationContext` types | T3.4 fills evaluator bodies |
-| Price/trend helpers | Pure-function module with constants, eligibility filter, daily-minimum, trend math, price-drop & revisit-on-sale helpers | Direct callers in T2.5, T3.3, T3.4 |
+| Notification evaluators | `NotificationEvaluator` Protocol + five evaluator implementations + orchestrator in `notification_evaluation.py` | T3.5 wires scheduled scrape-all caller |
+| Price/trend helpers | Pure-function module with constants, eligibility filter, daily-minimum, baseline/current helpers, trend math, price-drop & revisit-on-sale helpers | Direct callers in T2.5, T3.4, T3.5 |
 
 ## Categorizer
 
@@ -141,7 +141,52 @@ mail.send_digest(
 assert len(mail.sent) == 1
 ```
 
-## NotificationEvaluator
+## NotificationEvaluator (T3.4)
+
+Evaluators run in composite order (first match wins for revisit mutual exclusion):
+
+`PriceDrop` → `BackInStock` → `ScrapeFailing` → `RevisitOnSale` → `RevisitStale`
+
+**Global gate:** `profiles.notifications_enabled = false` or `products.notifications_enabled = false` suppresses all five evaluators.
+
+**Payload contracts:**
+
+| Kind | Payload |
+| --- | --- |
+| `price_drop` | `{ "old_price_cents": int, "new_price_cents": int }` |
+| `back_in_stock` | `{ "retailer_slug": str }` |
+| `scrape_failing` | `{}` |
+| `revisit_on_sale` / `revisit_stale` | `{}` |
+
+**Locked behavior (T3.4):**
+
+- Manual refresh increments `scrape_failure_count` on failure but **`scrape_failing` only fires for `scrape_source="scheduled"`**.
+- `scrape_failing` fires once when count reaches **3** (no repeat at 4+; re-fires after success reset → 3 again).
+- Revisit evaluators run on manual refresh too (product-scoped).
+- `scrape_failing` respects profile `notifications_enabled`; revisit prompts require revisit flags.
+
+```python
+from datetime import datetime, timezone
+from uuid import UUID
+
+from services.notification_evaluation import run_post_scrape_evaluation
+
+run_post_scrape_evaluation(
+    client,
+    user_id=UUID("..."),
+    product_id=UUID("..."),
+    evaluated_at=datetime.now(timezone.utc),
+    scrape_source="manual",  # or "scheduled" in T3.5 scrape-all
+    listings_before={
+        "<listing_id>": {
+            "is_in_stock": True,
+            "scrape_failure_count": 0,
+        }
+    },
+)
+```
+
+**T3.5 handoff:** `run_revisit_evaluation_for_active_products(client, user_id, evaluated_at)` batch wrapper; scheduled scrape-all should call `run_post_scrape_evaluation(..., scrape_source="scheduled")` per product after listings are scraped.
 
 ```python
 from services import (
@@ -176,7 +221,7 @@ trend = compute_trend(observations, today=date(2026, 6, 14))
 
 ## Event-driven notifications
 
-`discovery_complete` (T3.1) and `needs_input` (T2.5) are **not** evaluator kinds — they are emitted directly by the discovery job and product-add path respectively. Only the five evaluator-backed kinds have stub classes in T1.5:
+`discovery_complete` (T3.1) and `needs_input` (T2.5) are **not** evaluator kinds — they are emitted directly by the discovery job and product-add path respectively. Only the five evaluator-backed kinds have implementations in T3.4:
 
 - `PriceDropEvaluator`
 - `BackInStockEvaluator`
@@ -192,6 +237,6 @@ trend = compute_trend(observations, today=date(2026, 6, 14))
 
 ## Deferred to later tasks
 
-- **T3.4** — Evaluator bodies; tightening `NotificationEvaluationContext` placeholder `dict[str, Any]` fields into typed snapshots.
+- **T3.5** — Scheduled scrape-all job calls `run_post_scrape_evaluation(..., scrape_source="scheduled")`.
 - **T3.6** — Resend `MailService` + HTML/text digest templates; swap `DigestEmail.to_email` to `EmailStr` once `email-validator` is added.
 - **T4.1** — Frankfurter primary + `exchangerate.host` fallback + 24h `fx_rates_cache`.

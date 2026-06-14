@@ -4,6 +4,18 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T3.4 Notification evaluators and post-scrape orchestration
+
+**What:** Implemented all five notification evaluator bodies with typed `NotificationEvaluationContext`, pricing helpers (`baseline_max_daily_minimum`, `current_daily_minimum`), shared `pricing_data.load_price_observations`, orchestrator (`notification_evaluation.py`), and wiring into `refresh_product()` (listing snapshots, failure-count reset on success, post-scrape evaluation). Exported `run_post_scrape_evaluation` and `run_revisit_evaluation_for_active_products` for T3.5.
+
+**Locked behavior:** Manual refresh increments `scrape_failure_count` on failure but `scrape_failing` only fires for `scrape_source="scheduled"`. Profile `notifications_enabled=false` suppresses all evaluator-backed notifications. `scrape_failing` fires once at count=3 (no repeat at 4+; re-fires after success reset→3). Revisit evaluators run on manual refresh. Price-drop payload uses `old_price_cents` / `new_price_cents`.
+
+**Files:** `backend/services/pricing.py`, `backend/services/pricing_data.py`, `backend/services/notifications.py`, `backend/services/notification_evaluation.py`, `backend/services/product_service.py`, `backend/test/test_notification_evaluators.py`, `backend/test/test_revisit_90_day_fixture.py`, `backend/test/test_notification_evaluation_service.py`, `backend/test/test_services_pricing.py`, `backend/test/test_services_notifications.py`, `backend/test/test_products_router.py`, `backend/services/README.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `ruff check .`, `pytest -m "not integration"` (356 passed) with `SCRAPER_MODE=fixtures`. PR https://github.com/rudy-patel/shopping-monitor/pull/28
+
+**Deferred:** Scheduled scrape-all caller → T3.5; digest email → T3.6.
+
 ## [2026-06-14] T3.3 Notification API and in-app bell
 
 **What:** Implemented the notification read API and frontend bell: `notification_service.py` with 90-day query filter, offset/limit pagination, mark-read (per-id and all) with `last_user_interaction_at` touch, revisit keep/archive actions (archive via `update_product`), three authenticated routes, `FakeSupabaseClient` extensions (`order`, `gte`, `range`), notifications page with load-more and click-to-navigate mark-read, TopNav unread badge (refetch on window focus only), and Vitest coverage for page actions and bell badge.

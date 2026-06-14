@@ -26,6 +26,8 @@ from services.pricing import (
     price_drop_pct,
     product_daily_minimum,
     should_fire_price_drop,
+    baseline_max_daily_minimum,
+    current_daily_minimum,
 )
 
 
@@ -241,3 +243,30 @@ def test_exported_constants():
     assert REVISIT_DEBOUNCE_DAYS == 30
     assert REVISIT_PRICE_DROP_OVERLAP_DAYS == 7
     assert ELIGIBLE_REVIEW_STATUSES == frozenset({"auto_added", "accepted"})
+
+
+def test_baseline_max_daily_minimum():
+    today = date(2026, 6, 14)
+    observations = [
+        _obs(observed_on=today - timedelta(days=30), price_cents=10000, is_primary=True),
+        _obs(observed_on=today - timedelta(days=10), price_cents=9000, is_primary=True),
+        _obs(observed_on=today, price_cents=9500, is_primary=True),
+    ]
+    assert baseline_max_daily_minimum(observations, today=today) == 10000
+
+
+def test_baseline_max_daily_minimum_empty():
+    assert baseline_max_daily_minimum([], today=date(2026, 6, 14)) is None
+
+
+def test_current_daily_minimum_uses_nearest_prior_date():
+    today = date(2026, 6, 14)
+    observations = [
+        _obs(observed_on=today - timedelta(days=5), price_cents=9000, is_primary=True),
+        _obs(observed_on=today - timedelta(days=1), price_cents=8500, is_primary=True),
+    ]
+    assert current_daily_minimum(observations, today=today) == 8500
+
+
+def test_current_daily_minimum_empty():
+    assert current_daily_minimum([], today=date(2026, 6, 14)) is None

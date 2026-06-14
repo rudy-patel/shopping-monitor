@@ -34,7 +34,9 @@ __all__ = [
     "TREND_WINDOW_DAYS",
     "TrendDirection",
     "TrendResult",
+    "baseline_max_daily_minimum",
     "compute_trend",
+    "current_daily_minimum",
     "is_eligible_for_pricing",
     "is_revisit_on_sale_eligible",
     "price_drop_pct",
@@ -188,3 +190,37 @@ def is_revisit_on_sale_eligible(
 ) -> bool:
     """True iff price_drop_pct(...) >= REVISIT_ON_SALE_PCT."""
     return price_drop_pct(baseline_cents=baseline_cents, current_cents=current_cents) >= REVISIT_ON_SALE_PCT
+
+
+def baseline_max_daily_minimum(
+    observations: Iterable[ListingDailyObservation],
+    *,
+    today: date,
+    window_days: int = TREND_WINDOW_DAYS,
+) -> int | None:
+    """MAX of per-day product mins over the trailing window (eligible listings only)."""
+    daily_min = product_daily_minimum(observations)
+    window_start = today - timedelta(days=window_days)
+    values = [
+        price
+        for day, price in daily_min.items()
+        if window_start <= day <= today
+    ]
+    if not values:
+        return None
+    return max(values)
+
+
+def current_daily_minimum(
+    observations: Iterable[ListingDailyObservation],
+    *,
+    today: date,
+) -> int | None:
+    """Newest product-level daily min on or before ``today``."""
+    daily_min = product_daily_minimum(observations)
+    if not daily_min:
+        return None
+    price_date = _nearest_date_at_or_before(today, sorted(daily_min.keys()))
+    if price_date is None:
+        return None
+    return daily_min[price_date]

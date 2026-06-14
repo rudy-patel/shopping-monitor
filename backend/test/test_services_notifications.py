@@ -17,6 +17,8 @@ from services.notifications import (
     NotificationProposal,
     NullNotificationEvaluator,
     PriceDropEvaluator,
+    ProductNotificationSnapshot,
+    ProfileNotificationFlags,
     RecordingNotificationEvaluator,
     RevisitOnSaleEvaluator,
     RevisitStaleEvaluator,
@@ -29,8 +31,23 @@ def _ctx() -> NotificationEvaluationContext:
         user_id=uuid4(),
         product_id=uuid4(),
         evaluated_at=datetime(2026, 6, 14, 12, 0, 0, tzinfo=timezone.utc),
-        profile={},
-        product={},
+        scrape_source="manual",
+        effective_threshold_pct=20,
+        profile=ProfileNotificationFlags(
+            notifications_enabled=True,
+            default_threshold_pct=20,
+            revisit_prompts_enabled=True,
+            revisit_on_sale_enabled=True,
+            revisit_stale_enabled=True,
+            revisit_stale_days=30,
+        ),
+        product=ProductNotificationSnapshot(
+            status="active",
+            notifications_enabled=True,
+            notification_threshold_pct=None,
+            created_at=datetime(2026, 4, 1, 12, 0, 0, tzinfo=timezone.utc),
+            last_user_interaction_at=None,
+        ),
     )
 
 
@@ -61,9 +78,8 @@ def test_recording_evaluator_returns_proposals_and_records_context():
         (RevisitStaleEvaluator, NotificationKind.REVISIT_STALE),
     ],
 )
-def test_per_kind_stubs_return_empty_and_expose_kind(evaluator_cls, expected_kind):
+def test_per_kind_evaluators_expose_kind(evaluator_cls, expected_kind):
     evaluator = evaluator_cls()
-    assert evaluator.evaluate(_ctx()) == []
     assert evaluator.kind == expected_kind
 
 
@@ -106,8 +122,23 @@ def test_notification_evaluation_context_rejects_naive_evaluated_at():
             user_id=uuid4(),
             product_id=uuid4(),
             evaluated_at=datetime(2026, 6, 14, 12, 0, 0),
-            profile={},
-            product={},
+            scrape_source="manual",
+            effective_threshold_pct=20,
+            profile=ProfileNotificationFlags(
+                notifications_enabled=True,
+                default_threshold_pct=20,
+                revisit_prompts_enabled=True,
+                revisit_on_sale_enabled=True,
+                revisit_stale_enabled=True,
+                revisit_stale_days=30,
+            ),
+            product=ProductNotificationSnapshot(
+                status="active",
+                notifications_enabled=True,
+                notification_threshold_pct=None,
+                created_at=datetime(2026, 4, 1, 12, 0, 0, tzinfo=timezone.utc),
+                last_user_interaction_at=None,
+            ),
         )
 
 
