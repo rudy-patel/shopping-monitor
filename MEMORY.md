@@ -4,6 +4,14 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-13] T2.2 generic JSON-LD/OG scraper
+
+**What:** Implemented the `generic` retailer fallback: JSON-LD Product extraction first, OpenGraph/product meta fallback, CAD-only guard (`NotCanadianListingError`), no-price → `ScrapeBlockedError`, no-title → `ScrapeParseError`, fixture URL resolver (`fixtures.local/<slug>/<scenario>`), and fixture-only pytest coverage. Added `beautifulsoup4` for HTML parsing. Production registration via `scrapers.bootstrap` with idempotent `register_generic()` for test registry resets.
+
+**Files:** `backend/scrapers/generic.py`, `backend/scrapers/bootstrap.py`, `backend/scrapers/structured_data.py`, `backend/scrapers/fixture_url.py`, `backend/scrapers/extraction/` (`types.py`, `jsonld.py`, `opengraph.py`, `price.py`), `backend/test/fixtures/retailers/generic/*.html`, `backend/test/test_generic_scraper.py`, `backend/test/conftest.py`, `backend/test/test_scraper_registry.py`, `backend/scrapers/exceptions.py`, `backend/scrapers/README.md`, `backend/requirements.txt`, `backend/pytest.ini`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Deferred:** Product API wiring for generic listings → T2.5; frontend "Generic scraper — may be unreliable" label → T2.6; `bestbuy_ca` scraper → T2.3.
+
 ## [2026-06-14] T2.1 review pass
 
 **What:** Second-pass cleanup: `update_profile` now catches PostgREST `PGRST116` (real Supabase behavior when PATCH hits a missing row) instead of checking `data is None`; extracted `_select_profile` / `_apply_profile_update` helpers; fake client update+single raises `PGRST116` to match production; deduped test profile fixture via exported `defaultProfileResponse`; `ProviderStack` accepts shared `QueryClient`; added test that `signOut` clears profile query cache; updated `docs/AUTHENTICATION.md` module table and OAuth note.

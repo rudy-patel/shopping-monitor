@@ -5,7 +5,8 @@ Maps to ``product_listings.scrape_status`` values for T2.5 translation:
 - ``ok`` — successful scrape (no exception).
 - ``failing`` — ``ScrapeParseError``, ``ScrapeTimeoutError``, ``FixtureNotFoundError``,
   ``NotCanadianListingError``, ``RetailerNotSupportedError``.
-- ``blocked`` — ``ScrapeBlockedError``, ``NetworkBlockedInFixturesError``.  # pragma: allowlist secret
+- ``blocked`` — ``ScrapeBlockedError`` (including generic scraper no-price per PRD §7.8),
+  ``NetworkBlockedInFixturesError``.  # pragma: allowlist secret
 - Config/registry errors (``ScraperConfigError``, ``RetailerAlreadyRegisteredError``)
   are raised before a listing row is written.
 """
@@ -45,7 +46,7 @@ class NotCanadianListingError(ScraperError):
 
 
 class ScrapeBlockedError(ScraperError):
-    """Retailer blocked the request (403/429/CAPTCHA/Cloudflare)."""
+    """Retailer blocked the request (403/429/CAPTCHA/Cloudflare) or no extractable price."""
 
 
 class ScrapeParseError(ScraperError):
