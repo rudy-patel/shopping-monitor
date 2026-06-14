@@ -14,7 +14,7 @@ _BACKEND_DIR = Path(__file__).resolve().parents[1]
 if str(_BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(_BACKEND_DIR))
 
-from core.settings import get_settings  # noqa: E402
+from core.settings import effective_app_base_url, get_settings  # noqa: E402
 from services.digest_templates import build_digest_email  # noqa: E402
 from services.factory import get_mail_service  # noqa: E402
 from services.mail import DigestNotificationEntry, NoOpMailService  # noqa: E402
@@ -29,7 +29,7 @@ def _sample_entry() -> DigestNotificationEntry:
         product_id=product_id,
         product_title="Smoke Test Product",
         summary="Smoke Test Product dropped from $100.00 to $80.00.",
-        deep_link=f"{get_settings().app_base_url.rstrip('/')}/products/{product_id}",
+        deep_link=f"{effective_app_base_url(get_settings()).rstrip('/')}/products/{product_id}",
         created_at=datetime.now(UTC),
     )
 

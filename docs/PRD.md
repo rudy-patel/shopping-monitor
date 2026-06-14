@@ -101,7 +101,7 @@ The PRD describes **complete V1**, but implementation should start with a **firs
 - `SCRAPER_MODE=fixtures` works in local dev, CI, and automated agent tests with no outbound retailer requests.
 - Scheduled scrape and fixed-time digest paths run against fixture data in tests.
 
-After this slice is working, agents can expand in parallel across UI polish, remaining notification workflows, LLM discovery/categorization hardening, additional retailer modules, drift detection, production validation (T6.2+), and fixture coverage. Deployment docs and production URLs are documented in `docs/DEPLOYMENT.md` (T6.1). Completing a reliable app with fewer retailers is higher priority than shipping many flaky retailer modules.
+After this slice is working, agents can expand in parallel across UI polish, settings and account lifecycle (T4.2/T4.3), additional retailer modules, drift detection, production validation (T6.2+), and fixture coverage. Notification workflows through the daily digest job (T3.1–T3.6) are shipped; deployment docs and production URLs are in `docs/DEPLOYMENT.md` (T6.1). Completing a reliable app with fewer retailers is higher priority than shipping many flaky retailer modules.
 
 
 ---
@@ -605,7 +605,7 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 ### 10.3 Background jobs
 
 - **Daily scrape runner:** GitHub Actions workflow under `.github/workflows/scrape.yml`, scheduled at `0 8 * * *` UTC (≈ 04:00 America/Toronto). **T3.5 ships `workflow_dispatch` only;** enable the cron trigger in T6.3 after production validation. Production `workflow_dispatch` verified 2026-06-14 (see `docs/DEPLOYMENT.md`).
-- **Daily digest runner:** GitHub Actions cron workflow under `.github/workflows/digest.yml`, scheduled at `0 14 * * *` UTC. This is a fixed UTC time chosen to land in the Pacific morning and keeps V1 simple by avoiding timezone/daylight-saving scheduling.
+- **Daily digest runner:** GitHub Actions workflow under `.github/workflows/digest.yml`, scheduled at `0 14 * * *` UTC. **T3.6 ships `workflow_dispatch` only;** enable the cron trigger in T6.3 after production validation. This is a fixed UTC time chosen to land in the Pacific morning and keeps V1 simple by avoiding timezone/daylight-saving scheduling.
 - **Action entrypoints:** small Python scripts in `backend/workers/` call the deployed backend's internal endpoints (`POST /internal/jobs/scrape-all`, `POST /internal/jobs/send-digests`) with `X-Worker-Token` from `WORKER_TOKEN`.
 - **Business logic location:** the real scrape, notification, revisit, and digest logic lives in importable backend service modules used by the FastAPI internal endpoints. Worker scripts stay thin wrappers around HTTP calls so deployed jobs exercise the same path as production, while unit tests can call service modules directly with fixtures.
 - **Repository visibility:** public GitHub repository is preferred if Actions minutes ever become a free-tier constraint. A private repository is acceptable while included free minutes comfortably cover once-daily jobs.

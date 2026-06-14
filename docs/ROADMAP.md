@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-14 (T3.6 digest email; H4 Resend done; scrape workflow_dispatch verified).
+> **Last updated:** 2026-06-14 (T3.6 digest email; T6.1 deployment docs; H4 Resend done; scrape workflow_dispatch verified).
 
 ---
 
@@ -53,7 +53,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
 | M4: MVP product workflows | in progress | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5), digest email (T3.6). **Remaining:** settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
 | M5: V1 retailer coverage | pending | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. | V1 success criteria can be tested end-to-end. |
-| M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. **Progress:** T6.1 deployment docs done; prod scrape `workflow_dispatch` verified (T6.2–T6.4, cron T6.3 remain). | Invite early friends for feedback. |
+| M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. **Progress:** T6.1 deployment docs done; T3.5/T3.6 job code shipped (`workflow_dispatch` only); prod scrape `workflow_dispatch` verified — digest prod smoke, account delete, cron (T6.2–T6.4), and schedules (T6.3) remain. | Invite early friends for feedback. |
 
 ---
 
@@ -522,8 +522,8 @@ These can proceed after the local vertical slice lands.
   - Thin `backend/workers/send_digests.py`.
   - `.github/workflows/digest.yml` with `workflow_dispatch`; add `schedule` only when production is ready.
 - **Verification:**
-  - Unit tests for no-unread suppression, email-disabled suppression, rendered template contents, marking sent.
-  - Sandbox/live send smoke once H4 is complete.
+  - Unit tests for no-unread suppression, email-disabled suppression, noop skip counting, rendered template contents, marking sent.
+  - Sandbox live send smoke with H4 complete (`scripts/smoke_resend_digest.py --live`); production digest `workflow_dispatch` → T6.2.
 
 ---
 
@@ -656,7 +656,7 @@ Start after M3 proves the one-retailer architecture.
 - **Build:**
   - Rewrote `docs/DEPLOYMENT.md` with production reference table, env var matrix, Supabase redirects, scrape workflow + deploy-wait docs.
   - Synced `backend/.env.example` with `settings.py` (`CORS_ALLOWED_ORIGINS`, `LOG_LEVEL`, `GEMINI_DISCOVER_TIMEOUT_S`).
-  - Migrations marked applied; Resend documented as H4/T3.6 deferred.
+  - Migrations marked applied; Resend env vars documented (H4/T3.6 complete in follow-up PR #35).
 - **Verification:** docs review; production health/OpenAPI/scrape checks in `docs/DEPLOYMENT.md`; `test_env_example_documents_settings_keys` guards `.env.example` sync.
 
 ### T6.2 Production smoke
@@ -783,7 +783,7 @@ Constraints:
 
 ## 15. Near-term recommended execution order
 
-**Phase 3 notification/discovery work through T3.5, Phase 4 currency (T4.1), and deployment docs (T6.1) are complete.** Pick next from:
+**Phase 3 notification/discovery work through T3.6, Phase 4 currency (T4.1), and deployment docs (T6.1) are complete.** Pick next from:
 
 1. **T6.2** Production smoke — sign-in, add live Best Buy URL, manual refresh, digest `workflow_dispatch` (scrape pre-verified 2026-06-14).
 2. **T4.2** Settings page — profile-backed theme, digest toggle, thresholds, revisit prefs (currency switcher already in header from T4.1).
@@ -812,6 +812,9 @@ Do not prioritize broad retailer expansion (Phase 5) until M4 is done. T5.2 `dim
 14. ~~T3.2 Listing review API and UI.~~
 15. ~~T3.3 Notification API and in-app bell.~~
 16. ~~T3.4 Notification evaluators and post-scrape orchestration.~~
-17. ~~T4.1 FX rates and display currency.~~
+17. ~~T3.5 Internal scrape job endpoint.~~
+18. ~~T3.6 Digest email service and job.~~
+19. ~~T4.1 FX rates and display currency.~~
+20. ~~T6.1 Deployment docs and config hardening.~~
 
 </details>

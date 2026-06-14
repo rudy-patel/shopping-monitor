@@ -132,6 +132,7 @@ def test_send_digests_happy_path(worker_env, monkeypatch):
         users_skipped_no_unread=0,
         users_skipped_digest_disabled=0,
         users_skipped_no_email=0,
+        users_skipped_noop=0,
         notifications_marked_sent=2,
         duration_seconds=0.5,
     )

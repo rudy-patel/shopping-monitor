@@ -204,6 +204,7 @@ Manual run: GitHub → Actions → **Daily digest** → **Run workflow**.
 | --- | --- | --- |
 | `users_skipped_no_email` | Auth user has no email | Set email on Supabase Auth user (digest resolves via admin API, not `profiles`) |
 | `mail_provider: "noop"` | `RESEND_API_KEY` unset on Render | Set env var and redeploy |
+| `users_skipped_noop` > 0 with `mail_provider: "noop"` | Same as above — users had qualifying unread rows but no send attempted | Set `RESEND_API_KEY` on Render |
 | Second dispatch sends nothing | Idempotency (`email_sent_at` set) | Expected — only unread unsent rows qualify |
 | HTTP 401 on POST | `WORKER_TOKEN` mismatch | Sync Render + GitHub secret |
 

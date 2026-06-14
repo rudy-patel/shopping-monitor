@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] Docs status audit (T3.6 + T6.1 cross-reference)
+
+**What:** Audited `main` against README, PRD, and ROADMAP after T3.6 (#35) and T6.1 (#34) merges. Fixed stale plan markers: ROADMAP §15 still said Phase 3 complete through T3.5 only; T3.6 verification and T6.1 build bullets still referenced H4/T3.6 as deferred; historical bootstrap list omitted T3.5/T3.6/T6.1; PRD §4.1 still listed "remaining notification workflows" and §10.3 digest runner lacked the T3.6 `workflow_dispatch`-only note (matching scrape). README was already current.
+
+**Second pass (code review):** Added `users_skipped_noop` to digest job result for noop-provider observability (users with qualifying unread rows when `RESEND_API_KEY` unset), lazy mail-service init, `send_digests_completed` structured log, multi-user digest test, and smoke script `effective_app_base_url` for production link parity.
+
+**Files:** `docs/ROADMAP.md`, `docs/PRD.md`, `docs/DEPLOYMENT.md`, `backend/services/digest_job_service.py`, `backend/services/README.md`, `backend/scripts/smoke_resend_digest.py`, `backend/test/test_digest_job_service.py`, `backend/test/test_internal_jobs_router.py`, `MEMORY.md`.
+
+---
+
 ## [2026-06-14] T3.6 Digest email service and job
 
 **What:** Implemented Resend-backed digest delivery: `ResendMailService`, `digest_templates.py` (copy mirrors `NotificationRow.tsx`), `digest_job_service.run_send_digests()`, `POST /internal/jobs/send-digests`, `backend/workers/send_digests.py`, `.github/workflows/digest.yml` (`workflow_dispatch` only), and `scripts/smoke_resend_digest.py` (dry-run default). Added pytest Resend guard in `conftest.py` (mirrors Gemini). `DigestEmail.to_email` now uses `EmailStr`.
