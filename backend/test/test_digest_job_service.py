@@ -126,6 +126,24 @@ def test_marks_email_sent_on_success(fake_client):
     assert mail.sent[0].to_email == "alice@example.com"
 
 
+def test_digest_links_use_production_app_base_when_auth_bypass_off(fake_client):
+    notification_id = _insert_notification(fake_client, user_id=USER_A)
+    mail = NoOpMailService()
+    settings = Settings(
+        resend_api_key="re_test_key",
+        app_base_url="http://localhost:3000",
+        auth_bypass_enabled=False,
+    )
+
+    run_send_digests(fake_client, mail_service=mail, settings=settings)
+
+    assert len(mail.sent) == 1
+    body = mail.sent[0].text_body
+    assert "shopping-monitor-nine.vercel.app" in body
+    assert "localhost" not in body
+    assert fake_client.notifications[notification_id]["email_sent_at"] is not None
+
+
 def test_does_not_mark_on_send_failure(fake_client):
     notification_id = _insert_notification(fake_client, user_id=USER_A)
 

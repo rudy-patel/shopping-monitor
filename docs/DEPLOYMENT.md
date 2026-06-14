@@ -124,7 +124,7 @@ The free tier sleeps after ~15 minutes idle with a ~30s cold start on wake (PRD 
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role — never expose to frontend |
 | `AUTH_BYPASS_ENABLED` | `false` |
 | `WORKER_TOKEN` | Strong secret; must match GitHub Actions |
-| `APP_BASE_URL` | `https://shopping-monitor-nine.vercel.app` |
+| `APP_BASE_URL` | `https://shopping-monitor-nine.vercel.app` (required for correct digest deep links; backend falls back to this production URL when unset/localhost and `AUTH_BYPASS_ENABLED=false`) |
 | `SCRAPER_MODE` | `live` |
 | `CORS_ALLOWED_ORIGINS` | `https://shopping-monitor-nine.vercel.app,http://localhost:3000` (comma-separated; include localhost for local frontend → prod API debugging) |
 | `GEMINI_API_KEY` | Required for LLM categorization/discovery; heuristics fallback if unset |

@@ -10,7 +10,7 @@ from typing import Any, Literal
 from supabase import Client
 
 from core.logging import get_logger
-from core.settings import Settings, get_settings
+from core.settings import Settings, effective_app_base_url, get_settings
 from services.digest_templates import build_digest_email, build_digest_entry
 from services.factory import get_mail_service
 from services.mail import MailService, MailServiceError
@@ -154,7 +154,7 @@ def run_send_digests(
                 product_title=titles_by_id.get(str(row.get("product_id")))
                 if row.get("product_id")
                 else None,
-                app_base_url=settings.app_base_url,
+                app_base_url=effective_app_base_url(settings),
             )
             for row in rows
         ]
