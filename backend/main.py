@@ -18,7 +18,7 @@ import scrapers.bootstrap  # noqa: F401
 settings = get_settings()
 configure_logging(settings)
 
-app = FastAPI(title="Shopping Monitor API", version="0.1.0")
+app = FastAPI(title="Shopping Monitor API", version="0.1.1")
 
 app.add_middleware(
     CORSMiddleware,
