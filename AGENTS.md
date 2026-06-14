@@ -59,6 +59,8 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 | Frontend build | `cd frontend && npm run build` | `tsc && vite build` |
 | Retailer benchmark | `make benchmark-retailers` | Fixture-mode harness (T5.1); writes `docs/benchmarks/fixtures-YYYY-MM-DD.json` |
 | Record Shopify fixtures | `SCRAPER_MODE=record python scripts/record_shopify_fixtures.py --slug palmisleskate --scenario in_stock --url "<product-url>"` | Live capture only; CI uses `SCRAPER_MODE=fixtures` |
+| Production smoke (T6.2) | `cd backend && source venv/bin/activate && python scripts/smoke_production_t6_2.py --live` | Live Render API for `bestbuy_ca` + `palmisleskate`; cleans up disposable users/products. Not for CI. |
+| Account delete smoke | `python backend/scripts/smoke_delete_account.py --live --confirm` | Disposable users only; requires Supabase creds |
 | All unit tests | `make test` | Backend pytest (`-m "not integration"`) + frontend vitest |
 | Integration tests | `make test-integration` | Requires Supabase credentials; writes `backend/.env` via `make setup-integration-env` |
 
