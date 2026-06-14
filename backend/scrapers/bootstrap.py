@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from scrapers.bestbuy_ca import register_bestbuy_ca
-from scrapers.dimemtl import register_dimemtl
 from scrapers.generic import register_generic
+from scrapers.palmisleskate import register_palmisleskate
+from scrapers.tikiroomskate import register_tikiroomskate
 
 register_generic()
 register_bestbuy_ca()
-register_dimemtl()
+register_palmisleskate()
+register_tikiroomskate()

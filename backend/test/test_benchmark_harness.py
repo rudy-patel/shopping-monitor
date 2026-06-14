@@ -38,12 +38,12 @@ def _entry(slug: str, scenario: str, **expect_kwargs) -> CatalogEntry:
     )
 
 
-def test_catalog_loads_six_entries():
+def test_catalog_loads_ten_entries():
     version, entries = load_catalog()
     assert version == "1"
-    assert len(entries) == 6
+    assert len(entries) == 10
     slugs = {entry.slug for entry in entries}
-    assert slugs == {"generic", "bestbuy_ca", "dimemtl"}
+    assert slugs == {"generic", "bestbuy_ca", "palmisleskate", "tikiroomskate"}
     for entry in entries:
         assert entry.url.startswith("https://fixtures.local/")
 
@@ -70,8 +70,8 @@ def test_structured_data_bestbuy_multi_variant():
     assert result.fields.variants.value >= 2
 
 
-def test_structured_data_dimemtl_scenarios():
-    _, entries = load_catalog(slugs=["dimemtl"])
+def test_structured_data_shopify_scenarios():
+    _, entries = load_catalog(slugs=["palmisleskate", "tikiroomskate"])
     for entry in entries:
         result = run_structured_data(entry, live=False, retries=0)
         assert result.status == "success"
@@ -166,11 +166,12 @@ def test_bestbuy_advisory_http_parse_fallback():
 
 def test_report_summaries_cover_catalog_slugs():
     report = run_benchmark()
-    assert len(report.summaries) == 3
+    assert len(report.summaries) == 4
     assert {summary.slug for summary in report.summaries} == {
         "generic",
         "bestbuy_ca",
-        "dimemtl",
+        "palmisleskate",
+        "tikiroomskate",
     }
 
 

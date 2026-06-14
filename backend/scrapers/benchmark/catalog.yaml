@@ -50,26 +50,74 @@ entries:
       variants: true
     notes: Variant extraction coverage
 
-  - slug: dimemtl
+  - slug: palmisleskate
     scenario: in_stock
-    url: https://fixtures.local/dimemtl/in_stock
+    url: https://fixtures.local/palmisleskate/in_stock
     mode: fixture
     expect:
       title: true
       price: true
       stock: true
-      image: false
+      image: true
       variants: false
-    notes: Shopify JSON-LD easy retailer (single-SKU fixture; no image in capture)
+    notes: Shopify JSON-LD + meta; single-SKU fixture
 
-  - slug: dimemtl
+  - slug: palmisleskate
     scenario: multi_variant
-    url: https://fixtures.local/dimemtl/multi_variant
+    url: https://fixtures.local/palmisleskate/multi_variant
     mode: fixture
     expect:
       title: true
       price: true
       stock: true
-      image: false
+      image: true
+      variants: true
+    notes: Shopify meta variant matrix
+
+  - slug: palmisleskate
+    scenario: out_of_stock
+    url: https://fixtures.local/palmisleskate/out_of_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
       variants: false
-    notes: Core field coverage (fixture has no variant matrix or image yet)
+    notes: Out-of-stock JSON-LD availability
+
+  - slug: tikiroomskate
+    scenario: in_stock
+    url: https://fixtures.local/tikiroomskate/in_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: false
+    notes: Shopify JSON-LD + meta; single-SKU fixture
+
+  - slug: tikiroomskate
+    scenario: multi_variant
+    url: https://fixtures.local/tikiroomskate/multi_variant
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: true
+    notes: Color/size variant matrix via Shopify meta
+
+  - slug: tikiroomskate
+    scenario: out_of_stock
+    url: https://fixtures.local/tikiroomskate/out_of_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: false
+    notes: Out-of-stock JSON-LD availability

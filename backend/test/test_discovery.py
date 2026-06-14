@@ -31,7 +31,9 @@ DISCOVERY_A_MEDIUM = "https://fixtures.local/discovery_a/medium_match"
 DISCOVERY_A_LOW = "https://fixtures.local/discovery_a/low_match"
 DISCOVERY_B_HIGH = "https://fixtures.local/discovery_b/high_match"
 DISCOVERY_C_HIGH = "https://fixtures.local/discovery_c/high_match"
-DIMEMTL_IN_STOCK = "https://fixtures.local/dimemtl/in_stock"
+DISCOVERY_D_HIGH = "https://fixtures.local/discovery_d/high_match"
+PALMISLE_IN_STOCK = "https://fixtures.local/palmisleskate/in_stock"
+TIKIROOM_IN_STOCK = "https://fixtures.local/tikiroomskate/in_stock"
 SCRAPE_FAIL_URL = "https://fixtures.local/discovery_a/missing_scenario"
 
 
@@ -61,12 +63,14 @@ def discovery_env(monkeypatch):
     monkeypatch.setattr("db.supabase_client.get_service_role_client", lambda: client)
 
     from scrapers.bestbuy_ca import register_bestbuy_ca
-    from scrapers.dimemtl import register_dimemtl
     from scrapers.generic import register_generic
+    from scrapers.palmisleskate import register_palmisleskate
+    from scrapers.tikiroomskate import register_tikiroomskate
 
     register_generic()
     register_bestbuy_ca()
-    register_dimemtl()
+    register_palmisleskate()
+    register_tikiroomskate()
     register_discovery_test_retailers()
 
     fake_llm = FakeLlmProvider()
@@ -163,6 +167,58 @@ def _seed_secondary_listing(
     return row
 
 
+def _seed_shopify_primary(
+    fake: FakeSupabaseClient,
+    *,
+    url: str,
+) -> dict:
+    from scrapers.registry import lookup_by_url
+
+    entry = lookup_by_url(url)
+    snapshot = entry.scrape(url)
+    now = datetime.now(UTC).isoformat()
+    product_id = str(uuid4())
+    row = {
+        "id": product_id,
+        "user_id": DEV_USER_ID,
+        "title": snapshot.title,
+        "brand": snapshot.brand,
+        "image_url": str(snapshot.image_url) if snapshot.image_url else None,
+        "category": "other",
+        "category_source": "heuristic",
+        "status": "active",
+        "notification_threshold_pct": None,
+        "notifications_enabled": True,
+        "discovery_status": "pending",
+        "last_refresh_at": None,
+        "last_user_interaction_at": None,
+        "created_at": now,
+        "updated_at": now,
+    }
+    fake.products[product_id] = row
+
+    listing_id = str(uuid4())
+    fake.product_listings[listing_id] = {
+        "id": listing_id,
+        "product_id": product_id,
+        "retailer_slug": entry.slug,
+        "url": url,
+        "variant_attributes": {},
+        "available_variants": [],
+        "scrape_snapshot": {},
+        "is_primary": True,
+        "review_status": "accepted",
+        "last_known_price_cents": snapshot.current_price_cents,
+        "is_in_stock": snapshot.is_in_stock,
+        "last_scraped_at": now,
+        "scrape_status": "ok",
+        "scrape_failure_count": 0,
+        "created_at": now,
+        "updated_at": now,
+    }
+    return row
+
+
 def test_auto_add_listing_with_price_history(discovery_env):
     fake, llm = discovery_env
     product = _seed_product(fake)
@@ -227,7 +283,7 @@ def test_total_listing_cap_stops_at_five(discovery_env):
     for slug, url in [
         ("discovery_a", DISCOVERY_A_HIGH),
         ("discovery_b", DISCOVERY_B_HIGH),
-        ("dimemtl", DIMEMTL_IN_STOCK),
+        ("discovery_d", DISCOVERY_D_HIGH),
         ("discovery_c", DISCOVERY_C_HIGH),
     ]:
         _seed_secondary_listing(fake, product["id"], retailer_slug=slug, url=url)
@@ -251,7 +307,7 @@ def test_auto_add_cap_stops_without_needs_review(discovery_env):
         candidates=[
             _candidate(DISCOVERY_A_HIGH),
             _candidate(DISCOVERY_B_HIGH),
-            _candidate(DIMEMTL_IN_STOCK),
+            _candidate(DISCOVERY_D_HIGH),
             _candidate(DISCOVERY_C_HIGH),
             _candidate(DISCOVERY_A_MEDIUM),
         ]
@@ -369,20 +425,20 @@ def test_needs_input_product_runs_with_empty_variants(discovery_env):
     assert len(discovered) == 1
 
 
-def test_dimemtl_fixture_cross_retailer_discovery(discovery_env):
+def test_shopify_fixture_cross_retailer_discovery(discovery_env):
     fake, llm = discovery_env
-    product = _seed_product(fake)
-    llm.discover_result = LlmDiscoveryResult(candidates=[_candidate(DIMEMTL_IN_STOCK)])
+    product = _seed_shopify_primary(fake, url=PALMISLE_IN_STOCK)
+    llm.discover_result = LlmDiscoveryResult(candidates=[_candidate(TIKIROOM_IN_STOCK)])
 
     run_discovery_for_product(product["id"])
 
     discovered = [
         row
         for row in fake.product_listings.values()
-        if row["product_id"] == product["id"] and row["retailer_slug"] == "dimemtl"
+        if row["product_id"] == product["id"] and row["retailer_slug"] == "tikiroomskate"
     ]
     assert len(discovered) == 1
-    assert discovered[0]["review_status"] == "auto_added"
+    assert discovered[0]["review_status"] == "needs_review"
 
 
 def test_discovery_status_transitions_pending_to_running_to_complete(discovery_env):

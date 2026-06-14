@@ -52,7 +52,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M2: First local vertical slice | done | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
 | M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
 | M4: MVP product workflows | done | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5), digest email (T3.6), settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
-| M5: V1 retailer coverage | in progress | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. **Done:** T5.1 benchmark harness + fixture report for `generic`, `bestbuy_ca`, `dimemtl`. **Remaining:** T5.2–T5.5 retailer modules, live catalog expansion, drift workflow. | V1 success criteria can be tested end-to-end. |
+| M5: V1 retailer coverage | in progress | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. **Done:** T5.1 benchmark harness; T5.2 `palmisleskate` + `tikiroomskate` (shared Shopify module). **Remaining:** T5.3–T5.5, drift workflow. | V1 success criteria can be tested end-to-end. |
 | M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. **Progress:** T6.1 deployment docs done; T3.5/T3.6 job code shipped (`workflow_dispatch` only); prod scrape `workflow_dispatch` verified; account delete verified locally in T4.3 — production disposable-user delete smoke, digest prod smoke, cron (T6.2–T6.4), and schedules (T6.3) remain. | Invite early friends for feedback. |
 
 ---
@@ -604,12 +604,15 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.2 Easy Shopify/scrape-friendly retailers
 
-**Status:** pending (`dimemtl` fixture scraper landed in T3.1 for cross-retailer discovery validation; remaining retailers still open)
+**Status:** done
 
-- **Owner:** parallel agents, one PR per 1-3 retailers if fixtures and tests are independent.
-- **Retailers:** `palmisleskate`, ~~`dimemtl`~~ (partial — T3.1 enabler only), `tikiroomskate`, `eatyourwater`, then `indigo`.
-- **Build:** scraper module, registry entry, fixtures, tests.
-- **Verification:** fixture-only tests for each retailer.
+- **Owner:** agent (single PR on branch `cursor/t5.2-shopify-retailers-f127`).
+- **Retailers shipped:** `palmisleskate` (`palmisleskateshop.com`), `tikiroomskate` (`tikiroomskateboards.com`).
+- **Deferred post-MVP:** `eatyourwater` (AUD-only `.com.au`; PRD `.com` inactive).
+- **Deferred to T5.3:** `indigo`.
+- **Removed:** `dimemtl` (T3.1 enabler retired; discovery tests use palmisle/tikiroom fixtures).
+- **Build:** shared `scrapers/shopify.py` + `scrapers/extraction/shopify.py` (JSON-LD/OG + theme meta variants), live-recorded fixtures, `scripts/record_shopify_fixtures.py`, benchmark catalog update.
+- **Verification:** fixture-only pytest for each retailer; `make benchmark-retailers`; 470 backend unit tests.
 
 ### T5.3 Moderate retailers
 
@@ -787,17 +790,18 @@ Constraints:
 
 ## 15. Near-term recommended execution order
 
-**Phase 3 through T3.6, Phase 4 through T4.3, deployment docs (T6.1), and T5.1 benchmark harness are complete.** Pick next from:
+**Phase 3 through T3.6, Phase 4 through T4.3, deployment docs (T6.1), T5.1 benchmark harness, and T5.2 Shopify retailers are complete.** Pick next from:
 
 1. **T6.2** Production smoke — sign-in, add live Best Buy URL, manual refresh, digest `workflow_dispatch`, account-delete disposable-user smoke (local verified in T4.3).
-2. **T5.2** Easy Shopify retailers — after M4; use `docs/benchmarks/fixtures-*.json` summaries when setting registry defaults.
-3. ~~**T4.3** Delete account~~ — **done**.
+2. **T5.3** Moderate retailers — benchmark first (`indigo`, `apple_ca`, …).
+3. ~~**T5.2** Easy Shopify retailers~~ — **done**.
 4. ~~**T3.6** Digest email service and job~~ — **done**.
 5. ~~**T3.5** Internal scrape job endpoint~~ — **done**; enable cron in T6.3 after explicit human confirmation.
 6. ~~**T4.2** Settings page~~ — **done**.
-7. ~~**T5.1** Benchmark harness~~ — **done**.
+7. ~~**T4.3** Delete account~~ — **done**.
+8. ~~**T5.1** Benchmark harness~~ — **done**.
 
-Do not prioritize broad retailer expansion (Phase 5) until M4 is validated in production (T6.2). T5.2 `dimemtl` has a partial fixture scraper from T3.1; the other easy retailers still need dedicated T5.2 PRs.
+Do not prioritize broad retailer expansion (Phase 5) until M4 is validated in production (T6.2). T5.2 Shopify retailers (`palmisleskate`, `tikiroomskate`) are shipped; `eatyourwater` and `indigo` deferred.
 
 <details>
 <summary>Historical bootstrap order (M0–M3, completed)</summary>

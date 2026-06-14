@@ -347,7 +347,7 @@ The generic scraper never participates in cross-retailer discovery (it can't rel
 
 ### 7.9 Scraper benchmark pipeline
 
-**Status (2026-06-14):** Harness implemented (ROADMAP T5.1). Fixture catalog covers `generic`, `bestbuy_ca`, and `dimemtl`; reports live in `docs/benchmarks/`. Regenerate with `make benchmark-retailers`. Live catalog expansion for remaining §11 retailers is deferred to T5.2+.
+**Status (2026-06-14):** Harness implemented (ROADMAP T5.1). Fixture catalog covers `generic`, `bestbuy_ca`, `palmisleskate`, and `tikiroomskate`; reports live in `docs/benchmarks/`. Regenerate with `make benchmark-retailers`. Additional §11 retailers deferred to T5.3+.
 
 Before implementing the full supported-retailer list, engineering must add a small benchmark harness that can run a candidate URL through multiple extraction strategies and record comparable results. The goal is to learn which approach works for each retailer before committing to a brittle scraper implementation.
 
@@ -722,17 +722,16 @@ Each natively supported retailer needs a scraper module exposing a `scrape(url) 
 | `apple_ca`      | apple.com/ca                    | tech             | JSON endpoints often available without a browser.                                                                                                                    |
 | `nike_ca`       | nike.com/ca                     | shoes            | Aggressive bot protection; benchmark `curl_cffi`; Playwright may be needed.                                                                                          |
 | `sportchek`     | sportchek.ca                    | clothing         | Akamai-protected; benchmark before selecting default strategy.                                                                                                       |
-| `indigo`        | indigo.ca                       | other            | Generally scrape-friendly.                                                                                                                                           |
+| `indigo`        | indigo.ca                       | other            | Generally scrape-friendly; deferred to T5.3.                                                                                                                         |
 | `canadiantire`  | canadiantire.ca                 | home             | Region-aware (asks for store); use the central/online price.                                                                                                         |
 | `costco_ca`     | costco.ca                       | other            | Some pages behind member login — we restrict to public listings only.                                                                                                |
 | `abercrombie`   | abercrombie.com (Canada region) | clothing         |                                                                                                                                                                      |
 | `oakley`        | oakley.com/en-ca                | other            |                                                                                                                                                                      |
 | `footlocker_ca` | footlocker.ca                   | shoes            |                                                                                                                                                                      |
 | `vans_ca`       | vans.ca                         | shoes            |                                                                                                                                                                      |
-| `palmisleskate` | palmisle.com                    | other            | Small Shopify store; easy.                                                                                                                                           |
-| `dimemtl`       | dimemtl.com                     | clothing         | Small Shopify store; easy.                                                                                                                                           |
-| `tikiroomskate` | tikiroomskateboards.com         | other            | Small Shopify store; easy.                                                                                                                                           |
-| `eatyourwater`  | eatyourwater.com                | clothing         | Small Shopify store; easy.                                                                                                                                           |
+| `palmisleskate` | palmisleskateshop.com           | other            | Small Shopify store; shared Shopify scraper (T5.2).                                                                                                                    |
+| `tikiroomskate` | tikiroomskateboards.com         | other            | Small Shopify store; shared Shopify scraper (T5.2).                                                                                                                    |
+| `eatyourwater`  | eatyourwater.com                | clothing         | Deferred post-MVP (active store is `.com.au` / AUD-only).                                                                                                            |
 | `generic`       | (any other domain)              | `other`          | Best-effort structured data / OG with lightweight HTTP only; no Playwright.                                                                                          |
 
 

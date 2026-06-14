@@ -14,13 +14,15 @@ from services.resend_mail import ResendMailService
 
 def build_retailer_default_categories() -> dict[str, str]:
     from scrapers.bestbuy_ca import register_bestbuy_ca
-    from scrapers.dimemtl import register_dimemtl
     from scrapers.generic import register_generic
+    from scrapers.palmisleskate import register_palmisleskate
     from scrapers.registry import all_retailers
+    from scrapers.tikiroomskate import register_tikiroomskate
 
     register_generic()
     register_bestbuy_ca()
-    register_dimemtl()
+    register_palmisleskate()
+    register_tikiroomskate()
     return {entry.slug: entry.default_category for entry in all_retailers()}
 
 

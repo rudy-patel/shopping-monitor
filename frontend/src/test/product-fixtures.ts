@@ -63,8 +63,8 @@ export function makeNeedsReviewListing(
 ): ProductDetail['listings'][number] {
   return {
     id: '33333333-3333-3333-3333-333333333333',
-    retailer_slug: 'dimemtl',
-    url: 'https://fixtures.local/dimemtl/in_stock',
+    retailer_slug: 'palmisleskate',
+    url: 'https://fixtures.local/palmisleskate/in_stock',
     variant_attributes: {},
     available_variants: null,
     is_primary: false,

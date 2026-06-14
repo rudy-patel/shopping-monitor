@@ -49,7 +49,8 @@ def _register(slug: str, domain: str) -> None:
 
 
 def register_discovery_test_retailers() -> None:
-    """Register discovery_a / discovery_b / discovery_c test retailers (test-only)."""
+    """Register discovery_a / discovery_b / discovery_c / discovery_d test retailers (test-only)."""
     _register("discovery_a", "discovery-a.test")
     _register("discovery_b", "discovery-b.test")
     _register("discovery_c", "discovery-c.test")
+    _register("discovery_d", "discovery-d.test")
