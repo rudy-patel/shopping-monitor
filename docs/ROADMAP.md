@@ -223,7 +223,7 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.4 Scraper contract and fixture mode harness
 
-**Status:** pending
+**Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/12.
 
 
 - **Owner:** agent.
