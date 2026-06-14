@@ -130,12 +130,12 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Sync backend/.env for e2e
-        run: python scripts/setup_integration_env.py
-
       - name: Install backend virtualenv
         run: python -m venv venv && . venv/bin/activate && pip install -r requirements.txt
         working-directory: backend
+
+      - name: Sync backend/.env for e2e
+        run: backend/venv/bin/python scripts/setup_integration_env.py
 
       - name: Set up Node.js
         uses: actions/setup-node@v5

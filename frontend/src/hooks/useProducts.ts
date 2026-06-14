@@ -43,7 +43,8 @@ function updateListCache(
     {
       predicate: (query) => isProductListQueryKey(query.queryKey),
     },
-    (current) => (Array.isArray(current) ? updater(current) : current),
+    (current: ProductSummary[] | undefined) =>
+      Array.isArray(current) ? updater(current) : current,
   )
 }
 
