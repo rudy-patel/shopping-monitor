@@ -45,15 +45,15 @@ Agents may do small read-only/admin tasks and routine migration/application step
 
 ## 2. Milestones
 
-| Milestone | Definition of done | Unlocks |
-| --- | --- | --- |
-| M0: Planning baseline | Roadmap exists, linked from agent docs. | Agents can pick scoped tasks safely. |
-| M1: Foundation | Schema, auth primitives, app shell, service interfaces, and fixture harness contracts exist. | Product flows and scraper work can proceed in parallel. |
-| M2: First local vertical slice | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
-| M3: Real Best Buy validation | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
-| M4: MVP product workflows | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. | Deployment hardening and broader retailer expansion. |
-| M5: V1 retailer coverage | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. | V1 success criteria can be tested end-to-end. |
-| M6: Production-ready V1 | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. | Invite early friends for feedback. |
+| Milestone | Status | Definition of done | Unlocks |
+| --- | --- | --- | --- |
+| M0: Planning baseline | done | Roadmap exists, linked from agent docs. | Agents can pick scoped tasks safely. |
+| M1: Foundation | in progress | Schema, auth primitives, app shell, service interfaces, and fixture harness contracts exist. | Product flows and scraper work can proceed in parallel. |
+| M2: First local vertical slice | pending | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
+| M3: Real Best Buy validation | pending | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
+| M4: MVP product workflows | pending | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. | Deployment hardening and broader retailer expansion. |
+| M5: V1 retailer coverage | pending | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. | V1 success criteria can be tested end-to-end. |
+| M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. | Invite early friends for feedback. |
 
 ---
 
@@ -150,6 +150,9 @@ All core workflows + H5
 
 ### T0.1 Roadmap documentation
 
+**Status:** done
+
+
 - **Owner:** agent.
 - **PR size:** single docs PR.
 - **Files:** `docs/ROADMAP.md`, `README.md`, `MEMORY.md`, `.cursor/rules/project-memory.mdc`.
@@ -163,6 +166,9 @@ All core workflows + H5
 These tasks should land before broad feature work. They are intentionally small enough to minimize merge conflicts.
 
 ### T1.1 Core database schema and RLS
+
+**Status:** done
+
 
 - **Owner:** agent, with Supabase MCP allowed for non-destructive application/checks.
 - **Human setup:** H1.
@@ -181,6 +187,9 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.2 Backend settings, clients, and auth dependency
 
+**Status:** pending
+
+
 - **Owner:** agent.
 - **Human setup:** H1 and H2 for live verification; local tests use auth bypass.
 - **PR size:** single PR.
@@ -198,6 +207,9 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.3 Frontend app shell and shared dependencies
 
+**Status:** pending
+
+
 - **Owner:** agent.
 - **Human setup:** none for fixture/local mode.
 - **PR size:** one PR; it will touch shared frontend files, so land before feature UI PRs.
@@ -213,6 +225,9 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.4 Scraper contract and fixture mode harness
 
+**Status:** pending
+
+
 - **Owner:** agent.
 - **Human setup:** none.
 - **PR size:** single backend PR.
@@ -226,6 +241,9 @@ These tasks should land before broad feature work. They are intentionally small 
   - Unit tests prove fixture mode reads local files and live mode is not used accidentally in CI.
 
 ### T1.5 Service interfaces
+
+**Status:** pending
+
 
 - **Owner:** agent.
 - **Human setup:** none.
@@ -244,6 +262,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.1 Auth and profile bootstrap
 
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H1 and H2.
 - **PR size:** single full-stack PR is acceptable if verified end-to-end; otherwise split backend profile endpoints and frontend login UI.
@@ -260,6 +280,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.2 Generic JSON-LD/OG scraper
 
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** none.
 - **PR size:** single backend PR.
@@ -272,6 +294,8 @@ The tasks in this phase converge on the one-retailer MVP.
   - Fixture-only pytest coverage for title, image, price, currency, stock, and blocked/no-price paths.
 
 ### T2.3 `bestbuy_ca` fixture-backed scraper
+
+**Status:** pending
 
 - **Owner:** agent.
 - **Human setup:** none for fixture mode.
@@ -287,6 +311,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.4 Categorization service
 
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H3 only for live Gemini smoke; tests use fakes.
 - **PR size:** single backend PR.
@@ -299,6 +325,8 @@ The tasks in this phase converge on the one-retailer MVP.
   - Unit tests for manual override, valid LLM, timeout, invalid slug, quota/error fallback, final `other`.
 
 ### T2.5 Product API vertical slice
+
+**Status:** pending
 
 - **Owner:** agent.
 - **Human setup:** H1.
@@ -320,6 +348,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.6 Product frontend vertical slice
 
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H1/H2 for live auth; local auth-bypass acceptable.
 - **PR size:** one full frontend PR after T1.3 and T2.5 land.
@@ -336,6 +366,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.7 Local end-to-end one-retailer slice
 
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H1/H2 optional if using local auth bypass; required for full auth test.
 - **PR size:** test-only/small wiring PR.
@@ -347,6 +379,8 @@ The tasks in this phase converge on the one-retailer MVP.
   - Backend/frontend unit suites pass.
 
 ### T2.8 Controlled live Best Buy validation
+
+**Status:** pending
 
 - **Owner:** agent with human awareness.
 - **Human setup:** H1/H2; optionally H3 if categorization live path is included.
@@ -367,6 +401,8 @@ These can proceed after the local vertical slice lands.
 
 ### T3.1 Cross-retailer discovery engine
 
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H3 for live LLM smoke.
 - **PR size:** backend PR.
@@ -381,6 +417,8 @@ These can proceed after the local vertical slice lands.
 
 ### T3.2 Listing review API and UI
 
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** single full-stack PR if T3.1 is stable.
 - **Build:**
@@ -394,6 +432,8 @@ These can proceed after the local vertical slice lands.
   - Frontend tests for review queue behavior.
 
 ### T3.3 Notification API and in-app bell
+
+**Status:** pending
 
 - **Owner:** agent.
 - **PR size:** single full-stack PR.
@@ -410,6 +450,8 @@ These can proceed after the local vertical slice lands.
 
 ### T3.4 Price-drop, stock, scrape-failing, and revisit evaluators
 
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** backend PR.
 - **Build:**
@@ -422,6 +464,8 @@ These can proceed after the local vertical slice lands.
   - Unit tests for debounce and notification-disabled cases.
 
 ### T3.5 Internal scrape job endpoint
+
+**Status:** pending
 
 - **Owner:** agent.
 - **Human setup:** H5 only when connecting GitHub Actions.
@@ -439,6 +483,8 @@ These can proceed after the local vertical slice lands.
   - Manual `workflow_dispatch` after deployment.
 
 ### T3.6 Digest email service and job
+
+**Status:** pending
 
 - **Owner:** agent.
 - **Human setup:** H4.
@@ -460,6 +506,8 @@ These can proceed after the local vertical slice lands.
 
 ### T4.1 FX rates and display currency
 
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** single full-stack PR.
 - **Build:**
@@ -473,6 +521,8 @@ These can proceed after the local vertical slice lands.
   - Frontend tests for display conversion and CAD fallback.
 
 ### T4.2 Settings page
+
+**Status:** pending
 
 - **Owner:** agent.
 - **PR size:** frontend-heavy full-stack PR.
@@ -489,6 +539,8 @@ These can proceed after the local vertical slice lands.
   - Frontend tests for settings persistence and theme class.
 
 ### T4.3 Delete account
+
+**Status:** pending
 
 - **Owner:** agent with human confirmation before destructive live test.
 - **PR size:** focused backend/frontend PR if not completed in T4.2.
@@ -509,6 +561,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.1 Benchmark harness
 
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** backend tooling PR.
 - **Build:**
@@ -521,12 +575,16 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.2 Easy Shopify/scrape-friendly retailers
 
+**Status:** pending
+
 - **Owner:** parallel agents, one PR per 1-3 retailers if fixtures and tests are independent.
 - **Retailers:** `palmisleskate`, `dimemtl`, `tikiroomskate`, `eatyourwater`, then `indigo`.
 - **Build:** scraper module, registry entry, fixtures, tests.
 - **Verification:** fixture-only tests for each retailer.
 
 ### T5.3 Moderate retailers
+
+**Status:** pending
 
 - **Owner:** parallel agents, one retailer per PR unless two share identical implementation.
 - **Retailers:** `apple_ca`, `canadiantire`, `costco_ca`, `abercrombie`, `oakley`, `vans_ca`.
@@ -535,6 +593,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.4 Bot-protected retailers
 
+**Status:** pending
+
 - **Owner:** focused agents, one retailer per PR.
 - **Retailers:** `sportchek`, `footlocker_ca`, `nike_ca`, `amazon_ca`.
 - **Build:** benchmark-driven strategy, minimal Playwright fallback only if measured.
@@ -542,6 +602,8 @@ Start after M3 proves the one-retailer architecture.
 - **Verification:** fixtures, benchmark notes, controlled live/record pass.
 
 ### T5.5 Drift detection workflow
+
+**Status:** pending
 
 - **Owner:** agent.
 - **Human setup:** GitHub issue permissions/secrets if needed.
@@ -561,6 +623,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T6.1 Deployment docs and config hardening
 
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H5.
 - **PR size:** docs/config PR.
@@ -572,6 +636,8 @@ Start after M3 proves the one-retailer architecture.
 - **Verification:** docs review and deployed health check.
 
 ### T6.2 Production smoke
+
+**Status:** pending
 
 - **Owner:** agent with human coordination.
 - **Human setup:** H1-H5 complete.
@@ -587,6 +653,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T6.3 Enable schedules
 
+**Status:** pending
+
 - **Owner:** agent with explicit human confirmation.
 - **PR size:** workflow PR if schedules were deferred.
 - **Build:**
@@ -598,6 +666,8 @@ Start after M3 proves the one-retailer architecture.
   - No email when zero unread notifications.
 
 ### T6.4 Seven-day reliability check
+
+**Status:** pending
 
 - **Owner:** human + agents.
 - **Verify:**
@@ -611,6 +681,8 @@ Start after M3 proves the one-retailer architecture.
 ## 12. Phase 7 — quality gates and V1 acceptance
 
 ### T7.1 UI polish and accessibility
+
+**Status:** pending
 
 - **Owner:** agent.
 - **PR size:** frontend PR.
@@ -626,6 +698,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T7.2 Lighthouse gate
 
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** optimization PR(s) if needed.
 - **Verify:**
@@ -633,6 +707,8 @@ Start after M3 proves the one-retailer architecture.
   - Document command/results in PR.
 
 ### T7.3 V1 success-criteria checklist
+
+**Status:** pending
 
 - **Owner:** agent.
 - **PR size:** docs PR.
