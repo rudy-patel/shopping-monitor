@@ -1,8 +1,6 @@
 /**
- * TODO(T2.1): replace dev fallback with the real Supabase Google OAuth flow once H2 is complete.
- *
- * When Supabase env vars are absent, a local dev placeholder user is available via signInDev()
- * so the app shell is navigable without real auth. signInDev is gated to non-production builds only.
+ * Google OAuth via Supabase is live on the login page.
+ * signInDev remains for the no-Supabase local-agent path (non-production builds only).
  */
 import {
   createContext,
@@ -14,6 +12,7 @@ import {
   type ReactNode,
 } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
+import { useQueryClient } from '@tanstack/react-query'
 import { isDevBuild } from '@/lib/env'
 import { getSupabaseClient, isSupabaseConfigured } from '@/lib/supabase'
 
@@ -72,6 +71,7 @@ function createDevSession(): Session {
 }
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient()
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -117,7 +117,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!supabase) {
       throw new Error('Supabase is not configured')
     }
-    await supabase.auth.signInWithOAuth({ provider: 'google' })
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    })
   }, [])
 
   const signInDev = useCallback(() => {
@@ -139,7 +142,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
     setSession(null)
     setUser(null)
-  }, [])
+    queryClient.clear()
+  }, [queryClient])
 
   const value = useMemo<AuthContextValue>(
     () => ({

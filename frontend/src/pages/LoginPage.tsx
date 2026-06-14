@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
+import { toast } from 'sonner'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
 
@@ -9,7 +10,7 @@ function getRedirectPath(state: unknown): string {
 }
 
 export function LoginPage() {
-  const { isAuthenticated, isLoading, signInDev, isDevLoginAvailable } = useAuth()
+  const { isAuthenticated, isLoading, signInWithGoogle, signInDev, isDevLoginAvailable } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -18,6 +19,14 @@ export function LoginPage() {
       navigate(getRedirectPath(location.state), { replace: true })
     }
   }, [isAuthenticated, isLoading, location.state, navigate])
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle()
+    } catch {
+      toast.error('Could not start Google sign-in. Please try again.')
+    }
+  }
 
   const handleDevLogin = () => {
     signInDev()
@@ -35,12 +44,9 @@ export function LoginPage() {
         </div>
 
         <div className="space-y-4 rounded-lg border border-border bg-background p-6">
-          <Button className="w-full" disabled aria-disabled="true">
+          <Button className="w-full" onClick={() => void handleGoogleSignIn()}>
             Continue with Google
           </Button>
-          <p className="text-center text-sm text-muted-foreground">
-            Sign-in lands in T2.1
-          </p>
 
           {isDevLoginAvailable && (
             <div className="space-y-2 border-t border-border pt-4">

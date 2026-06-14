@@ -4,6 +4,20 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T2.1 review pass
+
+**What:** Second-pass cleanup: `update_profile` now catches PostgREST `PGRST116` (real Supabase behavior when PATCH hits a missing row) instead of checking `data is None`; extracted `_select_profile` / `_apply_profile_update` helpers; fake client update+single raises `PGRST116` to match production; deduped test profile fixture via exported `defaultProfileResponse`; `ProviderStack` accepts shared `QueryClient`; added test that `signOut` clears profile query cache; updated `docs/AUTHENTICATION.md` module table and OAuth note.
+
+**Files:** `backend/services/profile_service.py`, `backend/test/test_profile_router.py`, `frontend/src/test/setup.ts`, `frontend/src/test/test-utils.tsx`, `frontend/src/test/profile-bootstrap.test.tsx`, `frontend/src/test/auth-context.test.tsx`, `docs/AUTHENTICATION.md`, `MEMORY.md`.
+
+## [2026-06-14] T2.1 auth and profile bootstrap
+
+**What:** Wired Google OAuth via Supabase on the login page; added GET /api/profile (idempotent upsert with PRD §8.1 defaults) and PATCH /api/profile (partial, range-validated update); added useProfile/useUpdateProfile hooks called from ProtectedRoute to bootstrap the profile on first authenticated render; signOut now clears the React Query cache so a re-login as another user starts clean.
+
+**Files:** backend/services/profile_service.py, backend/routers/profile.py, backend/main.py, backend/test/test_profile_router.py, frontend/src/contexts/AuthContext.tsx, frontend/src/pages/LoginPage.tsx, frontend/src/lib/profile.ts, frontend/src/hooks/useProfile.ts, frontend/src/components/layout/ProtectedRoute.tsx, frontend/src/test/setup.ts, frontend/src/test/login-page.test.tsx, frontend/src/test/routes.test.tsx, frontend/src/test/auth-context.test.tsx, frontend/src/test/profile-bootstrap.test.tsx, frontend/src/test/App.test.tsx, docs/AUTHENTICATION.md, docs/ROADMAP.md, MEMORY.md.
+
+**Deferred:** profile-backed theme/currency hydration → T4.1/T4.2; settings UI for editing profile fields → T4.2; account delete → T4.3; live Google OAuth smoke recorded in PR walkthrough.
+
 ## [2026-06-14] conftest integration setup gating fix
 
 **What:** Fixed noisy `pytest_configure` hook in `backend/test/conftest.py`: substring check on `markexpr` treated `-m "not integration"` as a positive integration selection and ran `scripts/setup_integration_env.py` on every unit test invocation. Replaced with pytest's `Expression` evaluator so negated filters are handled correctly. Added subprocess regression test proving unit-test collection does not emit Supabase setup warnings.
