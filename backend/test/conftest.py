@@ -24,6 +24,7 @@ _SCRAPER_TEST_FILES = frozenset(
     {
         "test_fixture_convention.py",
         "test_fixture_loader.py",
+        "test_generic_scraper.py",
         "test_scraper_contract.py",
         "test_scraper_http_guard.py",
         "test_scraper_mode.py",
@@ -68,6 +69,10 @@ def _scraper_test_registry(request):
         return
     reset_registry()
     _register_example_retailer()
+    if request.node.get_closest_marker("no_generic_registry") is None:
+        from scrapers.generic import register_generic
+
+        register_generic()
     yield
     reset_registry()
 

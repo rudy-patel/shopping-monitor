@@ -278,7 +278,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.2 Generic JSON-LD/OG scraper
 
-**Status:** pending
+**Status:** ✅ Complete
 
 - **Owner:** agent.
 - **Human setup:** none.

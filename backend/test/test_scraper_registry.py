@@ -49,21 +49,13 @@ def test_lookup_by_url_subdomain_suffix():
     assert entry.slug == EXAMPLE_RETAILER_SLUG
 
 
+@pytest.mark.no_generic_registry
 def test_lookup_unknown_raises_when_no_generic():
     with pytest.raises(RetailerNotSupportedError):
         lookup_by_url("https://unknown.example/x")
 
 
 def test_lookup_falls_back_to_generic():
-    register(
-        RetailerEntry(
-            slug="generic",
-            domains=(),
-            default_category="other",
-            scrape=_example_scrape,
-            default_strategy=ScrapeSource.STRUCTURED_DATA,
-        )
-    )
     entry = lookup_by_url("https://unknown.example/x")
     assert entry.slug == "generic"
 

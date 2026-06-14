@@ -53,6 +53,23 @@ loader = FixtureLoader()
 html = loader.load_text("bestbuy_ca", "in_stock")
 ```
 
+### Fixture URL convention (fixture mode)
+
+In `SCRAPER_MODE=fixtures`, retailer scrapers resolve scenario names from synthetic URLs:
+
+```
+https://fixtures.local/<retailer_slug>/<scenario>
+```
+
+Use `resolve_fixture_scenario(url, retailer_slug)` from `scrapers.fixture_url` to parse the scenario segment. Examples:
+
+- `https://fixtures.local/generic/jsonld_friendly`
+- `https://fixtures.local/bestbuy_ca/in_stock` (T2.3)
+
+Rules: host must be `fixtures.local`; path must be `/<retailer_slug>/<scenario>` where scenario matches `^[a-z][a-z0-9_]*$`. Unknown or missing scenarios raise `FixtureNotFoundError`.
+
+Production retailer modules are registered via `scrapers.bootstrap` (import for side effects). The `generic` slug is the fallback for unknown domains.
+
 ## HTTP requests — use `scraper_fetch` only
 
 Retailer scrapers **must** call `scrapers.http.scraper_fetch()` for outbound requests. Do **not** import `httpx`, `curl_cffi`, or `requests` directly in scraper modules — `test_scraper_http_guard.py` enforces this.
