@@ -16,7 +16,7 @@ describe('App', () => {
   it('shows top nav and dashboard when authenticated', async () => {
     renderApp('/', { authenticated: true })
 
-    expect(await screen.findByRole('heading', { name: /^dashboard$/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /your list/i })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /shopping monitor/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /add product/i })).toBeInTheDocument()
   })

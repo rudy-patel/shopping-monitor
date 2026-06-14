@@ -74,6 +74,7 @@ export function TopNav() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
+        <DropdownMenuItem onSelect={() => navigate('/history')}>Archived products</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => navigate('/settings')}>Settings</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleSignOut}>Sign out</DropdownMenuItem>
@@ -104,6 +105,7 @@ export function TopNav() {
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => navigate('/notifications')}>Notifications</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => navigate('/history')}>Archived products</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => navigate('/settings')}>Settings</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleSignOut}>Sign out</DropdownMenuItem>

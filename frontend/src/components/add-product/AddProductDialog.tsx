@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,6 +10,15 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useCreateProduct } from '@/hooks/useProducts'
+import { ADD_PRODUCT_CATEGORIES, type CategoryInput } from '@/lib/categories'
 
 interface AddProductDialogProps {
   open: boolean
@@ -19,12 +27,18 @@ interface AddProductDialogProps {
 
 export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) {
   const [url, setUrl] = useState('')
+  const [category, setCategory] = useState<CategoryInput>('auto')
+  const createProduct = useCreateProduct()
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
-    toast('Coming in T2.6')
-    setUrl('')
+    const trimmed = url.trim()
+    if (!trimmed) return
+
     onOpenChange(false)
+    setUrl('')
+    setCategory('auto')
+    createProduct.mutate({ url: trimmed, category })
   }
 
   return (
@@ -34,7 +48,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
           <DialogHeader>
             <DialogTitle>Add Product</DialogTitle>
             <DialogDescription>
-              Paste a product URL to start tracking. Full add flow lands in T2.6.
+              Paste a Canadian retailer product URL to start tracking.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -46,14 +60,32 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                 placeholder="https://www.bestbuy.ca/..."
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
+                required
               />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="product-category">Category</Label>
+              <Select value={category} onValueChange={(value) => setCategory(value as CategoryInput)}>
+                <SelectTrigger id="product-category">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {ADD_PRODUCT_CATEGORIES.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">Add</Button>
+            <Button type="submit" disabled={createProduct.isPending}>
+              Add
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

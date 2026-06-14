@@ -42,6 +42,8 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 | Frontend lint | `cd frontend && npm run lint` | Zero-warning enforced (`--max-warnings 0`). Unused locals/imports enforced for `src/**` app code; `src/test/**` and `*.test.*` excluded (see `frontend/.eslintrc.cjs`). |
 | Backend unit tests | `cd backend && source venv/bin/activate && python -m pytest test/ -v --tb=short -m "not integration"` | Excludes `@pytest.mark.integration`; `make test-backend` uses the same filter. |
 | Frontend unit tests | `cd frontend && npm run test:run` | Vitest (`frontend/src/test/`). |
+| Frontend live API integration | `cd frontend && VITE_INTEGRATION=1 npm run test:run -- src/test/integration/` | Requires backend on :8000 with `AUTH_BYPASS_ENABLED=true`, `SCRAPER_MODE=fixtures`, Supabase creds. Skipped in default CI. |
+| Playwright e2e (local) | `make test-e2e` or `cd frontend && npm run test:e2e` | Requires backend :8000 + frontend :3000. Not in default PR CI (T2.7). |
 | Frontend build | `cd frontend && npm run build` | `tsc && vite build` |
 | All unit tests | `make test` | Backend pytest (`-m "not integration"`) + frontend vitest |
 | Integration tests | `make test-integration` | Requires Supabase credentials; writes `backend/.env` via `make setup-integration-env` |

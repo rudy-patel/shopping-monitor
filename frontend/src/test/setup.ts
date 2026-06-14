@@ -37,6 +37,18 @@ Object.defineProperty(window, 'IntersectionObserver', {
   value: IntersectionObserverMock,
 })
 
+if (!Element.prototype.hasPointerCapture) {
+  Element.prototype.hasPointerCapture = () => false
+}
+if (!Element.prototype.setPointerCapture) {
+  Element.prototype.setPointerCapture = () => undefined
+}
+if (!Element.prototype.releasePointerCapture) {
+  Element.prototype.releasePointerCapture = () => undefined
+}
+
+Element.prototype.scrollIntoView = Element.prototype.scrollIntoView || (() => undefined)
+
 export const mockSignInWithOAuth = vi.fn().mockResolvedValue({ data: {}, error: null })
 export const mockSignOut = vi.fn().mockResolvedValue({ error: null })
 

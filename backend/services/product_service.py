@@ -397,6 +397,7 @@ def _serialize_listing(row: dict[str, Any]) -> dict[str, Any]:
         "retailer_slug": row["retailer_slug"],
         "url": row["url"],
         "variant_attributes": row.get("variant_attributes") or {},
+        "available_variants": row.get("available_variants"),
         "is_primary": row.get("is_primary", False),
         "review_status": row["review_status"],
         "last_known_price_cents": row.get("last_known_price_cents"),
@@ -421,6 +422,9 @@ def build_product_detail(
         get_client(), sorted_listings, today=today
     )
     trend = compute_trend(observations, today=today)
+    needs_review_count = sum(
+        1 for row in sorted_listings if row.get("review_status") == "needs_review"
+    )
 
     return {
         "id": product["id"],
@@ -443,6 +447,7 @@ def build_product_detail(
         "listing_count": len(sorted_listings),
         "effective_threshold_pct": _effective_threshold_pct(product, profile),
         "last_scraped_at": _max_last_scraped(sorted_listings),
+        "needs_review_count": needs_review_count,
         "listings": [_serialize_listing(row) for row in sorted_listings],
     }
 
