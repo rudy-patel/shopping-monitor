@@ -22,6 +22,30 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T4.2 Settings page
+
+**What:** Full `/settings` UI for display currency, dark mode, notifications, default threshold, email digest, and revisit prompts. Removed header/mobile currency switcher (settings is sole control). Extended `ThemeContext` with profile hydrate + optimistic PATCH (mirrors `CurrencyContext`). Reordered providers: `QueryClientProvider → AuthProvider → ThemeProvider → CurrencyProvider`. Delete account section visible but gated (`ACCOUNT_DELETE_ENABLED = false`) until T4.3.
+
+**Locked behavior:** Optimistic per-control PATCH with rollback toast on error. Profile wins over localStorage for theme/currency after login. `email_digest_enabled` and `notifications_enabled` remain independent. Revisit child controls disabled when master off. No `DELETE /api/account` in this PR.
+
+**Files:** `frontend/src/pages/SettingsPage.tsx`, `frontend/src/contexts/ThemeContext.tsx`, `frontend/src/main.tsx`, `frontend/src/components/layout/TopNav.tsx`, `frontend/src/components/ui/switch.tsx`, `frontend/src/test/settings-page.test.tsx`, `frontend/src/test/theme.test.tsx`, `frontend/src/test/top-nav.test.tsx`, `frontend/src/test/routes.test.tsx`, `frontend/src/test/test-utils.tsx`, `frontend/e2e/settings.spec.ts`, `docs/ROADMAP.md`, `backend/services/README.md`, `MEMORY.md`.
+
+**Verification:** `npm run lint`, `npm run test:run`, `npm run build`, `make test-e2e` with `SCRAPER_MODE=fixtures`. PRD updated: currency control lives in `/settings` only (U-CUR-2).
+
+**Deferred:** Account deletion → T4.3; `scrape_failing` hide toggle not in scope.
+
+---
+
+## [2026-06-14] Docs status audit (T3.6 + T6.1 cross-reference)
+
+**What:** Audited `main` against README, PRD, and ROADMAP after T3.6 (#35) and T6.1 (#34) merges. Fixed stale plan markers: ROADMAP §15 still said Phase 3 complete through T3.5 only; T3.6 verification and T6.1 build bullets still referenced H4/T3.6 as deferred; historical bootstrap list omitted T3.5/T3.6/T6.1; PRD §4.1 still listed "remaining notification workflows" and §10.3 digest runner lacked the T3.6 `workflow_dispatch`-only note (matching scrape). README was already current.
+
+**Second pass (code review):** Added `users_skipped_noop` to digest job result for noop-provider observability (users with qualifying unread rows when `RESEND_API_KEY` unset), lazy mail-service init, `send_digests_completed` structured log, multi-user digest test, and smoke script `effective_app_base_url` for production link parity.
+
+**Files:** `docs/ROADMAP.md`, `docs/PRD.md`, `docs/DEPLOYMENT.md`, `backend/services/digest_job_service.py`, `backend/services/README.md`, `backend/scripts/smoke_resend_digest.py`, `backend/test/test_digest_job_service.py`, `backend/test/test_internal_jobs_router.py`, `MEMORY.md`.
+
+---
+
 ## [2026-06-14] T3.6 Digest email service and job
 
 **What:** Implemented Resend-backed digest delivery: `ResendMailService`, `digest_templates.py` (copy mirrors `NotificationRow.tsx`), `digest_job_service.run_send_digests()`, `POST /internal/jobs/send-digests`, `backend/workers/send_digests.py`, `.github/workflows/digest.yml` (`workflow_dispatch` only), and `scripts/smoke_resend_digest.py` (dry-run default). Added pytest Resend guard in `conftest.py` (mirrors Gemini). `DigestEmail.to_email` now uses `EmailStr`.

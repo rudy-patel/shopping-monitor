@@ -27,6 +27,7 @@ class SendDigestsResult:
     users_skipped_no_unread: int
     users_skipped_digest_disabled: int
     users_skipped_no_email: int
+    users_skipped_noop: int
     notifications_marked_sent: int
     duration_seconds: float
 
@@ -111,7 +112,7 @@ def run_send_digests(
     mail_provider: Literal["resend", "noop"] = (
         "resend" if settings.resend_api_key.strip() else "noop"
     )
-    mail = mail_service if mail_service is not None else get_mail_service(settings)
+    mail: MailService | None = mail_service
 
     started = time.perf_counter()
     cutoff = _retention_cutoff()
@@ -122,6 +123,7 @@ def run_send_digests(
     users_skipped_no_unread = 0
     users_skipped_digest_disabled = 0
     users_skipped_no_email = 0
+    users_skipped_noop = 0
     notifications_marked_sent = 0
 
     for profile in profiles:
@@ -136,7 +138,11 @@ def run_send_digests(
             continue
 
         if mail_provider == "noop":
+            users_skipped_noop += 1
             continue
+
+        if mail is None:
+            mail = get_mail_service(settings)
 
         to_email = _resolve_user_email(client, user_id)
         if to_email is None:
@@ -176,13 +182,29 @@ def run_send_digests(
         users_emailed += 1
 
     duration = time.perf_counter() - started
-    return SendDigestsResult(
+    result = SendDigestsResult(
         mail_provider=mail_provider,
         users_emailed=users_emailed,
         users_failed=users_failed,
         users_skipped_no_unread=users_skipped_no_unread,
         users_skipped_digest_disabled=users_skipped_digest_disabled,
         users_skipped_no_email=users_skipped_no_email,
+        users_skipped_noop=users_skipped_noop,
         notifications_marked_sent=notifications_marked_sent,
         duration_seconds=round(duration, 3),
     )
+    logger.info(
+        "send_digests_completed",
+        extra={
+            "mail_provider": result.mail_provider,
+            "users_emailed": result.users_emailed,
+            "users_failed": result.users_failed,
+            "users_skipped_no_unread": result.users_skipped_no_unread,
+            "users_skipped_digest_disabled": result.users_skipped_digest_disabled,
+            "users_skipped_no_email": result.users_skipped_no_email,
+            "users_skipped_noop": result.users_skipped_noop,
+            "notifications_marked_sent": result.notifications_marked_sent,
+            "duration_seconds": result.duration_seconds,
+        },
+    )
+    return result
