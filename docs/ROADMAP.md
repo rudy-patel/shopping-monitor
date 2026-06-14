@@ -648,7 +648,7 @@ Start after M3 proves the one-retailer architecture.
 
 ### T6.1 Deployment docs and config hardening
 
-**Status:** done
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/34
 
 - **Owner:** agent.
 - **Human setup:** H5 done (infra live); aligned `docs/DEPLOYMENT.md` with configured Render/Vercel/Actions secrets and confirmed production URLs.

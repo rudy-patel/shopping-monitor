@@ -12,6 +12,8 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Verified:** Scrape `workflow_dispatch` [run #27509008501](https://github.com/rudy-patel/shopping-monitor/actions/runs/27509008501) — `status: completed`, `listings_total: 13`, `duration_seconds: 57.9`. Prior runs failed on deploy-wait timeout before PR #32.
 
+**Verification:** `make test` (396 backend + 80 frontend unit tests). PR https://github.com/rudy-patel/shopping-monitor/pull/34
+
 **Deferred:** H4/Resend empty until T3.6; health probe `PGRST205` hardening → optional T6.2; cron schedules → T6.3.
 
 **Files:** `docs/DEPLOYMENT.md`, `docs/ROADMAP.md`, `docs/PRD.md`, `backend/.env.example`, `backend/test/test_settings.py`, `AGENTS.md`, `README.md`, `MEMORY.md`.
