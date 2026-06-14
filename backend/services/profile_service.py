@@ -8,7 +8,7 @@ from postgrest.exceptions import APIError
 from supabase import Client
 
 from core.logging import get_logger
-from db.supabase_client import get_service_role_client
+from db.supabase_client import get_service_role_client, response_first_row
 
 logger = get_logger(__name__)
 
@@ -69,6 +69,8 @@ def _select_profile(client: Client, user_id_str: str) -> dict | None:
         .maybe_single()
         .execute()
     )
+    if result is None:
+        return None
     return result.data
 
 
@@ -78,10 +80,12 @@ def _apply_profile_update(client: Client, user_id_str: str, patch: dict) -> dict
         .update(patch)
         .eq("user_id", user_id_str)
         .select(",".join(PROFILE_COLUMNS))
-        .single()
         .execute()
     )
-    return updated.data
+    row = response_first_row(updated)
+    if row is None:
+        raise APIError({"message": "Row not found", "code": "PGRST116"})
+    return row
 
 
 def get_or_create_profile(user_id: UUID) -> dict:
@@ -97,7 +101,6 @@ def get_or_create_profile(user_id: UUID) -> dict:
             client.table("profiles")
             .insert({**PROFILE_DEFAULTS, "user_id": user_id_str})
             .select(",".join(PROFILE_COLUMNS))
-            .single()
             .execute()
         )
     except APIError as exc:
@@ -112,8 +115,12 @@ def get_or_create_profile(user_id: UUID) -> dict:
             raise
         return raced
 
+    row = response_first_row(inserted)
+    if row is None:
+        raise RuntimeError(f"Profile insert returned no row for user_id={user_id_str}")
+
     logger.info("profile_created", extra={"user_id": user_id_str})
-    return inserted.data
+    return row
 
 
 def update_profile(user_id: UUID, patch: dict) -> dict:

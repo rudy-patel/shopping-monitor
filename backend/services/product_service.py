@@ -41,6 +41,7 @@ from services.pricing import (
     TrendResult,
     compute_trend,
 )
+from db.supabase_client import response_first_row
 from services.profile_service import get_or_create_profile
 
 REFRESH_COOLDOWN = timedelta(hours=1)
@@ -455,9 +456,12 @@ def _get_owned_product(client: Client, *, product_id: UUID, user_id: UUID) -> di
         .maybe_single()
         .execute()
     )
-    if result.data is None:
+    if result is None:
         raise HTTPException(status_code=404, detail="Product not found")
-    return result.data
+    row = response_first_row(result)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return row
 
 
 def create_product(
@@ -507,10 +511,11 @@ def create_product(
             }
         )
         .select("*")
-        .single()
         .execute()
     )
-    product = product_row.data
+    product = response_first_row(product_row)
+    if product is None:
+        raise RuntimeError("Product insert returned no row")
     product_id = product["id"]
 
     listing_row = (
@@ -532,14 +537,16 @@ def create_product(
             }
         )
         .select("*")
-        .single()
         .execute()
     )
+    listing = response_first_row(listing_row)
+    if listing is None:
+        raise RuntimeError("Listing insert returned no row")
 
     if outcome.price_cents is not None:
         client.table("price_history").insert(
             {
-                "listing_id": listing_row.data["id"],
+                "listing_id": listing["id"],
                 "price_cents": outcome.price_cents,
                 "is_in_stock": snapshot.is_in_stock,
                 "source": "scheduled",
@@ -556,7 +563,7 @@ def create_product(
             }
         ).execute()
 
-    listings = [listing_row.data]
+    listings = [listing]
     return build_product_detail(product=product, profile=profile, listings=listings)
 
 
@@ -617,15 +624,18 @@ def update_product(
             .eq("id", str(product_id))
             .eq("user_id", str(user_id))
             .select("*")
-            .single()
             .execute()
         )
     except APIError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
 
+    product = response_first_row(updated)
+    if product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+
     profile = get_or_create_profile(user_id)
     listings = _load_listings(client, str(product_id))
-    return build_product_detail(product=updated.data, profile=profile, listings=listings)
+    return build_product_detail(product=product, profile=profile, listings=listings)
 
 
 def delete_product(*, user_id: UUID, product_id: UUID) -> None:
@@ -733,12 +743,14 @@ def select_variant(
         )
         .eq("id", product["id"])
         .select("*")
-        .single()
         .execute()
     )
+    updated_product = response_first_row(updated)
+    if updated_product is None:
+        raise HTTPException(status_code=404, detail="Product not found")
 
     profile = get_or_create_profile(user_id)
     refreshed_listings = _load_listings(client, product["id"])
     return build_product_detail(
-        product=updated.data, profile=profile, listings=refreshed_listings
+        product=updated_product, profile=profile, listings=refreshed_listings
     )

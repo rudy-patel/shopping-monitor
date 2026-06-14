@@ -14,6 +14,20 @@ from core.settings import clear_settings_cache, get_settings
 _logger = logging.getLogger(__name__)
 
 
+def response_first_row(response: Any) -> dict | None:
+    """Return the first row from a PostgREST API response."""
+    if response is None:
+        return None
+    data = getattr(response, "data", None)
+    if data is None:
+        return None
+    if isinstance(data, list):
+        return data[0] if data else None
+    if isinstance(data, dict):
+        return data
+    return None
+
+
 @lru_cache(maxsize=1)
 def get_service_role_client() -> Client:
     settings = get_settings()
