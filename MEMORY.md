@@ -4,6 +4,20 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T4.3 Delete account
+
+**What:** Shipped `DELETE /api/account` using Supabase Auth admin `delete_user` with DB cascades for app data. Settings delete flow with `DeleteAccountDialog` confirmation. Post-delete: `signOut()` + navigate to `/login`. Returns 403 when `AUTH_BYPASS_ENABLED=true` or identity is on the protected deny list (`backend/core/protected_accounts.py`).
+
+**Locked behavior:** Single `AlertDialog` confirm (no type-to-confirm). No new migrations. Integration/smoke use disposable `delete-account-<uuid>@shopping-monitor-test.invalid` users only. E2e excludes account delete (auth bypass would 403). Production verification deferred to T6.2.
+
+**Files:** `backend/core/protected_accounts.py`, `backend/services/account_service.py`, `backend/routers/account.py`, `backend/main.py`, `backend/test/disposable_users.py`, `backend/test/test_protected_accounts.py`, `backend/test/test_account_router.py`, `backend/test/test_account_delete_integration.py`, `backend/test/fake_supabase.py`, `backend/scripts/smoke_delete_account.py`, `frontend/src/lib/account.ts`, `frontend/src/hooks/useDeleteAccount.ts`, `frontend/src/components/settings/DeleteAccountDialog.tsx`, `frontend/src/pages/SettingsPage.tsx`, `frontend/src/test/settings-page.test.tsx`, `backend/services/README.md`, `docs/AUTHENTICATION.md`, `docs/PRD.md`, `docs/ROADMAP.md`, `README.md`, `MEMORY.md`.
+
+**Verification:** `ruff check .`, `pytest -m "not integration"` (460 passed), `npm run lint`, `npm run test:run` (94 passed), `npm run build`; integration test passed against local Supabase.
+
+**Deferred:** Production disposable-user delete smoke → T6.2.
+
+---
+
 ## [2026-06-14] T5.1 Scraper benchmark harness
 
 **What:** Added fixture-mode benchmark harness (PRD §7.9): `scrapers/benchmark/` module with YAML catalog (`generic`, `bestbuy_ca`, `dimemtl`), three strategy runners (`structured_data`, `http_parse` with Best Buy JSON API sub-probe, optional `playwright`), recommendation engine, CLI `scripts/run_scraper_benchmark.py`, `make benchmark-retailers`, and committed `docs/benchmarks/fixtures-2026-06-14.json`. Added `PyYAML` to backend requirements; optional Playwright in `requirements-benchmark.txt`.

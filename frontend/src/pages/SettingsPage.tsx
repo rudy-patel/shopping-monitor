@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
+import { DeleteAccountDialog } from '@/components/settings/DeleteAccountDialog'
 import { toast } from 'sonner'
 import type { UseMutationResult } from '@tanstack/react-query'
 import { Button } from '@/components/ui/button'
@@ -11,9 +12,6 @@ import { useTheme } from '@/contexts/ThemeContext'
 import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 import type { Profile, ProfileUpdate } from '@/lib/profile'
 import { cn } from '@/lib/utils'
-
-/** Flip to true in T4.3 when DELETE /api/account ships. */
-export const ACCOUNT_DELETE_ENABLED = false
 
 type ProfileMutation = UseMutationResult<Profile, Error, ProfileUpdate>
 
@@ -307,6 +305,7 @@ function SettingsSkeleton() {
 export function SettingsPage() {
   const { data: profile, isLoading, isError } = useProfile()
   const updateProfile = useUpdateProfile()
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   if (isLoading || !profile) {
     return (
@@ -402,17 +401,12 @@ export function SettingsPage() {
           <Button
             type="button"
             variant="destructive"
-            disabled={!ACCOUNT_DELETE_ENABLED}
-            aria-disabled={!ACCOUNT_DELETE_ENABLED}
+            onClick={() => setDeleteDialogOpen(true)}
           >
             Delete account
           </Button>
-          {!ACCOUNT_DELETE_ENABLED ? (
-            <p className="text-sm text-muted-foreground">
-              Account deletion will be available in a follow-up update.
-            </p>
-          ) : null}
         </div>
+        <DeleteAccountDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} />
       </SettingsSection>
     </div>
   )

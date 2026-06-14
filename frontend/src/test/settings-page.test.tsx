@@ -1,9 +1,14 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { toast } from 'sonner'
 import { SettingsPage } from '@/pages/SettingsPage'
 import * as apiModule from '@/lib/api'
 import { defaultProfileResponse } from './setup'
 import { renderWithProviders, clearAuthStorage } from './test-utils'
+
+vi.mock('sonner', () => ({
+  toast: Object.assign(vi.fn(), { error: vi.fn() }),
+}))
 
 describe('SettingsPage', () => {
   beforeEach(() => {
@@ -15,6 +20,9 @@ describe('SettingsPage', () => {
       if (path === '/api/profile' && init?.method === 'PATCH') {
         const body = JSON.parse(String(init.body)) as Record<string, unknown>
         return { ...defaultProfileResponse, ...body }
+      }
+      if (path === '/api/account' && init?.method === 'DELETE') {
+        return undefined
       }
       throw new Error(`Unexpected apiFetch: ${path}`)
     })
@@ -201,11 +209,53 @@ describe('SettingsPage', () => {
     })
   })
 
-  it('gates delete account button', async () => {
+  it('opens delete account dialog and calls DELETE /api/account on confirm', async () => {
+    const user = userEvent.setup()
     renderWithProviders(<SettingsPage />, { authenticated: true })
 
     const deleteButton = await screen.findByRole('button', { name: /delete account/i })
-    expect(deleteButton).toBeDisabled()
-    expect(screen.getByText(/account deletion will be available in a follow-up update/i)).toBeInTheDocument()
+    expect(deleteButton).toBeEnabled()
+    expect(
+      screen.queryByText(/account deletion will be available in a follow-up update/i),
+    ).not.toBeInTheDocument()
+
+    await user.click(deleteButton)
+
+    expect(await screen.findByRole('alertdialog')).toBeInTheDocument()
+    expect(screen.getByText(/this permanently removes your products/i)).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: /^delete$/i }))
+
+    await waitFor(() => {
+      expect(apiModule.apiFetch).toHaveBeenCalledWith('/api/account', { method: 'DELETE' })
+    })
+  })
+
+  it('shows toast and stays on settings when delete account fails', async () => {
+    vi.mocked(toast.error).mockClear()
+    vi.spyOn(apiModule, 'apiFetch').mockImplementation(async (path, init) => {
+      if (path === '/api/profile' && (!init?.method || init.method === 'GET')) {
+        return defaultProfileResponse
+      }
+      if (path === '/api/profile' && init?.method === 'PATCH') {
+        const body = JSON.parse(String(init.body)) as Record<string, unknown>
+        return { ...defaultProfileResponse, ...body }
+      }
+      if (path === '/api/account' && init?.method === 'DELETE') {
+        throw new apiModule.ApiError(502, 'Could not delete account')
+      }
+      throw new Error(`Unexpected apiFetch: ${path}`)
+    })
+
+    const user = userEvent.setup()
+    renderWithProviders(<SettingsPage />, { authenticated: true })
+
+    await user.click(await screen.findByRole('button', { name: /delete account/i }))
+    await user.click(screen.getByRole('button', { name: /^delete$/i }))
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Could not delete account')
+    })
+    expect(screen.getByRole('heading', { level: 1, name: /^settings$/i })).toBeInTheDocument()
   })
 })

@@ -51,9 +51,9 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M1: Foundation | done | Schema, auth primitives, app shell, service interfaces, and fixture harness contracts exist. | Product flows and scraper work can proceed in parallel. |
 | M2: First local vertical slice | done | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
 | M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
-| M4: MVP product workflows | in progress | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5), digest email (T3.6), settings UI (T4.2). **Remaining:** account delete (T4.3). | Deployment hardening and broader retailer expansion. |
+| M4: MVP product workflows | done | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5), digest email (T3.6), settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
 | M5: V1 retailer coverage | in progress | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. **Done:** T5.1 benchmark harness + fixture report for `generic`, `bestbuy_ca`, `dimemtl`. **Remaining:** T5.2–T5.5 retailer modules, live catalog expansion, drift workflow. | V1 success criteria can be tested end-to-end. |
-| M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. **Progress:** T6.1 deployment docs done; T3.5/T3.6 job code shipped (`workflow_dispatch` only); prod scrape `workflow_dispatch` verified — digest prod smoke, account delete, cron (T6.2–T6.4), and schedules (T6.3) remain. | Invite early friends for feedback. |
+| M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. **Progress:** T6.1 deployment docs done; T3.5/T3.6 job code shipped (`workflow_dispatch` only); prod scrape `workflow_dispatch` verified; account delete verified locally in T4.3 — production disposable-user delete smoke, digest prod smoke, cron (T6.2–T6.4), and schedules (T6.3) remain. | Invite early friends for feedback. |
 
 ---
 
@@ -558,7 +558,7 @@ These can proceed after the local vertical slice lands.
   - Email digest on/off.
   - Light/dark theme toggle with profile sync.
   - Revisit prompt toggles and `revisit_stale_days`.
-  - Delete-account section gated until T4.3.
+  - Delete-account section enabled in T4.3 (`DELETE /api/account` + confirmation dialog).
 - **Verification:**
   - Backend profile validation tests (existing).
   - Frontend Vitest for settings persistence and theme class.
@@ -566,7 +566,7 @@ These can proceed after the local vertical slice lands.
 
 ### T4.3 Delete account
 
-**Status:** pending
+**Status:** done
 
 - **Owner:** agent with human confirmation before destructive live test.
 - **PR size:** focused backend/frontend PR if not completed in T4.2.
@@ -577,7 +577,8 @@ These can proceed after the local vertical slice lands.
   - Frontend confirmation flow.
 - **Verification:**
   - Backend tests with mocked Supabase admin client.
-  - Manual live test only with a disposable test user and explicit human confirmation.
+  - Integration test with disposable admin-created users (local Supabase only).
+  - Production disposable-user smoke deferred to T6.2.
 
 ---
 
@@ -676,7 +677,7 @@ Start after M3 proves the one-retailer architecture.
   - Product appears with current price and category within 10 seconds.
   - Manual refresh works or returns a clear failure.
   - Digest workflow dispatch sends or correctly suppresses email.
-  - Account-delete flow verified on disposable test user only with confirmation.
+  - Account-delete flow verified on disposable test user only with confirmation (local integration in T4.3; production disposable-user smoke remains).
 
 ### T6.3 Enable schedules
 
@@ -786,17 +787,17 @@ Constraints:
 
 ## 15. Near-term recommended execution order
 
-**Phase 3 through T3.6, Phase 4 through T4.2, deployment docs (T6.1), and T5.1 benchmark harness are complete.** Pick next from:
+**Phase 3 through T3.6, Phase 4 through T4.3, deployment docs (T6.1), and T5.1 benchmark harness are complete.** Pick next from:
 
-1. **T4.3** Delete account — enable gated settings UI + `DELETE /api/account`.
-2. **T6.2** Production smoke — sign-in, add live Best Buy URL, manual refresh, digest `workflow_dispatch` (scrape pre-verified 2026-06-14).
-3. **T5.2** Easy Shopify retailers — after M4; use `docs/benchmarks/fixtures-*.json` summaries when setting registry defaults.
+1. **T6.2** Production smoke — sign-in, add live Best Buy URL, manual refresh, digest `workflow_dispatch`, account-delete disposable-user smoke (local verified in T4.3).
+2. **T5.2** Easy Shopify retailers — after M4; use `docs/benchmarks/fixtures-*.json` summaries when setting registry defaults.
+3. ~~**T4.3** Delete account~~ — **done**.
 4. ~~**T3.6** Digest email service and job~~ — **done**.
 5. ~~**T3.5** Internal scrape job endpoint~~ — **done**; enable cron in T6.3 after explicit human confirmation.
 6. ~~**T4.2** Settings page~~ — **done**.
 7. ~~**T5.1** Benchmark harness~~ — **done**.
 
-Do not prioritize broad retailer expansion (Phase 5) until M4 is done. T5.2 `dimemtl` has a partial fixture scraper from T3.1; the other easy retailers still need dedicated T5.2 PRs.
+Do not prioritize broad retailer expansion (Phase 5) until M4 is validated in production (T6.2). T5.2 `dimemtl` has a partial fixture scraper from T3.1; the other easy retailers still need dedicated T5.2 PRs.
 
 <details>
 <summary>Historical bootstrap order (M0–M3, completed)</summary>
