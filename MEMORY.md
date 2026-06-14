@@ -12,7 +12,7 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Files:** `backend/services/notification_service.py`, `backend/routers/notifications.py`, `backend/main.py`, `backend/test/fake_supabase.py`, `backend/test/test_notifications_router.py`, `frontend/src/lib/notifications.ts`, `frontend/src/hooks/useNotifications.ts`, `frontend/src/components/notifications/NotificationRow.tsx`, `frontend/src/pages/NotificationsPage.tsx`, `frontend/src/components/layout/TopNav.tsx`, `frontend/src/test/notifications-page.test.tsx`, `frontend/src/test/top-nav.test.tsx`, `frontend/src/test/routes.test.tsx`, `backend/services/README.md`, `docs/ROADMAP.md`, `MEMORY.md`.
 
-**Verification:** `ruff check .`, `pytest -m "not integration"`, `npm run lint`, `npm run test:run`, `npm run build` with `SCRAPER_MODE=fixtures`.
+**Verification:** `ruff check .`, `pytest -m "not integration"` (318 passed), `npm run lint`, `npm run test:run`, `npm run build` with `SCRAPER_MODE=fixtures`. PR https://github.com/rudy-patel/shopping-monitor/pull/27
 
 **Deferred:** Notification producers (price_drop, revisit triggers) → T3.4; digest email → T3.6; 90-day purge job → future.
 
