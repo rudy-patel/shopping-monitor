@@ -44,8 +44,11 @@ export function ProductDetailPage() {
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-8">
-      <Link to="/" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
-        Back to dashboard
+      <Link
+        to={isArchived ? '/history' : '/'}
+        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
+      >
+        {isArchived ? 'Back to archived products' : 'Back to dashboard'}
       </Link>
 
       <div className={cn('mt-6 space-y-8', refresh.isPending && 'opacity-70')}>

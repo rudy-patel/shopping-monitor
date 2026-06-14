@@ -355,12 +355,13 @@ The tasks in this phase converge on the one-retailer MVP.
   - Add Product modal with URL input and category dropdown defaulting to Auto.
   - Dashboard grouped by category.
   - Flat list view with category/retailer/needs-review filters.
-  - Product detail page with listings, threshold edit, category edit, refresh, archive/delete (no restore UI until History).
+  - Product detail page with listings, threshold edit, category edit, refresh, archive/delete.
+  - `/history` archived products view with restore and delete (PRD U-ARC-1–4).
   - Variant picker route for `needs_input`.
   - Optimistic mutations, skeletons, toasts, monochrome trend chip.
   - Playwright scaffold + optional live API integration test.
 - **Verification:**
-  - Vitest/Testing Library coverage for add modal, grouping, detail mutation controls, archive/delete flows with mocked API.
+  - Vitest/Testing Library coverage for add modal, grouping, detail mutation controls, archive/delete/restore flows with mocked API.
   - Playwright happy-path spec (local only; CI wiring in T2.7).
 
 ### T2.7 Local end-to-end one-retailer slice
@@ -371,8 +372,8 @@ The tasks in this phase converge on the one-retailer MVP.
 - **Human setup:** H1/H2 optional if using local auth bypass; required for full auth test.
 - **PR size:** test-only/small wiring PR.
 - **Build:**
-  - Add e2e test path proving a dev user can add a fixture-backed Best Buy product, view it on dashboard, open detail, refresh, edit category/threshold, archive, restore, delete.
-  - Document local e2e command.
+  - Expand e2e coverage beyond T2.6 scaffold (add → archive → history → restore → delete).
+  - Wire optional CI job for Playwright; document `make test-e2e`.
 - **Verification:**
   - E2E test passes in `SCRAPER_MODE=fixtures`.
   - Backend/frontend unit suites pass.

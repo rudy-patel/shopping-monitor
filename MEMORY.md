@@ -10,7 +10,9 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Files:** `backend/routers/products.py`, `backend/services/product_service.py`, `backend/test/test_products_router.py`, `frontend/src/lib/products.ts`, `frontend/src/lib/categories.ts`, `frontend/src/lib/format.ts`, `frontend/src/hooks/useProducts.ts`, `frontend/src/components/products/*`, `frontend/src/components/ui/select.tsx`, `frontend/src/components/ui/badge.tsx`, `frontend/src/components/ui/alert-dialog.tsx`, `frontend/src/components/add-product/AddProductDialog.tsx`, `frontend/src/pages/DashboardPage.tsx`, `frontend/src/pages/ListPage.tsx`, `frontend/src/pages/ProductDetailPage.tsx`, `frontend/src/pages/VariantPickerPage.tsx`, `frontend/src/index.css`, `frontend/src/test/*.test.tsx`, `frontend/src/test/integration/products-api.integration.test.ts`, `frontend/e2e/products.spec.ts`, `frontend/playwright.config.ts`, `frontend/package.json`, `Makefile`, `AGENTS.md`, `docs/ROADMAP.md`, `MEMORY.md`.
 
-**Deferred:** Listing accept/reject → T3.2; full e2e CI job → T2.7; FX conversion display → T4.1. History/archive restore UI implemented in T2.6 follow-up (archived products no longer orphaned).
+**Deferred:** Listing accept/reject → T3.2; full e2e CI job → T2.7; FX conversion display → T4.1.
+
+**Review pass:** Fixed ProductCard invalid button-inside-link markup (archive kebab actions), context-aware archived detail back-link, list-cache rollback helper, retailer labels in list filters; ROADMAP T2.6/T2.7 wording aligned to shipped history/restore.
 
 ## [2026-06-13] T2.5 Product API vertical slice
 

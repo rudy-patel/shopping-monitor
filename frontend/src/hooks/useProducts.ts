@@ -19,7 +19,18 @@ import {
   type UpdateProductInput,
 } from '@/lib/products'
 
-const ACTIVE_FILTERS: ProductFilters = { status: 'active' }
+function rollbackListCaches(
+  queryClient: ReturnType<typeof useQueryClient>,
+  snapshots: [readonly unknown[], ProductSummary[] | undefined][],
+) {
+  for (const [key, data] of snapshots) {
+    queryClient.setQueryData(key, data)
+  }
+}
+
+function snapshotListCaches(queryClient: ReturnType<typeof useQueryClient>) {
+  return queryClient.getQueriesData<ProductSummary[]>({ queryKey: ['products'] })
+}
 
 function updateListCache(
   queryClient: ReturnType<typeof useQueryClient>,
@@ -30,6 +41,8 @@ function updateListCache(
     (current: ProductSummary[] | undefined) => (current ? updater(current) : current),
   )
 }
+
+const ACTIVE_FILTERS: ProductFilters = { status: 'active' }
 
 export function useProducts(filters: ProductFilters = ACTIVE_FILTERS) {
   return useQuery<ProductSummary[]>({
@@ -78,9 +91,7 @@ export function useUpdateProduct(id: string) {
     onMutate: async (patch) => {
       await queryClient.cancelQueries({ queryKey: productQueryKey(id) })
       const previousDetail = queryClient.getQueryData<ProductDetail>(productQueryKey(id))
-      const previousLists = queryClient.getQueriesData<ProductSummary[]>({
-        queryKey: ['products'],
-      })
+      const previousLists = snapshotListCaches(queryClient)
 
       if (previousDetail) {
         const optimistic: ProductDetail = {
@@ -108,9 +119,7 @@ export function useUpdateProduct(id: string) {
       if (context?.previousDetail) {
         queryClient.setQueryData(productQueryKey(id), context.previousDetail)
       }
-      for (const [key, data] of context?.previousLists ?? []) {
-        queryClient.setQueryData(key, data)
-      }
+      rollbackListCaches(queryClient, context?.previousLists ?? [])
       toast.error('Could not save changes')
     },
     onSettled: () => {
@@ -185,9 +194,7 @@ export function useArchiveProduct(id: string) {
     mutationFn: () => updateProduct(id, { status: 'archived' }),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ['products'] })
-      const previousLists = queryClient.getQueriesData<ProductSummary[]>({
-        queryKey: ['products'],
-      })
+      const previousLists = snapshotListCaches(queryClient)
       updateListCache(queryClient, (items) => items.filter((item) => item.id !== id))
       return { previousLists }
     },
@@ -196,9 +203,7 @@ export function useArchiveProduct(id: string) {
       navigate('/history')
     },
     onError: (_error, _vars, context) => {
-      for (const [key, data] of context?.previousLists ?? []) {
-        queryClient.setQueryData(key, data)
-      }
+      rollbackListCaches(queryClient, context?.previousLists ?? [])
       toast.error('Could not archive product')
     },
     onSettled: () => {
@@ -215,20 +220,17 @@ export function useRestoreProduct(id: string) {
     mutationFn: () => updateProduct(id, { status: 'active' }),
     onMutate: async () => {
       await queryClient.cancelQueries({ queryKey: ['products'] })
-      const previousLists = queryClient.getQueriesData<ProductSummary[]>({
-        queryKey: ['products'],
-      })
+      const previousLists = snapshotListCaches(queryClient)
       updateListCache(queryClient, (items) => items.filter((item) => item.id !== id))
       return { previousLists }
     },
-    onSuccess: () => {
+    onSuccess: (product) => {
+      queryClient.setQueryData(productQueryKey(id), product)
       toast('Product restored to your list')
       queryClient.invalidateQueries({ queryKey: ['products'] })
     },
     onError: (_error, _vars, context) => {
-      for (const [key, data] of context?.previousLists ?? []) {
-        queryClient.setQueryData(key, data)
-      }
+      rollbackListCaches(queryClient, context?.previousLists ?? [])
       toast.error('Could not restore product')
     },
     onSettled: () => {

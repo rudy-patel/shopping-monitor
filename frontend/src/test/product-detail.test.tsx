@@ -89,6 +89,21 @@ describe('ProductDetailPage', () => {
     expect(mockRefreshMutate).toHaveBeenCalled()
   })
 
+  it('shows restore and archived back link for archived products', () => {
+    vi.mocked(useProduct).mockReturnValue({
+      data: makeProductDetail({ id: 'detail-product-id', status: 'archived' }),
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useProduct>)
+
+    renderApp(`/products/${product.id}`, { authenticated: true })
+
+    expect(screen.getByText(/this product is archived/i)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /back to archived products/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^restore$/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^archive$/i })).not.toBeInTheDocument()
+  })
+
   it('shows cooldown toast when refresh hits rate limit', async () => {
     vi.mocked(useRefreshProduct).mockReturnValue({
       mutate: () => toast('Refresh is on cooldown. Try again in about an hour.'),
