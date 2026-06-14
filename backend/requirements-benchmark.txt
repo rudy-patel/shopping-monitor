@@ -1,0 +1,3 @@
+# Optional dependencies for scraper benchmark harness (T5.1).
+# Not installed in CI or production builds.
+playwright>=1.40,<2

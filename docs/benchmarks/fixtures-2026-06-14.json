@@ -1,0 +1,801 @@
+{
+  "generated_at": "2026-06-14T20:39:56.230549Z",
+  "scraper_mode": "fixtures",
+  "playwright_available": false,
+  "catalog_version": "1",
+  "runs": [
+    {
+      "slug": "generic",
+      "scenario": "jsonld_friendly",
+      "url": "https://fixtures.local/generic/jsonld_friendly",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": false
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Wireless Earbuds Pro",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 8999,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://cdn.example.test/images/earbuds.jpg",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 0,
+              "reason": "not_required"
+            }
+          },
+          "runtime_ms": 0.9,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "generic",
+      "scenario": "og_only",
+      "url": "https://fixtures.local/generic/og_only",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": false
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Canvas Tote Bag",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 2450,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://cdn.example.test/images/tote.jpg",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 0,
+              "reason": "not_required"
+            }
+          },
+          "runtime_ms": 1.01,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "bestbuy_ca",
+      "scenario": "in_stock",
+      "url": "https://fixtures.local/bestbuy_ca/in_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": false
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Lenovo Yoga Slim 7x 14.5\" Touchscreen Copilot+ PC Laptop - Cosmic Blue (Snapdragon X Elite/16GB RAM/1TB SSD)",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 179999,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://multimedia.bbycastatic.ca/multimedia/products/150x150/192/19220/19220080.jpg",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 0,
+              "reason": "not_required"
+            }
+          },
+          "runtime_ms": 140.16,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "bestbuy_ca",
+      "scenario": "multi_variant",
+      "url": "https://fixtures.local/bestbuy_ca/multi_variant",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Logitech POP Bluetooth Optical Keyboard & Mouse Combo - Graphite/Off-White - English",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 7999,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://multimedia.bbycastatic.ca/multimedia/products/400x400/185/18530/18530015.jpg",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 2,
+              "reason": null
+            }
+          },
+          "runtime_ms": 124.5,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "dimemtl",
+      "scenario": "in_stock",
+      "url": "https://fixtures.local/dimemtl/in_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": false,
+        "variants": false
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Lenovo Yoga Slim 7x 14.5\" Touchscreen Copilot+ PC Laptop - Cosmic Blue (Snapdragon X Elite/16GB RAM/1TB SSD)",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 169999,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "not_required"
+            },
+            "variants": {
+              "ok": true,
+              "value": 0,
+              "reason": "not_required"
+            }
+          },
+          "runtime_ms": 0.58,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "dimemtl",
+      "scenario": "multi_variant",
+      "url": "https://fixtures.local/dimemtl/multi_variant",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": false,
+        "variants": false
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Lenovo Yoga Slim 7x 14.5\" Touchscreen Copilot+ PC Laptop",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 169999,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "not_required"
+            },
+            "variants": {
+              "ok": true,
+              "value": 0,
+              "reason": "not_required"
+            }
+          },
+          "runtime_ms": 0.46,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    }
+  ],
+  "summaries": [
+    {
+      "slug": "bestbuy_ca",
+      "default_strategy": "structured_data",
+      "fallback_strategies": [
+        "http_parse"
+      ],
+      "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=(ScrapeSource.HTTP_PARSE,)",
+      "notes": "Fixture HTML succeeds via structured_data; live HTML likely blocked \u2014 http_parse retailer_api sub-probe expected in production."
+    },
+    {
+      "slug": "dimemtl",
+      "default_strategy": "structured_data",
+      "fallback_strategies": [],
+      "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
+      "notes": "Shopify JSON-LD; structured_data covers title/price/stock on fixtures (image/variants not in capture)."
+    },
+    {
+      "slug": "generic",
+      "default_strategy": "structured_data",
+      "fallback_strategies": [],
+      "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
+      "notes": "JSON-LD/OG sufficient on fixtures."
+    }
+  ]
+}

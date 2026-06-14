@@ -39,6 +39,7 @@ make help           # all targets
 make test           # unit tests (backend + frontend)
 make test-integration  # pytest -m integration (requires Supabase)
 make test-e2e       # Playwright vertical slice (auto-starts servers)
+make benchmark-retailers  # fixture-mode scraper strategy benchmark (T5.1)
 ```
 
 ### E2E tests
@@ -58,12 +59,13 @@ See `AGENTS.md` for lint/test commands and environment details.
 
 ### Implementation status (2026-06-14)
 
-Milestones **M0–M3** (planning, foundation, local vertical slice, live Best Buy validation) are **done**. **M4** (MVP product workflows) is **in progress**: discovery, listing review, notifications (read API + evaluators), display currency, scheduled scrape job (T3.5), digest email (T3.6), and settings page (T4.2) are shipped; **remaining** — account delete (T4.3). Human setup **H4** (Resend) and **H5** (Render/Vercel/GitHub Actions) and deployment docs (**T6.1**) are **done** — production URLs in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). See [`docs/ROADMAP.md`](docs/ROADMAP.md) §15 for the recommended next tasks.
+Milestones **M0–M3** (planning, foundation, local vertical slice, live Best Buy validation) are **done**. **M4** (MVP product workflows) is **in progress**: discovery, listing review, notifications (read API + evaluators), display currency, scheduled scrape job (T3.5), digest email (T3.6), and settings page (T4.2) are shipped; **remaining** — account delete (T4.3). **M5** started: T5.1 scraper benchmark harness is **done** (`docs/benchmarks/`). Human setup **H4** (Resend) and **H5** (Render/Vercel/GitHub Actions) and deployment docs (**T6.1**) are **done** — production URLs in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). See [`docs/ROADMAP.md`](docs/ROADMAP.md) §15 for the recommended next tasks.
 
 ## Documentation
 
 - [Product Requirements (V1)](docs/PRD.md)
 - [Development Roadmap](docs/ROADMAP.md) — task-level status, PR links, and what to pick up next
+- [Scraper benchmark reports](docs/benchmarks/README.md) — per-retailer strategy snapshots (T5.1)
 - [Database conventions & RLS](docs/DATABASE.md)
 - [Authentication](docs/AUTHENTICATION.md)
 - [Deployment (Vercel + Render + Supabase)](docs/DEPLOYMENT.md)

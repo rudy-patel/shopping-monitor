@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-14 (T3.6 digest email; T6.1 deployment docs; H4 Resend done; scrape workflow_dispatch verified).
+> **Last updated:** 2026-06-14 (T5.1 benchmark harness; T4.2 settings page; T3.6 digest; T6.1 deployment docs; H4 Resend done).
 
 ---
 
@@ -52,7 +52,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M2: First local vertical slice | done | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
 | M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
 | M4: MVP product workflows | in progress | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5), digest email (T3.6), settings UI (T4.2). **Remaining:** account delete (T4.3). | Deployment hardening and broader retailer expansion. |
-| M5: V1 retailer coverage | pending | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. | V1 success criteria can be tested end-to-end. |
+| M5: V1 retailer coverage | in progress | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. **Done:** T5.1 benchmark harness + fixture report for `generic`, `bestbuy_ca`, `dimemtl`. **Remaining:** T5.2–T5.5 retailer modules, live catalog expansion, drift workflow. | V1 success criteria can be tested end-to-end. |
 | M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. **Progress:** T6.1 deployment docs done; T3.5/T3.6 job code shipped (`workflow_dispatch` only); prod scrape `workflow_dispatch` verified — digest prod smoke, account delete, cron (T6.2–T6.4), and schedules (T6.3) remain. | Invite early friends for feedback. |
 
 ---
@@ -587,7 +587,7 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.1 Benchmark harness
 
-**Status:** pending
+**Status:** done
 
 - **Owner:** agent.
 - **PR size:** backend tooling PR.
@@ -596,8 +596,10 @@ Start after M3 proves the one-retailer architecture.
   - Record success/failure by title, price, stock, image, variants, runtime, retries, blocked markers.
   - Output recommended strategy/fallback order per retailer.
 - **Verification:**
-  - Fixture-mode benchmark tests.
-  - Document command and output format.
+  - Fixture-mode benchmark tests (`backend/test/test_benchmark_harness.py`).
+  - `make benchmark-retailers` → `docs/benchmarks/fixtures-*.json`.
+  - Document command and output format (`docs/benchmarks/README.md`, `backend/scrapers/README.md`).
+  - PR https://github.com/rudy-patel/shopping-monitor/pull/38
 
 ### T5.2 Easy Shopify/scrape-friendly retailers
 
@@ -784,12 +786,15 @@ Constraints:
 
 ## 15. Near-term recommended execution order
 
-**Phase 3 notification/discovery work through T3.6, Phase 4 currency (T4.1), and deployment docs (T6.1) are complete.** Pick next from:
+**Phase 3 through T3.6, Phase 4 through T4.2, deployment docs (T6.1), and T5.1 benchmark harness are complete.** Pick next from:
 
 1. **T4.3** Delete account — enable gated settings UI + `DELETE /api/account`.
 2. **T6.2** Production smoke — sign-in, add live Best Buy URL, manual refresh, digest `workflow_dispatch` (scrape pre-verified 2026-06-14).
+3. **T5.2** Easy Shopify retailers — after M4; use `docs/benchmarks/fixtures-*.json` summaries when setting registry defaults.
 4. ~~**T3.6** Digest email service and job~~ — **done**.
 5. ~~**T3.5** Internal scrape job endpoint~~ — **done**; enable cron in T6.3 after explicit human confirmation.
+6. ~~**T4.2** Settings page~~ — **done**.
+7. ~~**T5.1** Benchmark harness~~ — **done**.
 
 Do not prioritize broad retailer expansion (Phase 5) until M4 is done. T5.2 `dimemtl` has a partial fixture scraper from T3.1; the other easy retailers still need dedicated T5.2 PRs.
 
@@ -815,6 +820,7 @@ Do not prioritize broad retailer expansion (Phase 5) until M4 is done. T5.2 `dim
 17. ~~T3.5 Internal scrape job endpoint.~~
 18. ~~T3.6 Digest email service and job.~~
 19. ~~T4.1 FX rates and display currency.~~
-20. ~~T6.1 Deployment docs and config hardening.~~
+20. ~~T4.2 Settings page.~~
+21. ~~T6.1 Deployment docs and config hardening.~~
 
 </details>
