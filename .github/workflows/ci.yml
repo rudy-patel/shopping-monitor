@@ -120,24 +120,40 @@ jobs:
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
       PLAYWRIGHT_API_URL: http://localhost:8000
 
     steps:
       - uses: actions/checkout@v5
 
+      - name: Check Supabase credentials
+        id: supabase
+        run: |
+          if [ -n "$SUPABASE_URL" ] || { [ -n "$SUPABASE_ACCESS_TOKEN" ] && [ -n "$SUPABASE_PROJECT_REF" ]; }; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Skipping Playwright e2e — configure SUPABASE_URL/ANON/SERVICE_ROLE or SUPABASE_ACCESS_TOKEN + SUPABASE_PROJECT_REF in GitHub Actions secrets."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Set up Python
+        if: steps.supabase.outputs.ready == 'true'
         uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
       - name: Install backend virtualenv
+        if: steps.supabase.outputs.ready == 'true'
         run: python -m venv venv && . venv/bin/activate && pip install -r requirements.txt
         working-directory: backend
 
       - name: Sync backend/.env for e2e
+        if: steps.supabase.outputs.ready == 'true'
         run: backend/venv/bin/python scripts/setup_integration_env.py
 
       - name: Set up Node.js
+        if: steps.supabase.outputs.ready == 'true'
         uses: actions/setup-node@v5
         with:
           node-version: 20
@@ -145,13 +161,16 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install frontend dependencies
+        if: steps.supabase.outputs.ready == 'true'
         run: npm ci
         working-directory: frontend
 
       - name: Install Playwright browsers
+        if: steps.supabase.outputs.ready == 'true'
         run: npx playwright install --with-deps chromium
         working-directory: frontend
 
       - name: Run Playwright e2e tests
+        if: steps.supabase.outputs.ready == 'true'
         run: npx playwright test
         working-directory: frontend

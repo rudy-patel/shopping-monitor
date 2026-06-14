@@ -52,7 +52,7 @@ make setup-integration-env   # sync backend/.env from secrets
 make test-e2e                # auto-starts backend :8000 + frontend :3000
 ```
 
-CI runs the same spec in the `playwright-e2e` job (requires `SUPABASE_*` GitHub secrets).
+CI runs the same spec in the `playwright-e2e` job when GitHub Actions secrets are configured (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, or `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF`). Without secrets the job skips with a warning.
 
 See `AGENTS.md` for lint/test commands and environment details.
 
