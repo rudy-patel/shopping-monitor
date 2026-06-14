@@ -293,16 +293,16 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.3 `bestbuy_ca` fixture-backed scraper
 
-**Status:** pending
+**Status:** done
 
 - **Owner:** agent.
-- **Human setup:** none for fixture mode.
+- **Human setup:** one-time live fixture recording (3 Best Buy Canada product URLs).
 - **PR size:** single backend PR.
 - **Build:**
   - Add retailer registry entry for `bestbuy_ca`.
   - Implement fixture-backed extraction for title, brand, image, CAD price, stock, available variants, selected variant, breadcrumbs, snapshot.
-  - Fixtures: in-stock, out-of-stock, multi-variant.
-  - Do not require Playwright until benchmark/live validation proves it.
+  - Fixtures: in-stock, out-of-stock, multi-variant (recorded from live pages).
+  - `curl_cffi` browser impersonation in `scraper_fetch()` for live/record mode.
 - **Verification:**
   - Fixture-only pytest coverage.
   - Registry tests route `bestbuy.ca` URLs to `bestbuy_ca`.
@@ -764,7 +764,7 @@ If starting from the current scaffold, run the first agents in this order:
 3. T1.3 Frontend app shell and shared dependencies.
 4. T1.4 Scraper contract and fixture mode harness.
 5. T1.5 Service interfaces.
-6. T2.2 Generic JSON-LD/OG scraper and T2.3 `bestbuy_ca` fixture-backed scraper in parallel.
+6. ~~T2.2 Generic JSON-LD/OG scraper and T2.3 `bestbuy_ca` fixture-backed scraper in parallel.~~ **Done** (T2.2 + T2.3).
 7. T2.1 Auth and profile bootstrap once H1/H2 are ready enough.
 8. T2.4 Categorization service.
 9. T2.5 Product API vertical slice.
