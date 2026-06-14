@@ -5,7 +5,3 @@ export function getApiUrl(): string {
 export function isDevBuild(): boolean {
   return import.meta.env.DEV
 }
-
-export function isProductionBuild(): boolean {
-  return import.meta.env.PROD || import.meta.env.VITE_APP_ENV === 'production'
-}
