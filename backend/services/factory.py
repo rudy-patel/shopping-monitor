@@ -9,10 +9,12 @@ from services.llm import LlmProvider, NoOpLlmProvider
 
 
 def build_retailer_default_categories() -> dict[str, str]:
-    import scrapers.bootstrap  # noqa: F401 — side-effect registration
-
+    from scrapers.bestbuy_ca import register_bestbuy_ca
+    from scrapers.generic import register_generic
     from scrapers.registry import all_retailers
 
+    register_generic()
+    register_bestbuy_ca()
     return {entry.slug: entry.default_category for entry in all_retailers()}
 
 

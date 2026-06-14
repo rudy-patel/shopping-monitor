@@ -36,3 +36,11 @@ def require_fixtures_mode() -> None:  # pragma: allowlist secret
             f"Expected {SCRAPER_MODE_ENV_VAR}={ScraperMode.FIXTURES.value!r}, "  # pragma: allowlist secret
             f"got {get_scraper_mode().value!r}."
         )
+
+
+def require_not_fixtures_mode() -> None:
+    if is_fixtures_mode():  # pragma: allowlist secret
+        raise ScraperConfigError(
+            f"Expected {SCRAPER_MODE_ENV_VAR} to be {ScraperMode.LIVE.value!r} or "
+            f"{ScraperMode.RECORD.value!r}, got {ScraperMode.FIXTURES.value!r}."
+        )

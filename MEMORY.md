@@ -18,13 +18,26 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Deferred:** Product API wiring + `category_source` persistence → T2.5; frontend Add modal category dropdown → T2.6; `LlmProvider.discover()` Gemini implementation → T3.1.
 
+## [2026-06-13] T2.3 bestbuy_ca fixture-backed scraper
+
+**What:** Added the `bestbuy_ca` retailer scraper with real recorded HTML fixtures (`in_stock`, `out_of_stock`, `multi_variant`), JSON-LD/OG extraction enriched by Best Buy embedded state (`window.__INITIAL_STATE__`) for stock and colour variants, `curl_cffi` primary transport with `httpx` fallback in `scraper_fetch()`, bootstrap registration, and fixture-only pytest coverage.
+
+**Fixture source URLs (for T5.5 drift checks):**
+- in_stock: https://www.bestbuy.ca/en-ca/product/lenovo-yoga-slim-7x-14-5-touchscreen-copilot-pc-laptop-cosmic-blue-snapdragon-x-elite-16gb-ram-1tb-ssd/19220080
+- out_of_stock: https://www.bestbuy.ca/en-ca/product/nintendo-switch-oled-model-super-mario-bros-wonder-bundle-with-3-month-online-individual-membership/19180065
+- multi_variant: https://www.bestbuy.ca/en-ca/product/logitech-pop-bluetooth-optical-keyboard-mouse-combo-graphite-off-white-english/18530015
+
+**Files:** `backend/scrapers/bestbuy_ca.py`, `backend/scrapers/extraction/bestbuy.py`, `backend/scrapers/http.py`, `backend/scrapers/bootstrap.py`, `backend/scrapers/extraction/jsonld.py`, `backend/scrapers/mode.py`, `backend/main.py`, `backend/requirements.txt`, `backend/test/fixtures/retailers/bestbuy_ca/*.html`, `backend/test/test_bestbuy_ca_scraper.py`, `backend/test/test_scraper_http_guard.py`, `backend/test/test_scraper_registry.py`, `backend/test/conftest.py`, `scripts/record_bestbuy_fixtures.py`, `backend/scrapers/README.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Deferred:** Product API wiring → T2.5; live Best Buy validation through product API → T2.8; Playwright fallback if curl_cffi + structured data insufficient at runtime.
+
 ## [2026-06-13] T2.2 generic JSON-LD/OG scraper
 
 **What:** Implemented the `generic` retailer fallback: JSON-LD Product extraction first, OpenGraph/product meta fallback, CAD-only guard (`NotCanadianListingError`), no-price → `ScrapeBlockedError`, no-title → `ScrapeParseError`, fixture URL resolver (`fixtures.local/<slug>/<scenario>`), and fixture-only pytest coverage. Added `beautifulsoup4` for HTML parsing. Production registration via `scrapers.bootstrap` with idempotent `register_generic()` for test registry resets.
 
 **Files:** `backend/scrapers/generic.py`, `backend/scrapers/bootstrap.py`, `backend/scrapers/structured_data.py`, `backend/scrapers/fixture_url.py`, `backend/scrapers/extraction/` (`types.py`, `jsonld.py`, `opengraph.py`, `price.py`), `backend/test/fixtures/retailers/generic/*.html`, `backend/test/test_generic_scraper.py`, `backend/test/conftest.py`, `backend/test/test_scraper_registry.py`, `backend/scrapers/exceptions.py`, `backend/scrapers/README.md`, `backend/requirements.txt`, `backend/pytest.ini`, `docs/ROADMAP.md`, `MEMORY.md`.
 
-**Deferred:** Product API wiring for generic listings → T2.5; frontend "Generic scraper — may be unreliable" label → T2.6; `bestbuy_ca` scraper → T2.3.
+**Deferred:** Product API wiring for generic listings → T2.5; frontend "Generic scraper — may be unreliable" label → T2.6.
 
 ## [2026-06-14] T2.1 review pass
 

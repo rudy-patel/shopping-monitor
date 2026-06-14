@@ -170,8 +170,8 @@ def test_categorize_other_api_error_maps_to_provider_error(mock_client_cls: Magi
 
 def test_build_retailer_default_categories_includes_registered_retailers():
     defaults = build_retailer_default_categories()
-    assert "generic" in defaults
-    assert defaults["generic"] in {"clothing", "shoes", "home", "tech", "other"}
+    assert defaults["generic"] == "other"
+    assert defaults["bestbuy_ca"] == "tech"
 
 
 def test_get_llm_provider_no_key(monkeypatch):
