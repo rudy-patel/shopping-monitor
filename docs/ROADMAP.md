@@ -454,7 +454,7 @@ These can proceed after the local vertical slice lands.
 
 ### T3.4 Price-drop, stock, scrape-failing, and revisit evaluators
 
-**Status:** done — branch `cursor/t3-4-notification-evaluators-f127`
+**Status:** done — PR [#28](https://github.com/rudy-patel/shopping-monitor/pull/28)
 
 - **Owner:** agent.
 - **PR size:** backend PR.

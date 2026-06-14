@@ -12,7 +12,7 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Files:** `backend/services/pricing.py`, `backend/services/pricing_data.py`, `backend/services/notifications.py`, `backend/services/notification_evaluation.py`, `backend/services/product_service.py`, `backend/test/test_notification_evaluators.py`, `backend/test/test_revisit_90_day_fixture.py`, `backend/test/test_notification_evaluation_service.py`, `backend/test/test_services_pricing.py`, `backend/test/test_services_notifications.py`, `backend/test/test_products_router.py`, `backend/services/README.md`, `docs/ROADMAP.md`, `MEMORY.md`.
 
-**Verification:** `ruff check .`, `pytest -m "not integration"` (356 passed) with `SCRAPER_MODE=fixtures`.
+**Verification:** `ruff check .`, `pytest -m "not integration"` (356 passed) with `SCRAPER_MODE=fixtures`. PR https://github.com/rudy-patel/shopping-monitor/pull/28
 
 **Deferred:** Scheduled scrape-all caller → T3.5; digest email → T3.6.
 
