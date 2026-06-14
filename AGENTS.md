@@ -44,8 +44,29 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 | Frontend unit tests | `cd frontend && npm run test:run` | Vitest (`frontend/src/test/`). |
 | Frontend build | `cd frontend && npm run build` | `tsc && vite build` |
 | All unit tests | `make test` | Backend pytest (`-m "not integration"`) + frontend vitest |
+| Integration tests | `make test-integration` | Requires Supabase credentials; writes `backend/.env` via `make setup-integration-env` |
 
 CI and local automated tests must run scraper code with `SCRAPER_MODE=fixtures` so no test hits live retailer URLs. Use `live` only for explicit benchmark/drift tasks and `record` only when intentionally capturing fixtures.
+
+### Integration tests (Supabase RLS smoke)
+
+Integration tests are excluded from `make test` / CI unit jobs. They require a live Supabase project with `001_core_schema` applied.
+
+**Cursor Cloud / local setup**
+
+1. Add these as **Environment Variable** secrets (not Build secrets) in the Cloud Agents dashboard:
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+2. Alternative: set `SUPABASE_ACCESS_TOKEN` (or `SUPABASE_PAT`) + `SUPABASE_PROJECT_REF`; the setup script fetches keys via the Supabase Management API.
+3. Sync env and run:
+   ```bash
+   make setup-integration-env
+   make test-integration
+   ```
+   `make test-integration` sets `REQUIRE_INTEGRATION_ENV=1`, so missing credentials fail loudly instead of skipping.
+
+`scripts/setup_integration_env.py` writes `backend/.env` (gitignored) from shell env, an existing `.env`, or the Management API fallback.
 
 ### Gotchas
 

@@ -19,6 +19,7 @@ help:
 	@echo "  make test           - Run unit tests (backend + frontend)"
 	@echo "  make test-backend   - Run backend unit tests only"
 	@echo "  make test-frontend  - Run frontend tests"
+	@echo "  make setup-integration-env - Write backend/.env from Supabase secrets"
 	@echo "  make test-integration - Run integration tests (requires Supabase)"
 	@echo "  make test-all       - Run all tests including integration"
 	@echo ""
@@ -74,12 +75,16 @@ test-frontend:
 	@echo "🎨 Running frontend tests..."
 	@cd frontend && npm run test:run
 
-test-integration:
+setup-integration-env:
+	@echo "🔐 Syncing backend/.env for integration tests..."
+	@python scripts/setup_integration_env.py
+
+test-integration: setup-integration-env
 	@echo "🔗 Running integration tests (requires Supabase)..."
 	@if [ -d "backend/venv" ]; then \
-		cd backend && . venv/bin/activate && python -m pytest test/ -v -m "integration"; \
+		cd backend && . venv/bin/activate && REQUIRE_INTEGRATION_ENV=1 python -m pytest test/ -v -m "integration"; \
 	else \
-		cd backend && python3 -m pytest test/ -v -m "integration"; \
+		cd backend && REQUIRE_INTEGRATION_ENV=1 python3 -m pytest test/ -v -m "integration"; \
 	fi
 
 test-all: test test-integration
