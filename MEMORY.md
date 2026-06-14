@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T3.2 Listing review API and UI
+
+**What:** Implemented listing review endpoints (`accept`, `reject`, `delete`), cap-counting helper (`count_cap_listings`; rejected rows no longer block discovery), truncated `discovery_justification` persisted in `scrape_snapshot`, review display fields on listing API responses, product detail Needs Review queue (Accept / Reject / Open source), main listings table with match confidence and Remove for non-primary `auto_added`/`accepted` rows, rejected and needs-review rows hidden from main table.
+
+**Locked behavior:** Rejected listings hidden everywhere in UI; accept does not re-check cap; short LLM justification shown as review reason with "Possible match" fallback; discovery cap uses cap-counting statuses (rejected frees a slot).
+
+**Files:** `backend/services/discovery.py`, `backend/services/product_service.py`, `backend/routers/products.py`, `backend/test/test_discovery.py`, `backend/test/test_products_router.py`, `frontend/src/lib/products.ts`, `frontend/src/hooks/useProducts.ts`, `frontend/src/components/products/NeedsReviewQueue.tsx`, `frontend/src/components/products/ListingRow.tsx`, `frontend/src/pages/ProductDetailPage.tsx`, `frontend/src/test/listing-review.test.tsx`, `frontend/src/test/product-detail.test.tsx`, `frontend/src/test/product-fixtures.ts`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Deferred:** Notifications bell → T3.3; Playwright e2e for review flow; backfill of `discovery_justification` on existing rows.
+
 ## [2026-06-14] T3.1 Cross-retailer discovery engine
 
 **What:** Implemented the cross-retailer discovery engine: `services.matching` confidence scoring (renormalized weights without pHash), `services.discovery` background orchestrator with auto-add/needs-review/discard caps, `GeminiFlashLlmProvider.discover()` with Google Search grounding and structured JSON, `gemini_discover_timeout_s` setting, H3 smoke script `scripts/smoke_gemini_discover.py`, frontend conditional polling (detail 3s / list 5s) with list-cache invalidation on discovery complete, and embedded `dimemtl` Shopify fixture scraper for two-retailer fixture validation.
@@ -16,7 +26,7 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Verification:** `ruff check .`, `pytest -m "not integration"` (288 passed), `npm run lint`, `npm run test:run` with `SCRAPER_MODE=fixtures`.
 
-**Deferred:** Listing accept/reject → T3.2; notifications bell → T3.3; image pHash → future.
+**Deferred:** Notifications bell → T3.3; image pHash → future.
 
 ## [2026-06-14] T2.8 Controlled live Best Buy validation
 

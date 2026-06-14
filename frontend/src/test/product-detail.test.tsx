@@ -22,6 +22,9 @@ vi.mock('@/hooks/useProducts', () => {
     useDeleteProduct: vi.fn(stub),
     useCreateProduct: vi.fn(stub),
     useRestoreProduct: vi.fn(stub),
+    useAcceptListing: vi.fn(stub),
+    useRejectListing: vi.fn(stub),
+    useDeleteListing: vi.fn(stub),
   }
 })
 

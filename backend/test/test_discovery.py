@@ -9,7 +9,7 @@ from uuid import uuid4
 import pytest
 
 from core.settings import clear_settings_cache
-from services.discovery import run_discovery_for_product
+from services.discovery import _truncate_justification, run_discovery_for_product
 from services.llm import (
     FakeLlmProvider,
     LlmDiscoveryCandidate,
@@ -35,8 +35,16 @@ DIMEMTL_IN_STOCK = "https://fixtures.local/dimemtl/in_stock"
 SCRAPE_FAIL_URL = "https://fixtures.local/discovery_a/missing_scenario"
 
 
-def _candidate(url: str) -> LlmDiscoveryCandidate:
-    return LlmDiscoveryCandidate(url=url, justification="test match")
+def _candidate(url: str, *, justification: str = "test match") -> LlmDiscoveryCandidate:
+    return LlmDiscoveryCandidate(url=url, justification=justification)
+
+
+def test_truncate_justification_shortens_long_text():
+    long_text = " ".join(["word"] * 20)
+    truncated = _truncate_justification(long_text, max_len=60)
+    assert len(truncated) <= 60
+    assert truncated.endswith("…")
+    assert _truncate_justification("Same laptop model") == "Same laptop model"
 
 
 @pytest.fixture
@@ -195,6 +203,7 @@ def test_needs_review_listing_excluded_from_best_price(discovery_env):
     assert len(discovered) == 1
     assert discovered[0]["review_status"] == "needs_review"
     assert 0.60 <= discovered[0]["match_confidence"] < 0.85
+    assert discovered[0]["scrape_snapshot"]["discovery_justification"] == "test match"
 
 
 def test_discard_low_score_adds_no_listing(discovery_env):

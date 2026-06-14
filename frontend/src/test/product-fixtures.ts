@@ -58,5 +58,28 @@ export function makeProductDetail(overrides: Partial<ProductDetail> = {}): Produ
   }
 }
 
+export function makeNeedsReviewListing(
+  overrides: Partial<ProductDetail['listings'][number]> = {},
+): ProductDetail['listings'][number] {
+  return {
+    id: '33333333-3333-3333-3333-333333333333',
+    retailer_slug: 'dimemtl',
+    url: 'https://fixtures.local/dimemtl/in_stock',
+    variant_attributes: {},
+    available_variants: null,
+    is_primary: false,
+    review_status: 'needs_review',
+    last_known_price_cents: 11999,
+    is_in_stock: true,
+    last_scraped_at: '2026-06-13T12:00:00.000Z',
+    scrape_status: 'ok',
+    match_confidence: 0.72,
+    review_title: 'Candidate at Dime MTL',
+    review_image_url: null,
+    review_reason: 'Same laptop model',
+    ...overrides,
+  }
+}
+
 export const IN_STOCK_URL = 'https://fixtures.local/bestbuy_ca/in_stock'
 export const MULTI_VARIANT_URL = 'https://fixtures.local/bestbuy_ca/multi_variant'

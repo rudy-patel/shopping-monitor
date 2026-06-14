@@ -31,6 +31,9 @@ vi.mock('@/hooks/useProducts', () => ({
   useRefreshProduct: vi.fn(),
   useUpdateProduct: vi.fn(),
   useRestoreProduct: vi.fn(),
+  useAcceptListing: vi.fn(),
+  useRejectListing: vi.fn(),
+  useDeleteListing: vi.fn(),
 }))
 
 import {
@@ -41,6 +44,9 @@ import {
   useRefreshProduct,
   useUpdateProduct,
   useRestoreProduct,
+  useAcceptListing,
+  useRejectListing,
+  useDeleteListing,
 } from '@/hooks/useProducts'
 
 const activeProduct = makeProductSummary({ id: 'archive-me', title: 'Archive Me' })
@@ -89,6 +95,20 @@ describe('archive and delete flows', () => {
       mutate: vi.fn(),
       isPending: false,
     } as ReturnType<typeof useRestoreProduct>)
+
+    const listingHookStub = {
+      mutate: vi.fn(),
+      isPending: false,
+    }
+    vi.mocked(useAcceptListing).mockReturnValue(
+      listingHookStub as ReturnType<typeof useAcceptListing>,
+    )
+    vi.mocked(useRejectListing).mockReturnValue(
+      listingHookStub as ReturnType<typeof useRejectListing>,
+    )
+    vi.mocked(useDeleteListing).mockReturnValue(
+      listingHookStub as ReturnType<typeof useDeleteListing>,
+    )
   })
 
   it('archive removes product from dashboard list via mutation', async () => {

@@ -452,6 +452,29 @@ def test_mutating_other_users_product_returns_404(products_client, fake_client):
         ).status_code
         == 404
     )
+    review = _seed_review_listing(fake, product["id"])
+    extra = _seed_listing(
+        fake,
+        product["id"],
+        is_primary=False,
+        review_status="auto_added",
+    )
+    assert (
+        client.post(
+            f"/api/products/{product['id']}/listings/{review['id']}/accept"
+        ).status_code
+        == 404
+    )
+    assert (
+        client.post(
+            f"/api/products/{product['id']}/listings/{review['id']}/reject"
+        ).status_code
+        == 404
+    )
+    assert (
+        client.delete(f"/api/products/{product['id']}/listings/{extra['id']}").status_code
+        == 404
+    )
 
 
 def test_select_variant_activates_product(products_client, fake_client):
@@ -505,3 +528,254 @@ def test_patch_empty_body_returns_400(products_client, fake_client):
     response = client.patch(f"/api/products/{product['id']}", json={})
 
     assert response.status_code == 400
+
+
+def _seed_review_listing(fake: FakeSupabaseClient, product_id: str, **overrides) -> dict:
+    defaults = {
+        "is_primary": False,
+        "review_status": "needs_review",
+        "last_known_price_cents": 7500,
+        "is_in_stock": True,
+        "match_confidence": 0.72,
+        "scrape_snapshot": {
+            "title": "Candidate at Canadian Tire",
+            "discovery_justification": "Same laptop model",
+        },
+    }
+    defaults.update(overrides)
+    return _seed_listing(fake, product_id, **defaults)
+
+
+def test_accept_needs_review_listing(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    _seed_listing(fake, product["id"], last_known_price_cents=9999)
+    review = _seed_review_listing(fake, product["id"])
+
+    response = client.post(
+        f"/api/products/{product['id']}/listings/{review['id']}/accept"
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    accepted = next(row for row in body["listings"] if row["id"] == review["id"])
+    assert accepted["review_status"] == "accepted"
+    assert body["needs_review_count"] == 0
+    assert fake.product_listings[review["id"]]["review_status"] == "accepted"
+
+
+def test_accept_updates_best_price_when_cheaper(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    _seed_listing(fake, product["id"], last_known_price_cents=9999)
+    review = _seed_review_listing(
+        fake, product["id"], last_known_price_cents=5000, is_in_stock=True
+    )
+
+    response = client.post(
+        f"/api/products/{product['id']}/listings/{review['id']}/accept"
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["best_price_cents"] == 5000
+
+
+def test_accept_wrong_user_returns_404(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake, user_id=OTHER_USER_ID)
+    _seed_listing(fake, product["id"])
+    review = _seed_review_listing(fake, product["id"])
+
+    response = client.post(
+        f"/api/products/{product['id']}/listings/{review['id']}/accept"
+    )
+
+    assert response.status_code == 404
+
+
+def test_accept_non_review_listing_returns_409(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    accepted = _seed_listing(
+        fake,
+        product["id"],
+        is_primary=False,
+        review_status="accepted",
+    )
+
+    response = client.post(
+        f"/api/products/{product['id']}/listings/{accepted['id']}/accept"
+    )
+
+    assert response.status_code == 409
+
+
+def test_accept_auto_added_returns_409(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    listing = _seed_listing(
+        fake,
+        product["id"],
+        is_primary=False,
+        review_status="auto_added",
+    )
+
+    response = client.post(
+        f"/api/products/{product['id']}/listings/{listing['id']}/accept"
+    )
+
+    assert response.status_code == 409
+
+
+def test_reject_needs_review_listing(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    _seed_listing(fake, product["id"], last_known_price_cents=9999)
+    review = _seed_review_listing(
+        fake, product["id"], last_known_price_cents=5000, is_in_stock=True
+    )
+
+    response = client.post(
+        f"/api/products/{product['id']}/listings/{review['id']}/reject"
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    rejected = next(row for row in body["listings"] if row["id"] == review["id"])
+    assert rejected["review_status"] == "rejected"
+    assert body["needs_review_count"] == 0
+    assert body["best_price_cents"] == 9999
+
+
+def test_reject_non_review_listing_returns_409(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    listing = _seed_listing(
+        fake,
+        product["id"],
+        is_primary=False,
+        review_status="auto_added",
+    )
+
+    response = client.post(
+        f"/api/products/{product['id']}/listings/{listing['id']}/reject"
+    )
+
+    assert response.status_code == 409
+
+
+def test_delete_non_primary_listing(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    _seed_listing(fake, product["id"])
+    extra = _seed_listing(
+        fake,
+        product["id"],
+        is_primary=False,
+        review_status="auto_added",
+        last_known_price_cents=8000,
+    )
+
+    response = client.delete(
+        f"/api/products/{product['id']}/listings/{extra['id']}"
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["listing_count"] == 1
+    assert extra["id"] not in fake.product_listings
+
+
+def test_delete_primary_returns_409(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    primary = _seed_listing(fake, product["id"])
+
+    response = client.delete(
+        f"/api/products/{product['id']}/listings/{primary['id']}"
+    )
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Cannot remove primary listing"
+
+
+def test_delete_wrong_user_returns_404(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake, user_id=OTHER_USER_ID)
+    _seed_listing(fake, product["id"])
+    extra = _seed_listing(
+        fake,
+        product["id"],
+        is_primary=False,
+        review_status="accepted",
+    )
+
+    response = client.delete(
+        f"/api/products/{product['id']}/listings/{extra['id']}"
+    )
+
+    assert response.status_code == 404
+
+
+def test_review_actions_touch_last_user_interaction(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    _seed_listing(fake, product["id"])
+    review = _seed_review_listing(fake, product["id"])
+    extra = _seed_listing(
+        fake,
+        product["id"],
+        is_primary=False,
+        review_status="auto_added",
+    )
+
+    assert fake.products[product["id"]]["last_user_interaction_at"] is None
+
+    client.post(f"/api/products/{product['id']}/listings/{review['id']}/accept")
+    assert fake.products[product["id"]]["last_user_interaction_at"] is not None
+    first_touch = fake.products[product["id"]]["last_user_interaction_at"]
+
+    review2 = _seed_review_listing(fake, product["id"])
+    client.post(f"/api/products/{product['id']}/listings/{review2['id']}/reject")
+    assert fake.products[product["id"]]["last_user_interaction_at"] != first_touch
+
+    client.delete(f"/api/products/{product['id']}/listings/{extra['id']}")
+    assert fake.products[product["id"]]["last_user_interaction_at"] is not None
+
+
+def test_count_cap_listings_excludes_rejected(products_client, fake_client):
+    from services.product_service import count_cap_listings
+
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    _seed_listing(fake, product["id"])
+    for _ in range(4):
+        _seed_review_listing(fake, product["id"])
+
+    listings = list(fake.product_listings.values())
+    assert count_cap_listings(listings) == 5
+
+    review = next(
+        row for row in listings if row.get("review_status") == "needs_review"
+    )
+    client.post(
+        f"/api/products/{product['id']}/listings/{review['id']}/reject"
+    )
+
+    updated = list(fake.product_listings.values())
+    assert count_cap_listings(updated) == 4
+
+
+def test_serialized_review_fields_on_needs_review(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    _seed_listing(fake, product["id"])
+    review = _seed_review_listing(fake, product["id"])
+
+    response = client.get(f"/api/products/{product['id']}")
+
+    assert response.status_code == 200
+    listing = next(row for row in response.json()["listings"] if row["id"] == review["id"])
+    assert listing["review_reason"] == "Same laptop model"
+    assert listing["review_title"] == "Candidate at Canadian Tire"

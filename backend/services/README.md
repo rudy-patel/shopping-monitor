@@ -77,6 +77,18 @@ run_discovery_for_product(UUID("..."))
 
 Match scoring weights (no image pHash in T3.1): title Jaccard 0.444, brand exact 0.222, variant exact 0.333. Thresholds: auto-add ≥ 0.85, needs-review 0.60–0.849, discard < 0.60. Empty reference variants score 1.0 on the variant term (supports `needs_input` products).
 
+Needs-review rows store a truncated LLM `discovery_justification` in `scrape_snapshot` for the review queue UI (T3.2). Discovery cap counting excludes `rejected` rows so freed slots can accept new candidates.
+
+## Listing review (T3.2)
+
+Authenticated product routes for user-owned listings:
+
+- `POST /api/products/{product_id}/listings/{listing_id}/accept` — `needs_review` → `accepted`
+- `POST /api/products/{product_id}/listings/{listing_id}/reject` — `needs_review` → `rejected`
+- `DELETE /api/products/{product_id}/listings/{listing_id}` — hard-delete non-primary rows
+
+All three touch `products.last_user_interaction_at` and return refreshed `ProductDetail`. Invalid transitions return 409; wrong owner returns 404.
+
 ## FxService
 
 ```python
@@ -170,7 +182,6 @@ trend = compute_trend(observations, today=date(2026, 6, 14))
 
 ## Deferred to later tasks
 
-- **T3.2** — Listing accept/reject/delete API + UI for `needs_review` rows.
 - **T3.4** — Evaluator bodies; tightening `NotificationEvaluationContext` placeholder `dict[str, Any]` fields into typed snapshots.
 - **T3.6** — Resend `MailService` + HTML/text digest templates; swap `DigestEmail.to_email` to `EmailStr` once `email-validator` is added.
 - **T4.1** — Frankfurter primary + `exchangerate.host` fallback + 24h `fx_rates_cache`.

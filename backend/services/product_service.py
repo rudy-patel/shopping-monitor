@@ -51,6 +51,15 @@ ProductCategory = Literal["clothing", "shoes", "home", "tech", "other"]
 ScrapeStatus = Literal["ok", "blocked", "failing"]
 
 VALID_MANUAL_CATEGORIES = frozenset({"clothing", "shoes", "home", "tech", "other"})
+CAP_COUNTING_REVIEW_STATUSES = frozenset({"auto_added", "needs_review", "accepted"})
+
+
+def count_cap_listings(listings: list[dict[str, Any]]) -> int:
+    return sum(
+        1
+        for row in listings
+        if row.get("review_status") in CAP_COUNTING_REVIEW_STATUSES
+    )
 
 
 def get_client() -> Client:
@@ -111,7 +120,7 @@ def _scrape_status_from_exception(exc: Exception) -> ScrapeStatus:
 
 
 def _build_scrape_snapshot(snapshot: ProductSnapshot) -> dict[str, Any]:
-    return {
+    payload: dict[str, Any] = {
         "title": snapshot.title,
         "brand": snapshot.brand,
         "price_cents": snapshot.current_price_cents,
@@ -119,6 +128,9 @@ def _build_scrape_snapshot(snapshot: ProductSnapshot) -> dict[str, Any]:
         "breadcrumbs": snapshot.breadcrumbs,
         "raw_snapshot": snapshot.raw_snapshot,
     }
+    if snapshot.image_url:
+        payload["image_url"] = str(snapshot.image_url)
+    return payload
 
 
 def _partial_generic_snapshot(url: str) -> ProductSnapshot:
@@ -391,6 +403,15 @@ def _sort_listings(listings: list[dict[str, Any]]) -> list[dict[str, Any]]:
     )
 
 
+def _review_display_fields(row: dict[str, Any]) -> dict[str, Any]:
+    snap = row.get("scrape_snapshot") or {}
+    return {
+        "review_title": snap.get("title"),
+        "review_image_url": snap.get("image_url"),
+        "review_reason": snap.get("discovery_justification") or None,
+    }
+
+
 def _serialize_listing(row: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": row["id"],
@@ -405,6 +426,7 @@ def _serialize_listing(row: dict[str, Any]) -> dict[str, Any]:
         "last_scraped_at": row.get("last_scraped_at"),
         "scrape_status": row.get("scrape_status"),
         "match_confidence": row.get("match_confidence"),
+        **_review_display_fields(row),
     }
 
 
@@ -708,6 +730,103 @@ def refresh_product(*, user_id: UUID, product_id: UUID) -> dict[str, Any]:
     return build_product_detail(
         product=updated_product, profile=profile, listings=refreshed_listings
     )
+
+
+def _touch_user_interaction(client: Client, product_id: UUID) -> None:
+    client.table("products").update(
+        {"last_user_interaction_at": datetime.now(UTC).isoformat()}
+    ).eq("id", str(product_id)).execute()
+
+
+def _get_owned_listing(
+    client: Client,
+    *,
+    user_id: UUID,
+    product_id: UUID,
+    listing_id: UUID,
+) -> dict[str, Any]:
+    _get_owned_product(client, product_id=product_id, user_id=user_id)
+    result = (
+        client.table("product_listings")
+        .select("*")
+        .eq("id", str(listing_id))
+        .eq("product_id", str(product_id))
+        .maybe_single()
+        .execute()
+    )
+    if result is None:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    row = response_first_row(result)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Listing not found")
+    return row
+
+
+def _detail_after_listing_change(
+    client: Client, *, user_id: UUID, product_id: UUID
+) -> dict[str, Any]:
+    product = _get_owned_product(client, product_id=product_id, user_id=user_id)
+    profile = get_or_create_profile(user_id)
+    listings = _load_listings(client, str(product_id))
+    return build_product_detail(product=product, profile=profile, listings=listings)
+
+
+def accept_listing(
+    *,
+    user_id: UUID,
+    product_id: UUID,
+    listing_id: UUID,
+) -> dict[str, Any]:
+    client = get_client()
+    listing = _get_owned_listing(
+        client, user_id=user_id, product_id=product_id, listing_id=listing_id
+    )
+    if listing.get("review_status") != "needs_review":
+        raise HTTPException(status_code=409, detail="Listing is not pending review")
+
+    client.table("product_listings").update({"review_status": "accepted"}).eq(
+        "id", str(listing_id)
+    ).execute()
+    _touch_user_interaction(client, product_id)
+    return _detail_after_listing_change(client, user_id=user_id, product_id=product_id)
+
+
+def reject_listing(
+    *,
+    user_id: UUID,
+    product_id: UUID,
+    listing_id: UUID,
+) -> dict[str, Any]:
+    client = get_client()
+    listing = _get_owned_listing(
+        client, user_id=user_id, product_id=product_id, listing_id=listing_id
+    )
+    if listing.get("review_status") != "needs_review":
+        raise HTTPException(status_code=409, detail="Listing is not pending review")
+
+    client.table("product_listings").update({"review_status": "rejected"}).eq(
+        "id", str(listing_id)
+    ).execute()
+    _touch_user_interaction(client, product_id)
+    return _detail_after_listing_change(client, user_id=user_id, product_id=product_id)
+
+
+def delete_listing(
+    *,
+    user_id: UUID,
+    product_id: UUID,
+    listing_id: UUID,
+) -> dict[str, Any]:
+    client = get_client()
+    listing = _get_owned_listing(
+        client, user_id=user_id, product_id=product_id, listing_id=listing_id
+    )
+    if listing.get("is_primary"):
+        raise HTTPException(status_code=409, detail="Cannot remove primary listing")
+
+    client.table("product_listings").delete().eq("id", str(listing_id)).execute()
+    _touch_user_interaction(client, product_id)
+    return _detail_after_listing_change(client, user_id=user_id, product_id=product_id)
 
 
 def select_variant(
