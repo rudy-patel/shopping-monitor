@@ -260,7 +260,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.1 Auth and profile bootstrap
 
-**Status:** complete — PR pending
+**Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/16
 
 - **Owner:** agent.
 - **Human setup:** H1 and H2.
