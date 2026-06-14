@@ -1,8 +1,9 @@
 # Shopping Monitor — Product Requirements (V1)
 
 > **Status:** Draft v1.3 — clarified worker boundaries, fixed digest timing, data-model gaps, product-level price semantics, and first vertical-slice scope for AI-agent implementation.
+> **Implementation progress:** Task-level completion status and PR links live in [`docs/ROADMAP.md`](ROADMAP.md); chronological ship log in [`MEMORY.md`](../MEMORY.md).
 > **Owner:** Product (you). **Audience:** Engineering, AI agents implementing the prototype.
-> **Last updated:** 2026-06-13.
+> **Last updated:** 2026-06-14.
 
 ---
 

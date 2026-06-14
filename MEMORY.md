@@ -4,6 +4,14 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] Roadmap status sync and H5 complete
+
+**What:** Synced implementation status across agent docs: added missing PR links (T3.1 #25, T3.2 #26, T4.1 #29), marked M4 in progress with done/remaining breakdown, refreshed ROADMAP §15 next-task order, and updated human-setup checkpoints — **H5 done** (Render, Vercel, Supabase redirects, GitHub Actions `BACKEND_BASE_URL` + `WORKER_TOKEN`); **H4 pending** (Resend). T3.5 marked ready to start; T3.6 notes H4 blocks live digest smoke only.
+
+**Files:** `docs/ROADMAP.md`, `docs/PRD.md`, `README.md`, `MEMORY.md`.
+
+---
+
 ## [2026-06-14] T4.1 FX rates and display currency
 
 **What:** Implemented live FX with Frankfurter primary + ExchangeRate-API Open Access fallback, 24h `fx_rates_cache` via `CachedFxService`, authenticated `GET /api/fx/rates`, header currency switcher synced to `profiles.display_currency` (hydrate on login, PATCH on change with rollback toast), and display-only conversion via `useFormatPriceCents` with silent CAD fallback when rates fail.
@@ -12,7 +20,7 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Files:** `backend/services/fx_providers.py`, `backend/services/fx_cache_service.py`, `backend/services/factory.py`, `backend/routers/fx.py`, `backend/main.py`, `backend/core/settings.py`, `backend/test/test_fx_cache_service.py`, `backend/test/test_fx_router.py`, `backend/test/fake_supabase.py`, `frontend/src/lib/fx.ts`, `frontend/src/hooks/useFxRates.ts`, `frontend/src/hooks/useFormatPriceCents.ts`, `frontend/src/contexts/CurrencyContext.tsx`, `frontend/src/lib/format.ts`, product/notification display components, `frontend/src/test/format-price.test.tsx`, `frontend/src/test/top-nav.test.tsx`, `docs/PRD.md`, `docs/ROADMAP.md`, `backend/services/README.md`, `MEMORY.md`.
 
-**Verification:** `ruff check .`, `pytest -m "not integration"` (369 passed), `npm run lint`, `npm run test:run` (80 passed), `npm run build` with `SCRAPER_MODE=fixtures`.
+**Verification:** `ruff check .`, `pytest -m "not integration"` (369 passed), `npm run lint`, `npm run test:run` (80 passed), `npm run build` with `SCRAPER_MODE=fixtures`. PR https://github.com/rudy-patel/shopping-monitor/pull/29
 
 **Deferred:** Settings page currency control → T4.2.
 
@@ -48,6 +56,8 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Files:** `backend/services/discovery.py`, `backend/services/product_service.py`, `backend/routers/products.py`, `backend/test/test_discovery.py`, `backend/test/test_products_router.py`, `frontend/src/lib/products.ts`, `frontend/src/hooks/useProducts.ts`, `frontend/src/components/products/NeedsReviewQueue.tsx`, `frontend/src/components/products/ListingRow.tsx`, `frontend/src/pages/ProductDetailPage.tsx`, `frontend/src/test/listing-review.test.tsx`, `frontend/src/test/product-detail.test.tsx`, `frontend/src/test/product-fixtures.ts`, `docs/ROADMAP.md`, `MEMORY.md`.
 
+**Verification:** Backend and frontend unit tests with `SCRAPER_MODE=fixtures`. PR https://github.com/rudy-patel/shopping-monitor/pull/26
+
 **Deferred:** Notifications bell → T3.3; Playwright e2e for review flow; backfill of `discovery_justification` on existing rows.
 
 ## [2026-06-14] T3.1 Cross-retailer discovery engine
@@ -60,7 +70,7 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Removed:** `backend/services/discovery_stub.py`.
 
-**Verification:** `ruff check .`, `pytest -m "not integration"` (288 passed), `npm run lint`, `npm run test:run` with `SCRAPER_MODE=fixtures`.
+**Verification:** `ruff check .`, `pytest -m "not integration"` (288 passed), `npm run lint`, `npm run test:run` with `SCRAPER_MODE=fixtures`. PR https://github.com/rudy-patel/shopping-monitor/pull/25
 
 **Deferred:** Notifications bell → T3.3; image pHash → future.
 

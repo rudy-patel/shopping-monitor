@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-14.
+> **Last updated:** 2026-06-14 (status sync: task PR links, M4 in progress, H5 complete, H4 pending).
 
 ---
 
@@ -51,7 +51,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M1: Foundation | done | Schema, auth primitives, app shell, service interfaces, and fixture harness contracts exist. | Product flows and scraper work can proceed in parallel. |
 | M2: First local vertical slice | done | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
 | M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
-| M4: MVP product workflows | pending | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. | Deployment hardening and broader retailer expansion. |
+| M4: MVP product workflows | in progress | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1). **Remaining:** scheduled scrape job (T3.5), digest email (T3.6), settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
 | M5: V1 retailer coverage | pending | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. | V1 success criteria can be tested end-to-end. |
 | M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. | Invite early friends for feedback. |
 
@@ -61,7 +61,17 @@ Agents may do small read-only/admin tasks and routine migration/application step
 
 Do these only when the corresponding phase needs them.
 
+| Checkpoint | Status | Unblocks |
+| --- | --- | --- |
+| H1 Supabase secrets | done | Schema, auth, integration tests |
+| H2 Google OAuth | done | Live sign-in |
+| H3 Gemini API key | done | Live LLM categorization/discovery smoke |
+| H4 Resend | **pending** | T3.6 digest live send verification |
+| H5 Render, Vercel, GitHub Actions | **done** | T3.5/T6 `workflow_dispatch` against deployed backend |
+
 ### H1. Supabase project and local secrets
+
+**Status:** done.
 
 Needed before M1 schema/auth work can be fully verified against a real database.
 
@@ -72,6 +82,8 @@ Needed before M1 schema/auth work can be fully verified against a real database.
 
 ### H2. Google OAuth
 
+**Status:** done.
+
 Needed before M2 auth UI can be considered complete.
 
 - Create/configure Google OAuth credentials.
@@ -81,6 +93,8 @@ Needed before M2 auth UI can be considered complete.
 
 ### H3. Gemini API key
 
+**Status:** done.
+
 Needed before live LLM categorization/discovery verification.
 
 - Create a Gemini API key using the current Flash-family free-tier model.
@@ -88,6 +102,8 @@ Needed before live LLM categorization/discovery verification.
 - Agents should keep heuristic/fixture paths working without this key.
 
 ### H4. Resend
+
+**Status:** pending — blocks T3.6 sandbox/live digest verification. Code and fixture tests can proceed with `NoOpMailService`; add `RESEND_API_KEY` before production digest smoke.
 
 Needed before digest delivery verification.
 
@@ -97,7 +113,9 @@ Needed before digest delivery verification.
 
 ### H5. Render, Vercel, and GitHub Actions secrets
 
-Needed before M6 production validation.
+**Status:** done (2026-06-14) — Render backend, Vercel frontend, Supabase Auth redirect URLs, and GitHub Actions secrets (`BACKEND_BASE_URL`, `WORKER_TOKEN`) are configured. **Do not** enable scrape/digest cron schedules until T6.3 and explicit human confirmation.
+
+Needed before M6 production validation and T3.5 `workflow_dispatch` smoke against the deployed backend.
 
 - Create Render backend service.
 - Create Vercel frontend project.
@@ -186,7 +204,7 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.2 Backend settings, clients, and auth dependency
 
-**Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/11.
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/11.
 
 
 - **Owner:** agent.
@@ -206,7 +224,7 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.3 Frontend app shell and shared dependencies
 
-**Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/9.
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/9.
 
 - **Owner:** agent.
 - **Human setup:** none for fixture/local mode.
@@ -223,7 +241,7 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.4 Scraper contract and fixture mode harness
 
-**Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/12.
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/12.
 
 
 - **Owner:** agent.
@@ -240,7 +258,7 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.5 Service interfaces
 
-**Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/13.
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/13.
 
 
 - **Owner:** agent.
@@ -260,7 +278,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.1 Auth and profile bootstrap
 
-**Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/16.
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/16.
 
 - **Owner:** agent.
 - **Human setup:** H1 and H2.
@@ -402,7 +420,7 @@ These can proceed after the local vertical slice lands.
 
 ### T3.1 Cross-retailer discovery engine
 
-**Status:** done (2026-06-14)
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/25
 
 - **Owner:** agent.
 - **Human setup:** H3 for live LLM smoke.
@@ -420,7 +438,7 @@ These can proceed after the local vertical slice lands.
 
 ### T3.2 Listing review API and UI
 
-**Status:** done (2026-06-14)
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/26
 
 - **Owner:** agent.
 - **PR size:** single full-stack PR if T3.1 is stable.
@@ -437,7 +455,7 @@ These can proceed after the local vertical slice lands.
 
 ### T3.3 Notification API and in-app bell
 
-**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/27
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/27.
 
 - **Owner:** agent.
 - **PR size:** single full-stack PR.
@@ -454,7 +472,7 @@ These can proceed after the local vertical slice lands.
 
 ### T3.4 Price-drop, stock, scrape-failing, and revisit evaluators
 
-**Status:** done — PR [#28](https://github.com/rudy-patel/shopping-monitor/pull/28)
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/28.
 
 - **Owner:** agent.
 - **PR size:** backend PR.
@@ -471,10 +489,10 @@ These can proceed after the local vertical slice lands.
 
 ### T3.5 Internal scrape job endpoint
 
-**Status:** pending
+**Status:** pending — **ready to start** (H5 complete)
 
 - **Owner:** agent.
-- **Human setup:** H5 only when connecting GitHub Actions.
+- **Human setup:** H5 done for deployed `workflow_dispatch` smoke; defer cron `schedule` to T6.3.
 - **PR size:** backend PR plus thin workflow/scripts if ready.
 - **Build:**
   - `POST /internal/jobs/scrape-all`.
@@ -490,10 +508,10 @@ These can proceed after the local vertical slice lands.
 
 ### T3.6 Digest email service and job
 
-**Status:** pending
+**Status:** pending — **blocked: H4 (Resend)**
 
 - **Owner:** agent.
-- **Human setup:** H4.
+- **Human setup:** H4 pending (Resend account + `RESEND_API_KEY`). Implementation and unit tests can start with `NoOpMailService`; live/sandbox send smoke waits on H4.
 - **PR size:** backend PR plus frontend copy if needed.
 - **Build:**
   - Resend-backed `MailService` behind interface.
@@ -512,7 +530,7 @@ These can proceed after the local vertical slice lands.
 
 ### T4.1 FX rates and display currency
 
-**Status:** done
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/29.
 
 - **Owner:** agent.
 - **PR size:** single full-stack PR.
@@ -581,10 +599,10 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.2 Easy Shopify/scrape-friendly retailers
 
-**Status:** pending
+**Status:** pending (`dimemtl` fixture scraper landed in T3.1 for cross-retailer discovery validation; remaining retailers still open)
 
 - **Owner:** parallel agents, one PR per 1-3 retailers if fixtures and tests are independent.
-- **Retailers:** `palmisleskate`, `dimemtl`, `tikiroomskate`, `eatyourwater`, then `indigo`.
+- **Retailers:** `palmisleskate`, ~~`dimemtl`~~ (partial — T3.1 enabler only), `tikiroomskate`, `eatyourwater`, then `indigo`.
 - **Build:** scraper module, registry entry, fixtures, tests.
 - **Verification:** fixture-only tests for each retailer.
 
@@ -632,7 +650,7 @@ Start after M3 proves the one-retailer architecture.
 **Status:** pending
 
 - **Owner:** agent.
-- **Human setup:** H5.
+- **Human setup:** H5 done (infra live); align `docs/DEPLOYMENT.md` with configured Render/Vercel/Actions secrets.
 - **PR size:** docs/config PR.
 - **Build:**
   - Update `docs/DEPLOYMENT.md` with final env vars: Gemini, Resend, worker token, app URL, scraper mode.
@@ -646,7 +664,7 @@ Start after M3 proves the one-retailer architecture.
 **Status:** pending
 
 - **Owner:** agent with human coordination.
-- **Human setup:** H1-H5 complete.
+- **Human setup:** H1–H3 and H5 complete; **H4 pending** (digest send smoke).
 - **PR size:** usually no code PR unless smoke uncovers bugs.
 - **Verify:**
   - Google sign-in on deployed frontend.
@@ -765,19 +783,34 @@ Constraints:
 
 ## 15. Near-term recommended execution order
 
-If starting from the current scaffold, run the first agents in this order:
+**Milestones M0–M3 and Phase 2 (T2.x) are complete.** Phase 3 notification/discovery work through T3.4 and Phase 4 currency (T4.1) are complete. Pick next from:
 
-1. T1.1 Core database schema and RLS.
-2. T1.2 Backend settings, clients, and auth dependency.
-3. T1.3 Frontend app shell and shared dependencies.
-4. T1.4 Scraper contract and fixture mode harness.
-5. T1.5 Service interfaces.
-6. ~~T2.2 Generic JSON-LD/OG scraper and T2.3 `bestbuy_ca` fixture-backed scraper in parallel.~~ **Done** (T2.2 + T2.3).
-7. T2.1 Auth and profile bootstrap once H1/H2 are ready enough.
-8. T2.4 Categorization service.
-9. T2.5 Product API vertical slice.
-10. T2.6 Product frontend vertical slice.
-11. ~~T2.7 Local e2e one-retailer slice.~~ **Done** (T2.7).
-12. ~~T2.8 Controlled live Best Buy validation.~~ **Done** (T2.8).
+1. **T3.5** Internal scrape job endpoint — **ready now** (H5 done); unblocks scheduled price history and `scrape_failing` on cron. Use `workflow_dispatch` before enabling schedules (T6.3).
+2. **T3.6** Digest email service and job — **blocked on H4 (Resend)** for live send smoke; unit tests with `NoOpMailService` can proceed in parallel.
+3. **T4.2** Settings page — profile-backed theme, digest toggle, thresholds, revisit prefs (currency switcher already in header from T4.1).
+4. **T4.3** Delete account — can ship with T4.2 or as a follow-up PR.
 
-Do not prioritize broad retailer expansion before step 12. A reliable app with one retailer is the intended MVP spine. **Step 12 complete — proceed to Phase 3 (T3.x).**
+Do not prioritize broad retailer expansion (Phase 5) until M4 is done. T5.2 `dimemtl` has a partial fixture scraper from T3.1; the other easy retailers still need dedicated T5.2 PRs.
+
+<details>
+<summary>Historical bootstrap order (M0–M3, completed)</summary>
+
+1. ~~T1.1 Core database schema and RLS.~~
+2. ~~T1.2 Backend settings, clients, and auth dependency.~~
+3. ~~T1.3 Frontend app shell and shared dependencies.~~
+4. ~~T1.4 Scraper contract and fixture mode harness.~~
+5. ~~T1.5 Service interfaces.~~
+6. ~~T2.2 Generic JSON-LD/OG scraper and T2.3 `bestbuy_ca` fixture-backed scraper.~~
+7. ~~T2.1 Auth and profile bootstrap.~~
+8. ~~T2.4 Categorization service.~~
+9. ~~T2.5 Product API vertical slice.~~
+10. ~~T2.6 Product frontend vertical slice.~~
+11. ~~T2.7 Local e2e one-retailer slice.~~
+12. ~~T2.8 Controlled live Best Buy validation.~~
+13. ~~T3.1 Cross-retailer discovery engine.~~
+14. ~~T3.2 Listing review API and UI.~~
+15. ~~T3.3 Notification API and in-app bell.~~
+16. ~~T3.4 Notification evaluators and post-scrape orchestration.~~
+17. ~~T4.1 FX rates and display currency.~~
+
+</details>
