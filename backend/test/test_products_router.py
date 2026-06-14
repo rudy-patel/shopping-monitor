@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from uuid import uuid4
 
 import pytest
@@ -18,6 +18,7 @@ from scrapers.fixtures import FixtureLoader  # pragma: allowlist secret
 from services.categorizer import DefaultCategorizer
 from services.factory import get_categorizer
 from services.llm import FakeLlmProvider, LlmCategorizationResult
+from services.profile_service import PROFILE_DEFAULTS
 from test.fake_supabase import FakeSupabaseClient
 
 DEV_USER_ID = "00000000-0000-0000-0000-000000000001"
@@ -72,6 +73,10 @@ def fake_client(monkeypatch):
     monkeypatch.setattr("services.product_service.get_client", lambda: client)
     monkeypatch.setattr("services.profile_service.get_client", lambda: client)
     monkeypatch.setattr("services.discovery.get_service_role_client", lambda: client)
+    monkeypatch.setattr(
+        "services.notification_evaluation.get_or_create_profile",
+        lambda user_id: {"user_id": str(user_id), **PROFILE_DEFAULTS},
+    )
     return client
 
 
@@ -422,6 +427,87 @@ def test_refresh_scrape_failure_marks_failing(products_client, fake_client, monk
     assert updated["scrape_status"] == "failing"
     assert updated["scrape_failure_count"] == 1
     assert updated["scrape_snapshot"] == {"title": "Keep me"}
+    scrape_failing = [
+        row for row in fake.notifications.values() if row["type"] == "scrape_failing"
+    ]
+    assert scrape_failing == []
+
+
+def test_refresh_success_resets_scrape_failure_count(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    listing = _seed_listing(
+        fake,
+        product["id"],
+        scrape_failure_count=2,
+    )
+
+    response = client.post(f"/api/products/{product['id']}/refresh")
+
+    assert response.status_code == 200
+    assert fake.product_listings[listing["id"]]["scrape_failure_count"] == 0
+
+
+def test_refresh_emits_price_drop_when_threshold_met(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake, notification_threshold_pct=20)
+    listing = _seed_listing(fake, product["id"], last_known_price_cents=179999)
+    now = datetime.now(UTC)
+    history_id = fake._next_price_history_id()
+    fake.price_history[history_id] = {
+        "id": history_id,
+        "listing_id": listing["id"],
+        "price_cents": 250000,
+        "is_in_stock": True,
+        "observed_at": (now - timedelta(days=30)).isoformat(),
+        "source": "scheduled",
+    }
+
+    response = client.post(f"/api/products/{product['id']}/refresh")
+
+    assert response.status_code == 200
+    price_drops = [
+        row for row in fake.notifications.values() if row["type"] == "price_drop"
+    ]
+    assert len(price_drops) == 1
+    assert price_drops[0]["payload"]["new_price_cents"] == 179999
+
+
+def test_refresh_emits_back_in_stock_on_transition(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    listing = _seed_listing(fake, product["id"], is_in_stock=False)
+
+    response = client.post(f"/api/products/{product['id']}/refresh")
+
+    assert response.status_code == 200
+    back_in_stock = [
+        row for row in fake.notifications.values() if row["type"] == "back_in_stock"
+    ]
+    assert len(back_in_stock) == 1
+    assert back_in_stock[0]["listing_id"] == listing["id"]
+
+
+def test_refresh_emits_revisit_stale_for_old_untouched_product(products_client, fake_client):
+    client, fake, _llm = products_client
+    old_created = (datetime.now(UTC) - timedelta(days=45)).isoformat()
+    product = _seed_product(
+        fake,
+        created_at=old_created,
+        last_user_interaction_at=None,
+    )
+    _seed_listing(fake, product["id"])
+
+    response = client.post(f"/api/products/{product['id']}/refresh")
+
+    assert response.status_code == 200
+    revisit = [
+        row
+        for row in fake.notifications.values()
+        if row["type"] in {"revisit_on_sale", "revisit_stale"}
+    ]
+    assert len(revisit) == 1
+    assert revisit[0]["type"] == "revisit_stale"
 
 
 def test_select_variant_on_active_product_returns_409(products_client, fake_client):

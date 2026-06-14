@@ -454,18 +454,20 @@ These can proceed after the local vertical slice lands.
 
 ### T3.4 Price-drop, stock, scrape-failing, and revisit evaluators
 
-**Status:** pending
+**Status:** done — branch `cursor/t3-4-notification-evaluators-f127`
 
 - **Owner:** agent.
 - **PR size:** backend PR.
 - **Build:**
   - Price-drop trigger against 30-day max baseline and newest product-level daily min.
   - Back-in-stock transition detection.
-  - Scrape-failing after 3 consecutive scheduled failures.
+  - Scrape-failing after 3 consecutive scheduled failures (manual refresh increments count but never emits).
   - Revisit-on-sale and revisit-stale triggers with 30-day debounce and stale/on-sale mutual exclusion.
+  - Wired into `refresh_product()`; exports `run_post_scrape_evaluation` for T3.5.
 - **Verification:**
   - Synthetic 90-day fixture test for revisit prompts per PRD success criterion.
   - Unit tests for debounce and notification-disabled cases.
+  - `pytest -m "not integration"` — 356 passed.
 
 ### T3.5 Internal scrape job endpoint
 
