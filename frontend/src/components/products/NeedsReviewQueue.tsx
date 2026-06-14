@@ -4,7 +4,8 @@ import {
   useAcceptListing,
   useRejectListing,
 } from '@/hooks/useProducts'
-import { formatPriceCents, retailerLabel } from '@/lib/format'
+import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
+import { retailerLabel } from '@/lib/format'
 import type { Listing, ProductDetail } from '@/lib/products'
 import { needsReviewListings } from '@/lib/products'
 
@@ -27,6 +28,7 @@ function candidateTitle(listing: Listing): string {
 }
 
 export function NeedsReviewQueue({ product }: NeedsReviewQueueProps) {
+  const formatPriceCents = useFormatPriceCents()
   const queue = needsReviewListings(product.listings)
   const accept = useAcceptListing(product.id)
   const reject = useRejectListing(product.id)

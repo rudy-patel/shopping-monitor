@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button'
-import { formatPriceCents, formatRelativeTime, retailerLabel } from '@/lib/format'
+import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
+import { formatRelativeTime, retailerLabel } from '@/lib/format'
 import type { NotificationItem } from '@/lib/notifications'
 
 interface NotificationRowProps {
@@ -18,13 +19,6 @@ function discoveryCopy(notification: NotificationItem): string {
     return `Found ${autoAdded + needsReview} matches for ${title}. ${needsReview} need your review.`
   }
   return `Found ${autoAdded} new retailer match${autoAdded === 1 ? '' : 'es'} for ${title}.`
-}
-
-function priceDropCopy(notification: NotificationItem): string {
-  const oldPrice = Number(notification.payload.old_price_cents ?? 0)
-  const newPrice = Number(notification.payload.new_price_cents ?? 0)
-  const title = notification.product_title ?? 'A product'
-  return `${title} dropped from ${formatPriceCents(oldPrice)} to ${formatPriceCents(newPrice)}.`
 }
 
 function backInStockCopy(notification: NotificationItem): string {
@@ -48,25 +42,8 @@ function revisitStaleCopy(notification: NotificationItem): string {
   return `${title} has been sitting on your list without much attention. Ready to let it go?`
 }
 
-function notificationCopy(notification: NotificationItem): string {
-  switch (notification.type) {
-    case 'discovery_complete':
-      return discoveryCopy(notification)
-    case 'needs_input':
-      return `Choose a variant for ${notification.product_title ?? 'this product'}.`
-    case 'price_drop':
-      return priceDropCopy(notification)
-    case 'back_in_stock':
-      return backInStockCopy(notification)
-    case 'scrape_failing':
-      return scrapeFailingCopy(notification)
-    case 'revisit_on_sale':
-      return revisitOnSaleCopy(notification)
-    case 'revisit_stale':
-      return revisitStaleCopy(notification)
-    default:
-      return 'Update available.'
-  }
+function isRevisitType(type: NotificationItem['type']) {
+  return type === 'revisit_on_sale' || type === 'revisit_stale'
 }
 
 export function notificationDestination(notification: NotificationItem): string | null {
@@ -84,10 +61,6 @@ export function notificationDestination(notification: NotificationItem): string 
   }
 }
 
-function isRevisitType(type: NotificationItem['type']) {
-  return type === 'revisit_on_sale' || type === 'revisit_stale'
-}
-
 export function NotificationRow({
   notification,
   onNavigate,
@@ -95,9 +68,40 @@ export function NotificationRow({
   onArchive,
   actionPending = false,
 }: NotificationRowProps) {
+  const formatPriceCents = useFormatPriceCents()
   const destination = notificationDestination(notification)
   const revisit = isRevisitType(notification.type)
-  const copy = notificationCopy(notification)
+
+  let copy: string
+  switch (notification.type) {
+    case 'discovery_complete':
+      copy = discoveryCopy(notification)
+      break
+    case 'needs_input':
+      copy = `Choose a variant for ${notification.product_title ?? 'this product'}.`
+      break
+    case 'price_drop': {
+      const oldPrice = Number(notification.payload.old_price_cents ?? 0)
+      const newPrice = Number(notification.payload.new_price_cents ?? 0)
+      const title = notification.product_title ?? 'A product'
+      copy = `${title} dropped from ${formatPriceCents(oldPrice)} to ${formatPriceCents(newPrice)}.`
+      break
+    }
+    case 'back_in_stock':
+      copy = backInStockCopy(notification)
+      break
+    case 'scrape_failing':
+      copy = scrapeFailingCopy(notification)
+      break
+    case 'revisit_on_sale':
+      copy = revisitOnSaleCopy(notification)
+      break
+    case 'revisit_stale':
+      copy = revisitStaleCopy(notification)
+      break
+    default:
+      copy = 'Update available.'
+  }
 
   const content = (
     <>

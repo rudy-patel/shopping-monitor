@@ -8,7 +8,7 @@ This package defines the service-interface boundary for Shopping Monitor V1: LLM
 | --- | --- | --- |
 | `LlmProvider` (discover, categorize) | Protocol + Pydantic I/O types + exceptions + `NoOpLlmProvider` + `FakeLlmProvider` + `GeminiFlashLlmProvider` categorize + discover | — |
 | `Categorizer` | Protocol + `DefaultCategorizer` orchestrator + `heuristic_category()` + `get_categorizer()` factory | T2.5 wires into product API |
-| `FxService` | Protocol + `StaticFxService` + `FxRate`/`FxRates` types + `convert_cad_cents()` | T4.1 (Frankfurter primary + exchangerate.host fallback + 24h cache) |
+| `FxService` | Protocol + `StaticFxService` + `CachedFxService` + `FxRate`/`FxRates` types + live providers | T4.1 done |
 | `MailService` | Protocol + `NoOpMailService` + `DigestEmail`/`DigestNotificationEntry` models | T3.6 (Resend client + template rendering) |
 | Notification evaluators | `NotificationEvaluator` Protocol + five evaluator implementations + orchestrator in `notification_evaluation.py` | T3.5 wires scheduled scrape-all caller |
 | Price/trend helpers | Pure-function module with constants, eligibility filter, daily-minimum, baseline/current helpers, trend math, price-drop & revisit-on-sale helpers | Direct callers in T2.5, T3.4, T3.5 |
@@ -100,6 +100,14 @@ All three touch `products.last_user_interaction_at` and return refreshed `Produc
 Click-to-navigate on non-revisit types marks read before routing. Bell unread count refetches on window focus only (no polling).
 
 ## FxService
+
+Production wiring uses `CachedFxService` via `services.factory.get_fx_service()`:
+
+- **Primary provider:** `GET https://api.frankfurter.dev/v1/latest?base=CAD&symbols=USD,EUR,GBP`
+- **Fallback provider:** `GET https://open.er-api.com/v6/latest/CAD` (ExchangeRate-API Open Access, keyless)
+- **Cache:** `fx_rates_cache` pairs `CAD_USD`, `CAD_EUR`, `CAD_GBP` with 24h TTL (`fx_cache_ttl_hours`)
+- **Stale policy:** if both providers fail, serve expired cache with `stale: true`; empty cache → HTTP 503
+- **API:** `GET /api/fx/rates` (authenticated) returns decimal-string rates for display conversion only
 
 ```python
 from decimal import Decimal
@@ -239,4 +247,4 @@ trend = compute_trend(observations, today=date(2026, 6, 14))
 
 - **T3.5** — Scheduled scrape-all job calls `run_post_scrape_evaluation(..., scrape_source="scheduled")`.
 - **T3.6** — Resend `MailService` + HTML/text digest templates; swap `DigestEmail.to_email` to `EmailStr` once `email-validator` is added.
-- **T4.1** — Frankfurter primary + `exchangerate.host` fallback + 24h `fx_rates_cache`.
+- **T4.2** — Settings page UI for currency, theme, digest, thresholds, delete account.

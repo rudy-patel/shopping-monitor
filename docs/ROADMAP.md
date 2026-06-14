@@ -339,7 +339,7 @@ The tasks in this phase converge on the one-retailer MVP.
   - `POST /api/products/:id/select-variant`
   - Product/listing creation, first price snapshot, archive/restore/delete, category/threshold updates, 1h refresh cooldown.
   - Product-level daily-min and trend helper.
-  - Stub discovery enqueue via BackgroundTasks with `discovery_status='pending'` or a no-op completion until T4.1.
+  - Discovery enqueue via BackgroundTasks (implemented in T3.1).
 - **Verification:**
   - Backend tests with fake scraper and fake Supabase/repository layer where possible.
   - If repository abstraction is thin, integration-marked tests can hit Supabase separately; unit tests must still run without Supabase.
@@ -512,19 +512,19 @@ These can proceed after the local vertical slice lands.
 
 ### T4.1 FX rates and display currency
 
-**Status:** pending
+**Status:** done
 
 - **Owner:** agent.
 - **PR size:** single full-stack PR.
 - **Build:**
-  - Frankfurter primary and `exchangerate.host` fallback.
+  - Frankfurter primary (`api.frankfurter.dev/v1`) and ExchangeRate-API Open Access fallback (`open.er-api.com/v6`).
   - 24h cache in `fx_rates_cache`.
   - `GET /api/fx/rates`.
-  - Header currency switcher for CAD/USD/EUR/GBP.
+  - Header currency switcher for CAD/USD/EUR/GBP with profile sync.
   - Frontend conversion display only; CAD remains canonical for all stored values and thresholds.
 - **Verification:**
   - Backend tests for cache hit/miss/provider failure.
-  - Frontend tests for display conversion and CAD fallback.
+  - Frontend tests for display conversion, CAD fallback, and profile sync.
 
 ### T4.2 Settings page
 

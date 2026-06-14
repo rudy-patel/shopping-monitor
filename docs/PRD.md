@@ -616,8 +616,8 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 
 ### 10.5 FX rates
 
-- **Provider:** `frankfurter.app` (free, no key, ECB rates). Primary.
-- **Fallback:** `exchangerate.host` if Frankfurter fails.
+- **Provider:** Frankfurter (`api.frankfurter.dev/v1`, free, no key, ECB rates). Primary.
+- **Fallback:** ExchangeRate-API Open Access (`open.er-api.com/v6/latest`) if Frankfurter fails.
 - Backend fetches and caches in `fx_rates_cache` for 24 hours.
 - Frontend never calls FX providers directly — always via `GET /api/fx/rates`.
 

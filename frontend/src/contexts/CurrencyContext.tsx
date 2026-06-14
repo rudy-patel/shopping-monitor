@@ -1,5 +1,5 @@
 /**
- * Display currency is stored locally. T4.1/T4.2: hydrate from profiles.display_currency and persist via PATCH /api/profile.
+ * Display currency is synced across React state, localStorage, and profiles.display_currency.
  */
 import {
   createContext,
@@ -7,9 +7,13 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react'
+import { toast } from 'sonner'
+import { useAuth } from '@/contexts/AuthContext'
+import { useProfile, useUpdateProfile } from '@/hooks/useProfile'
 
 export const CURRENCIES = ['CAD', 'USD', 'EUR', 'GBP'] as const
 export type Currency = (typeof CURRENCIES)[number]
@@ -40,24 +44,83 @@ function readStoredCurrency(): Currency {
   return DEFAULT_CURRENCY
 }
 
-export function CurrencyProvider({ children }: { children: ReactNode }) {
-  const [currency, setCurrencyState] = useState<Currency>(() => readStoredCurrency())
+function writeStoredCurrency(currency: Currency) {
+  try {
+    localStorage.setItem(CURRENCY_STORAGE_KEY, currency)
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function CurrencyProfileSync({
+  onHydrate,
+}: {
+  onHydrate: (currency: Currency) => void
+}) {
+  const { isAuthenticated } = useAuth()
+  const { data: profile } = useProfile()
+  const hydratedUserRef = useRef<string | null>(null)
 
   useEffect(() => {
-    try {
-      localStorage.setItem(CURRENCY_STORAGE_KEY, currency)
-    } catch {
-      // ignore storage errors
-    }
-  }, [currency])
+    if (!isAuthenticated || !profile) return
+    if (hydratedUserRef.current === profile.user_id) return
+    hydratedUserRef.current = profile.user_id
+    onHydrate(profile.display_currency)
+  }, [isAuthenticated, onHydrate, profile])
 
-  const setCurrency = useCallback((next: Currency) => {
+  return null
+}
+
+export function CurrencyProvider({ children }: { children: ReactNode }) {
+  const [currency, setCurrencyState] = useState<Currency>(() => readStoredCurrency())
+  const { isAuthenticated } = useAuth()
+  const updateProfile = useUpdateProfile()
+  const pendingCurrencyRef = useRef<Currency | null>(null)
+
+  const hydrateFromProfile = useCallback((next: Currency) => {
     setCurrencyState(next)
+    writeStoredCurrency(next)
   }, [])
+
+  const setCurrency = useCallback(
+    (next: Currency) => {
+      if (next === currency) return
+
+      const previous = currency
+      pendingCurrencyRef.current = next
+      setCurrencyState(next)
+      writeStoredCurrency(next)
+
+      if (!isAuthenticated) return
+
+      updateProfile.mutate(
+        { display_currency: next },
+        {
+          onSuccess: () => {
+            pendingCurrencyRef.current = null
+          },
+          onError: () => {
+            if (pendingCurrencyRef.current === next) {
+              setCurrencyState(previous)
+              writeStoredCurrency(previous)
+              pendingCurrencyRef.current = null
+            }
+            toast.error("Couldn't save currency preference")
+          },
+        },
+      )
+    },
+    [currency, isAuthenticated, updateProfile],
+  )
 
   const value = useMemo(() => ({ currency, setCurrency }), [currency, setCurrency])
 
-  return <CurrencyContext.Provider value={value}>{children}</CurrencyContext.Provider>
+  return (
+    <CurrencyContext.Provider value={value}>
+      <CurrencyProfileSync onHydrate={hydrateFromProfile} />
+      {children}
+    </CurrencyContext.Provider>
+  )
 }
 
 export function useCurrency(): CurrencyContextValue {

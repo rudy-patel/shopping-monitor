@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from core.settings import Settings, get_settings
+from db.supabase_client import get_service_role_client
 from services.categorizer import DefaultCategorizer
+from services.fx_cache_service import CachedFxService
 from services.gemini import GeminiFlashLlmProvider
 from services.llm import LlmProvider, NoOpLlmProvider
 
@@ -39,3 +41,8 @@ def get_categorizer(settings: Settings | None = None) -> DefaultCategorizer:
         retailer_defaults=build_retailer_default_categories(),
         categorize_timeout_s=settings.gemini_categorize_timeout_s,
     )
+
+
+def get_fx_service(settings: Settings | None = None) -> CachedFxService:
+    settings = settings or get_settings()
+    return CachedFxService(get_service_role_client(), settings=settings)
