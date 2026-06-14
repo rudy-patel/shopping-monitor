@@ -1,0 +1,19 @@
+name: Daily scrape
+
+on:
+  workflow_dispatch:
+  # schedule: "0 8 * * *"  # T6.3 — enable only after production validation
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install httpx
+      - run: python backend/workers/scrape_all.py
+        env:
+          BACKEND_BASE_URL: ${{ secrets.BACKEND_BASE_URL }}
+          WORKER_TOKEN: ${{ secrets.WORKER_TOKEN }}

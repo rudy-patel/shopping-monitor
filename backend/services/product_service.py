@@ -634,6 +634,43 @@ def delete_product(*, user_id: UUID, product_id: UUID) -> None:
     ).execute()
 
 
+def persist_listing_scrape_result(
+    client: Client,
+    listing: dict[str, Any],
+    outcome: ScrapeOutcome,
+    *,
+    source: Literal["scheduled", "manual"],
+) -> None:
+    """Update listing row; insert price_history on successful price extract."""
+    update_payload: dict[str, Any] = {
+        "last_scraped_at": outcome.snapshot.scraped_at.isoformat(),
+        "scrape_status": outcome.scrape_status,
+    }
+    if outcome.scrape_status == "ok" and outcome.price_cents is not None:
+        update_payload["scrape_snapshot"] = _build_scrape_snapshot(outcome.snapshot)
+        update_payload["last_known_price_cents"] = outcome.price_cents
+        update_payload["is_in_stock"] = outcome.snapshot.is_in_stock
+        update_payload["scrape_failure_count"] = 0
+    elif outcome.scrape_status != "ok":
+        update_payload["scrape_failure_count"] = int(
+            listing.get("scrape_failure_count") or 0
+        ) + 1
+
+    client.table("product_listings").update(update_payload).eq(
+        "id", listing["id"]
+    ).execute()
+
+    if outcome.scrape_status == "ok" and outcome.price_cents is not None:
+        client.table("price_history").insert(
+            {
+                "listing_id": listing["id"],
+                "price_cents": outcome.price_cents,
+                "is_in_stock": outcome.snapshot.is_in_stock,
+                "source": source,
+            }
+        ).execute()
+
+
 def refresh_product(*, user_id: UUID, product_id: UUID) -> dict[str, Any]:
     client = get_client()
     product = _get_owned_product(client, product_id=product_id, user_id=user_id)
@@ -657,33 +694,9 @@ def refresh_product(*, user_id: UUID, product_id: UUID) -> dict[str, Any]:
             retailer_slug=listing["retailer_slug"],
             url=listing["url"],
         )
-        update_payload: dict[str, Any] = {
-            "last_scraped_at": outcome.snapshot.scraped_at.isoformat(),
-            "scrape_status": outcome.scrape_status,
-        }
-        if outcome.scrape_status == "ok" and outcome.price_cents is not None:
-            update_payload["scrape_snapshot"] = _build_scrape_snapshot(outcome.snapshot)
-            update_payload["last_known_price_cents"] = outcome.price_cents
-            update_payload["is_in_stock"] = outcome.snapshot.is_in_stock
-            update_payload["scrape_failure_count"] = 0
-        elif outcome.scrape_status != "ok":
-            update_payload["scrape_failure_count"] = int(
-                listing.get("scrape_failure_count") or 0
-            ) + 1
-
-        client.table("product_listings").update(update_payload).eq(
-            "id", listing["id"]
-        ).execute()
-
-        if outcome.scrape_status == "ok" and outcome.price_cents is not None:
-            client.table("price_history").insert(
-                {
-                    "listing_id": listing["id"],
-                    "price_cents": outcome.price_cents,
-                    "is_in_stock": outcome.snapshot.is_in_stock,
-                    "source": "manual",
-                }
-            ).execute()
+        persist_listing_scrape_result(
+            client, listing, outcome, source="manual"
+        )
 
     run_post_scrape_evaluation(
         client,

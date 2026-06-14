@@ -44,6 +44,7 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 | Frontend unit tests | `cd frontend && npm run test:run` | Vitest (`frontend/src/test/`). |
 | Frontend live API integration | `cd frontend && VITE_INTEGRATION=1 npm run test:run -- src/test/integration/` | Requires backend on :8000 with `AUTH_BYPASS_ENABLED=true`, `SCRAPER_MODE=fixtures`, Supabase creds. Skipped in default CI. |
 | Playwright e2e | `make test-e2e` or `cd frontend && npm run test:e2e` | Auto-starts backend :8000 + frontend :3000 via Playwright `webServer`. Requires Supabase creds in `backend/.env` (`make setup-integration-env`). CI: `playwright-e2e` job runs when GitHub Actions Supabase secrets are set; otherwise skips with a warning. |
+| Scheduled scrape workflow | `.github/workflows/scrape.yml` (`workflow_dispatch` only; cron deferred T6.3) | Requires GitHub secrets `BACKEND_BASE_URL` + `WORKER_TOKEN` matching Render backend. |
 | Frontend build | `cd frontend && npm run build` | `tsc && vite build` |
 | All unit tests | `make test` | Backend pytest (`-m "not integration"`) + frontend vitest |
 | Integration tests | `make test-integration` | Requires Supabase credentials; writes `backend/.env` via `make setup-integration-env` |
