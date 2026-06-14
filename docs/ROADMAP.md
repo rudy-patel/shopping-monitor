@@ -198,7 +198,7 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.3 Frontend app shell and shared dependencies
 
-- **Status:** complete — PR pending (branch `cursor/t1-3-frontend-app-shell-6cf9`).
+- **Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/9.
 - **Owner:** agent.
 - **Human setup:** none for fixture/local mode.
 - **PR size:** one PR; it will touch shared frontend files, so land before feature UI PRs.
