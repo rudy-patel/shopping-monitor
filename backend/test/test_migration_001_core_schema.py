@@ -102,7 +102,12 @@ def test_cascade_foreign_keys():
     assert "REFERENCES auth.users(id) ON DELETE CASCADE" in sql
     assert "REFERENCES public.products(id) ON DELETE CASCADE" in sql
     assert "REFERENCES public.product_listings(id) ON DELETE CASCADE" in sql
-    assert sql.count("ON DELETE CASCADE") >= 6
+    assert sql.count("ON DELETE CASCADE") == 7
+
+
+def test_scrape_status_allows_null():
+    sql = _sql()
+    assert "scrape_status IS NULL" in sql
 
 
 def test_required_indexes():
@@ -115,7 +120,10 @@ def test_handle_updated_at_trigger():
     sql = _sql()
     assert "CREATE OR REPLACE FUNCTION public.handle_updated_at()" in sql
     for table in UPDATED_AT_TABLES:
-        assert f"BEFORE UPDATE ON public.{table}" in sql
+        assert (
+            f"CREATE TRIGGER {table}_set_updated_at BEFORE UPDATE ON public.{table}"
+            in sql
+        )
         assert f"EXECUTE FUNCTION public.handle_updated_at()" in sql
 
 

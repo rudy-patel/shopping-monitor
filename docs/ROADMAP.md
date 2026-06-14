@@ -157,7 +157,6 @@ All core workflows + H5
 - **PR size:** single docs PR.
 - **Files:** `docs/ROADMAP.md`, `README.md`, `MEMORY.md`, `.cursor/rules/project-memory.mdc`.
 - **Verification:** docs render as Markdown; links are correct.
-- **Status:** this document.
 
 ---
 
