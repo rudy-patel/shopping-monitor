@@ -101,7 +101,7 @@ The PRD describes **complete V1**, but implementation should start with a **firs
 - `SCRAPER_MODE=fixtures` works in local dev, CI, and automated agent tests with no outbound retailer requests.
 - Scheduled scrape and fixed-time digest paths run against fixture data in tests.
 
-After this slice is working, agents can expand in parallel across additional retailer modules, drift detection, production validation (T6.2+), and fixture coverage. Notification workflows through the daily digest job (T3.1–T3.6), the settings page (T4.2), and account deletion (T4.3) are shipped; deployment docs and production URLs are in `docs/DEPLOYMENT.md` (T6.1). Completing a reliable app with fewer retailers is higher priority than shipping many flaky retailer modules.
+After this slice is working, agents can expand in parallel across additional retailer modules, drift detection, and fixture coverage. Production validation (T6.2) is **done** for `bestbuy_ca` and `palmisleskate` on Render. Notification workflows through the daily digest job (T3.1–T3.6), the settings page (T4.2), and account deletion (T4.3) are shipped; deployment docs and production URLs are in `docs/DEPLOYMENT.md` (T6.1). Completing a reliable app with fewer retailers is higher priority than shipping many flaky retailer modules.
 
 
 ---
@@ -828,7 +828,7 @@ V1 is considered complete when:
 11. A user can toggle between light and dark theme from `/settings`; the preference survives reload.
 12. The dashboard and product detail pages hit Lighthouse Performance ≥ 95 and Accessibility ≥ 95 on a desktop throttled run.
 13. `SCRAPER_MODE=fixtures` lets engineers run the full backend test suite and a local dev session end-to-end with zero outbound requests to retailer domains, and the weekly drift-detection workflow opens an issue when a canonical fixture diverges from a fresh live scrape.
-14. A user can delete their account from `/settings` and verify (via Supabase dashboard or integration test) that their data is gone. Production disposable-user smoke is deferred to T6.2.
+14. A user can delete their account from `/settings` and verify (via Supabase dashboard or integration test) that their data is gone. Production disposable-user smoke verified in T6.2 (`smoke_delete_account.py --live --confirm`).
 
 ---
 

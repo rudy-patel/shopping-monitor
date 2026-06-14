@@ -233,7 +233,11 @@ curl -sS -o /dev/null -w "%{http_code}\n" https://shopping-monitor-nine.vercel.a
 **Already verified (2026-06-14):**
 
 - Scrape `workflow_dispatch` — [run #27509008501](https://github.com/rudy-patel/shopping-monitor/actions/runs/27509008501) (`listings_total: 13`, `status: completed`)
-- Google OAuth — prod + preview redirects configured (manual sign-in smoke → T6.2)
+- Google OAuth — login UI + OAuth redirect verified; owner manual sign-in confirmed
+- Live add/refresh on Render — `bestbuy_ca` + `palmisleskate` via `backend/scripts/smoke_production_t6_2.py --live` (T6.2)
+- Digest `workflow_dispatch` suppression — [run #27513581095](https://github.com/rudy-patel/shopping-monitor/actions/runs/27513581095) (`mail_provider: resend`, `users_emailed: 0`)
+- Account delete — `backend/scripts/smoke_delete_account.py --live --confirm` (disposable user)
+- Direct `/login` deep link — `frontend/vercel.json` SPA rewrite (deploy to pick up)
 
 **Health check caveat:** `GET /health` may report `database.status: disconnected` with PostgREST `PGRST205` while Supabase is actually reachable. The scrape job completing successfully is the stronger integration signal until the health probe is hardened (optional T6.2 follow-up).
 
@@ -251,6 +255,6 @@ Playwright e2e runs in the `playwright-e2e` job when Supabase secrets are config
 
 | Task | Relationship |
 | --- | --- |
-| T6.2 | Full production smoke (Google sign-in, add live Best Buy URL, manual refresh) |
+| T6.2 | ~~Full production smoke~~ — **done** (2026-06-14) |
 | T6.3 | Enable scrape/digest cron schedules — requires explicit human OK |
 | T6.4 | 7-day reliability check |

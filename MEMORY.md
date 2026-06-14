@@ -4,6 +4,25 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T6.2 Production smoke
+
+**What:** Completed production smoke against Render + Vercel + Supabase. Live add/refresh/delete on production API for two retailers (`bestbuy_ca`, `palmisleskate`); digest `workflow_dispatch` suppression path; disposable account-delete smoke; Google OAuth UI + redirect verified; added `frontend/vercel.json` SPA rewrite so direct `/login` deep links return 200.
+
+**Verified:**
+- **Google sign-in:** Login page shows **Continue with Google** only (no dev login); OAuth redirect to `accounts.google.com` with Supabase callback + `redirect_to` production origin. Owner manual sign-in previously confirmed.
+- **Live add (Render):** `bestbuy_ca` Switch 2 — 2.567s, title/62999 CAD/tech (`category_source=llm`); `palmisleskate` Bones Reds — 4.516s, title/2800 CAD/other (`category_source=heuristic`).
+- **Refresh:** HTTP 200 for both products.
+- **Digest:** Actions [run #27513581095](https://github.com/rudy-patel/shopping-monitor/actions/runs/27513581095) — `mail_provider: resend`, `users_emailed: 0`, `users_skipped_no_unread: 2`, `users_skipped_noop: 0`.
+- **Account delete:** `smoke_delete_account.py --live --confirm` — ok.
+- **Scrape (pre-verified):** [run #27509008501](https://github.com/rudy-patel/shopping-monitor/actions/runs/27509008501).
+- **Cleanup:** All `smoke-t62-*` disposable users and smoke products removed.
+
+**Files:** `backend/scripts/smoke_production_t6_2.py`, `backend/scripts/production_smoke_helpers.py`, `backend/test/test_production_smoke_helpers.py`, `frontend/vercel.json`, `frontend/src/test/vercel-config.test.ts`, `docs/ROADMAP.md`, `docs/DEPLOYMENT.md`, `docs/PRD.md`, `README.md`, `AGENTS.md`, `MEMORY.md`.
+
+**Deferred:** Cron schedules → T6.3; 7-day reliability → T6.4; health probe `PGRST205` hardening optional.
+
+---
+
 ## [2026-06-14] T5.3 Moderate retailers (indigo, apple_ca, abercrombie)
 
 **What:** Shipped T5.3 moderate retailers in a single PR: `indigo` (Shopify + ProductGroup physical-format stock), `apple_ca` (buy-flow JSON-LD + config grid variants), `abercrombie` (embedded `productPrices` + scoped `primarySizeArray` SKU inventory). Shared `scrapers/structured_retailer.py` factory; parsers in `scrapers/extraction/{indigo,apple,abercrombie,embedded_json}.py`. Live-recorded fixtures, pytest per retailer, benchmark catalog (+9 entries), retailer labels, `scripts/record_retailer_fixtures.py`.
