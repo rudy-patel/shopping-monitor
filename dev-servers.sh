@@ -179,6 +179,7 @@ start_backend() {
 
     # Start the server in background (Supabase handles database)
     echo -e "${BLUE}🌐 Starting uvicorn server on port $BACKEND_PORT...${NC}"
+    export SCRAPER_MODE=fixtures
     uvicorn main:app --reload --host 0.0.0.0 --port $BACKEND_PORT > "$BACKEND_LOG" 2>&1 &
     BACKEND_PID=$!
 
