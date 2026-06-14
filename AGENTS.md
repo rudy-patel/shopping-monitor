@@ -55,3 +55,5 @@ CI and local automated tests must run scraper code with `SCRAPER_MODE=fixtures` 
 - **No local database.** All persistence is via remote Supabase.
 - **Auth bypass:** Set `AUTH_BYPASS_ENABLED=true` in `backend/.env` for local development without real Supabase auth (when auth routes exist).
 - **Supabase security:** Never expose `SUPABASE_SERVICE_ROLE_KEY` to frontend code. Every new `public` table must enable RLS in the same migration and be documented in `docs/DATABASE.md`.
+- **Runs without Supabase creds:** With placeholder/missing Supabase env, the backend still serves `/` and the frontend renders; only `/health` reports `"degraded"` (`database: disconnected`). This is expected for local dev and does not block the frontend↔backend hello-world.
+- **Migration check working dir:** Run `python scripts/check_migrations.py` from the **repo root** (it lives in `scripts/`, not `backend/scripts/`). CI invokes it with `working-directory: ${{ github.workspace }}`.
