@@ -4,13 +4,23 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T2.7 Local e2e vertical slice
+
+**What:** Completed the first local vertical slice end-to-end test: expanded Playwright spec to cover add → detail assertions → category/threshold edits → single refresh → dashboard → archive → history → restore → UI delete. Playwright `webServer` auto-starts backend (fixture mode + auth bypass) and frontend; added GitHub Actions `playwright-e2e` job with Supabase secrets. Fixed TanStack Query list-cache helpers that were applying array updaters to detail query caches (blocked PATCH mutations in browser). Dev auth now restores across reload when Supabase is configured. Closed M2 milestone.
+
+**Files:** `frontend/e2e/products.spec.ts`, `frontend/e2e/helpers/auth.ts`, `frontend/playwright.config.ts`, `frontend/src/lib/products.ts`, `frontend/src/hooks/useProducts.ts`, `frontend/src/contexts/AuthContext.tsx`, `frontend/src/test/auth-context.test.tsx`, `frontend/src/test/products-query-keys.test.ts`, `.github/workflows/ci.yml`, `Makefile`, `docs/ROADMAP.md`, `README.md`, `AGENTS.md`, `MEMORY.md`.
+
+**Verification:** `make setup-integration-env && make test-integration && make test && make test-e2e` with `SCRAPER_MODE=fixtures` and `AUTH_BYPASS_ENABLED=true`.
+
+**Deferred:** Live Best Buy validation → T2.8; Google OAuth e2e variant out of scope for T2.7.
+
 ## [2026-06-13] T2.6 Product frontend vertical slice
 
 **What:** Implemented the product frontend vertical slice: Add Product modal (URL + category), monochrome dashboard grouped by category, filtered flat list, product detail (listings table, threshold/category PATCH, refresh, archive, delete), variant picker for `needs_input`, **archived products History page with restore**, TanStack Query hooks with optimistic PATCH/archive/restore, Vitest coverage, Playwright scaffold with archive→history→restore e2e, and optional frontend live API integration test (`VITE_INTEGRATION=1`). Backend micro-amendments: `available_variants` on listing responses, `needs_review_count` on product summaries.
 
 **Files:** `backend/routers/products.py`, `backend/services/product_service.py`, `backend/test/test_products_router.py`, `frontend/src/lib/products.ts`, `frontend/src/lib/categories.ts`, `frontend/src/lib/format.ts`, `frontend/src/hooks/useProducts.ts`, `frontend/src/components/products/*`, `frontend/src/components/ui/select.tsx`, `frontend/src/components/ui/badge.tsx`, `frontend/src/components/ui/alert-dialog.tsx`, `frontend/src/components/add-product/AddProductDialog.tsx`, `frontend/src/pages/DashboardPage.tsx`, `frontend/src/pages/ListPage.tsx`, `frontend/src/pages/ProductDetailPage.tsx`, `frontend/src/pages/VariantPickerPage.tsx`, `frontend/src/index.css`, `frontend/src/test/*.test.tsx`, `frontend/src/test/integration/products-api.integration.test.ts`, `frontend/e2e/products.spec.ts`, `frontend/playwright.config.ts`, `frontend/package.json`, `Makefile`, `AGENTS.md`, `docs/ROADMAP.md`, `MEMORY.md`.
 
-**Deferred:** Listing accept/reject → T3.2; full e2e CI job → T2.7; FX conversion display → T4.1.
+**Deferred:** Listing accept/reject → T3.2; FX conversion display → T4.1.
 
 **Review pass:** Fixed ProductCard invalid button-inside-link markup (archive kebab actions), context-aware archived detail back-link, list-cache rollback helper, retailer labels in list filters; ROADMAP T2.6/T2.7 wording aligned to shipped history/restore.
 

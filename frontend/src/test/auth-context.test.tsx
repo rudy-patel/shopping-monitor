@@ -89,6 +89,19 @@ describe('AuthContext', () => {
     expect(queryClient.getQueryData(PROFILE_QUERY_KEY)).toBeUndefined()
   })
 
+  it('restores dev session when Supabase has no session but dev flag is set', async () => {
+    vi.mocked(getSupabaseClient).mockReturnValue(createMockSupabaseClient() as never)
+    localStorage.setItem('shopping-monitor-dev-auth', 'true')
+
+    render(
+      <ProviderStack>
+        <AuthStatus />
+      </ProviderStack>,
+    )
+
+    expect(await screen.findByText('signed-in:dev@local')).toBeInTheDocument()
+  })
+
   it('signInWithGoogle calls Supabase OAuth with redirectTo origin', async () => {
     vi.mocked(getSupabaseClient).mockReturnValue(createMockSupabaseClient() as never)
     const user = userEvent.setup()

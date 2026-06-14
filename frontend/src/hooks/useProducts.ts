@@ -9,6 +9,7 @@ import {
   listProducts,
   productQueryKey,
   productsQueryKey,
+  isProductListQueryKey,
   refreshProduct,
   selectVariant,
   updateProduct,
@@ -29,7 +30,9 @@ function rollbackListCaches(
 }
 
 function snapshotListCaches(queryClient: ReturnType<typeof useQueryClient>) {
-  return queryClient.getQueriesData<ProductSummary[]>({ queryKey: ['products'] })
+  return queryClient.getQueriesData<ProductSummary[]>({
+    predicate: (query) => isProductListQueryKey(query.queryKey),
+  })
 }
 
 function updateListCache(
@@ -37,8 +40,10 @@ function updateListCache(
   updater: (items: ProductSummary[]) => ProductSummary[],
 ) {
   queryClient.setQueriesData<ProductSummary[]>(
-    { queryKey: ['products'], exact: false },
-    (current: ProductSummary[] | undefined) => (current ? updater(current) : current),
+    {
+      predicate: (query) => isProductListQueryKey(query.queryKey),
+    },
+    (current) => (Array.isArray(current) ? updater(current) : current),
   )
 }
 
@@ -193,7 +198,9 @@ export function useArchiveProduct(id: string) {
   return useMutation({
     mutationFn: () => updateProduct(id, { status: 'archived' }),
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ['products'] })
+      await queryClient.cancelQueries({
+        predicate: (query) => isProductListQueryKey(query.queryKey),
+      })
       const previousLists = snapshotListCaches(queryClient)
       updateListCache(queryClient, (items) => items.filter((item) => item.id !== id))
       return { previousLists }
@@ -219,7 +226,9 @@ export function useRestoreProduct(id: string) {
   return useMutation({
     mutationFn: () => updateProduct(id, { status: 'active' }),
     onMutate: async () => {
-      await queryClient.cancelQueries({ queryKey: ['products'] })
+      await queryClient.cancelQueries({
+        predicate: (query) => isProductListQueryKey(query.queryKey),
+      })
       const previousLists = snapshotListCaches(queryClient)
       updateListCache(queryClient, (items) => items.filter((item) => item.id !== id))
       return { previousLists }

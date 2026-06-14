@@ -95,14 +95,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     supabase.auth.getSession().then(({ data }) => {
       if (!mounted) return
-      setSession(data.session)
-      setUser(data.session?.user ?? null)
+      if (data.session) {
+        setSession(data.session)
+        setUser(data.session.user ?? null)
+      } else if (isDevLoginAvailable && readDevAuthFlag()) {
+        const devSession = createDevSession()
+        setSession(devSession)
+        setUser(DEV_PLACEHOLDER_USER)
+      } else {
+        setSession(null)
+        setUser(null)
+      }
       setIsLoading(false)
     })
 
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession)
-      setUser(nextSession?.user ?? null)
+      if (nextSession) {
+        setSession(nextSession)
+        setUser(nextSession.user ?? null)
+      } else if (isDevLoginAvailable && readDevAuthFlag()) {
+        const devSession = createDevSession()
+        setSession(devSession)
+        setUser(DEV_PLACEHOLDER_USER)
+      } else {
+        setSession(null)
+        setUser(null)
+      }
       setIsLoading(false)
     })
 
