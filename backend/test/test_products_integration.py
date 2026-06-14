@@ -2,11 +2,7 @@
 
 from __future__ import annotations
 
-import os
-from pathlib import Path
-
 import pytest
-from dotenv import load_dotenv
 from fastapi.testclient import TestClient
 
 import scrapers.bootstrap  # noqa: F401
@@ -14,35 +10,18 @@ from core.settings import clear_settings_cache
 from main import app
 from scrapers.bestbuy_ca import extract_bestbuy_html
 from scrapers.fixtures import FixtureLoader  # pragma: allowlist secret
+from test.integration_env import require_supabase_env
 
 pytestmark = pytest.mark.integration
 
-_SKIP_REASON = "SUPABASE_URL, SUPABASE_ANON_KEY, or SUPABASE_SERVICE_ROLE_KEY not set"
 DEV_USER_ID = "00000000-0000-0000-0000-000000000001"
 
 IN_STOCK_URL = "https://fixtures.local/bestbuy_ca/in_stock"
 MULTI_VARIANT_URL = "https://fixtures.local/bestbuy_ca/multi_variant"
 
 
-def _load_env() -> None:
-    backend_root = Path(__file__).resolve().parents[1]
-    load_dotenv(backend_root / ".env")
-
-
-def _env(name: str) -> str:
-    return (os.getenv(name) or "").strip()
-
-
 def _require_supabase_env() -> tuple[str, str, str]:
-    _load_env()
-    url = _env("SUPABASE_URL")
-    anon_key = _env("SUPABASE_ANON_KEY")
-    service_key = _env("SUPABASE_SERVICE_ROLE_KEY")
-    if not url or not anon_key or not service_key:
-        if _env("REQUIRE_INTEGRATION_ENV") == "1":
-            pytest.fail(_SKIP_REASON)
-        pytest.skip(_SKIP_REASON)
-    return url, anon_key, service_key
+    return require_supabase_env()
 
 
 def _service_client(url: str, service_key: str):

@@ -68,7 +68,23 @@ Integration tests are excluded from `make test` / CI unit jobs. They require a l
    ```
    `make test-integration` sets `REQUIRE_INTEGRATION_ENV=1`, so missing credentials fail loudly instead of skipping.
 
-`scripts/setup_integration_env.py` writes `backend/.env` (gitignored) from shell env, an existing `.env`, or the Management API fallback.
+`scripts/setup_integration_env.py` writes `backend/.env` (gitignored) from shell env, an existing `.env`, or the Management API fallback. It **rejects** `.env.example` placeholder values (`your-project-id`, `your-anon-or-publishable-key`, etc.) — copying the example file alone is not enough.
+
+**Integration test troubleshooting**
+
+| Symptom | Cause | Fix |
+| --- | --- | --- |
+| `ConnectError` / DNS failure on `your-project-id.supabase.co` | `backend/.env` still has example placeholders | Replace with real project URL + keys from Supabase **Project Settings → API**, or set `SUPABASE_ACCESS_TOKEN` + `SUPABASE_PROJECT_REF` and run `make setup-integration-env` |
+| `Missing or placeholder values for: SUPABASE_*` | Setup script or pytest guard detected placeholders | Same as above — do not commit real keys |
+| `FK products_user_id_fkey` on product integration tests | Auth-bypass dev user missing | Create user `00000000-0000-0000-0000-000000000001` in Supabase Auth (dashboard or admin API) |
+| Agent/cloud VM has secrets but local `make test-integration` fails | Secrets are in Cursor Cloud panel, not local shell/`backend/.env` | Copy secrets into local `backend/.env` once, or export them in your shell before `make setup-integration-env` |
+
+Quick validation after configuring credentials:
+
+```bash
+make setup-integration-env   # should print "Wrote backend/.env..."
+make test-integration
+```
 
 ### Gotchas
 
@@ -80,3 +96,4 @@ Integration tests are excluded from `make test` / CI unit jobs. They require a l
 - **Auth bypass:** Set `AUTH_BYPASS_ENABLED=true` in `backend/.env` for local development without real Supabase auth (when auth routes exist).
 - **Supabase security:** Never expose `SUPABASE_SERVICE_ROLE_KEY` to frontend code. Every new `public` table must enable RLS in the same migration and be documented in `docs/DATABASE.md`.
 - **Scrapers:** Retailer modules must call `scrapers.http.scraper_fetch()` instead of importing `httpx`/`curl_cffi`/`requests`. See `backend/scrapers/README.md`.
+- **Integration env placeholders:** `backend/.env` copied from `.env.example` is rejected by `make setup-integration-env` and integration pytest guards. Use real Supabase credentials (see Integration test troubleshooting above).

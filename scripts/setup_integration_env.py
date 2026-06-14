@@ -13,8 +13,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ENV_PATH = ROOT / "backend" / ".env"
 EXAMPLE_PATH = ROOT / "backend" / ".env.example"
+BACKEND_ROOT = ROOT / "backend"
 
 REQUIRED = ("SUPABASE_URL", "SUPABASE_ANON_KEY", "SUPABASE_SERVICE_ROLE_KEY")
+
+sys.path.insert(0, str(BACKEND_ROOT))
+from integration_env import (  # noqa: E402
+    SETUP_HINT,
+    is_placeholder_value,
+    missing_or_placeholder_credentials,
+)
 
 
 def _strip(name: str) -> str:
@@ -84,7 +92,7 @@ def resolve_supabase_env() -> dict[str, str]:
         if env_value:
             values[name] = env_value
 
-    if all(values[name] for name in REQUIRED):
+    if not missing_or_placeholder_credentials(values):
         return values
 
     token = _strip("SUPABASE_ACCESS_TOKEN") or _strip("SUPABASE_PAT")
@@ -97,24 +105,26 @@ def resolve_supabase_env() -> dict[str, str]:
 
 def write_backend_env(values: dict[str, str]) -> None:
     base = _load_example_defaults()
-    base.update(values)
+    for key, value in values.items():
+        if key in REQUIRED and not is_placeholder_value(key, value):
+            base[key] = value
     lines = [f"{key}={base[key]}" for key in sorted(base)]
     ENV_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
 def main() -> int:
     values = resolve_supabase_env()
-    missing = [name for name in REQUIRED if not values.get(name)]
+    missing = missing_or_placeholder_credentials(values)
     if missing:
         print(
-            "ERROR: Missing Supabase credentials for integration tests.\n"
+            f"ERROR: {SETUP_HINT}\n"
             "Provide either:\n"
             "  - SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY\n"
             "  - SUPABASE_ACCESS_TOKEN (or SUPABASE_PAT) + SUPABASE_PROJECT_REF\n"
             "via Cursor Cloud Secrets, shell env, or backend/.env.",
             file=sys.stderr,
         )
-        print(f"Missing: {', '.join(missing)}", file=sys.stderr)
+        print(f"Missing or placeholder: {', '.join(missing)}", file=sys.stderr)
         return 1
 
     write_backend_env(values)

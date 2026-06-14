@@ -14,6 +14,12 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Deferred:** Listing accept/reject/delete → T3.2; notification evaluators on refresh → T3.4; real discovery → T3.1; frontend product UI → T2.6.
 
+## [2026-06-13] Integration env placeholder guard
+
+**What:** Fixed integration tests failing opaquely against `your-project-id.supabase.co`. Added `backend/integration_env.py` placeholder detection; `setup_integration_env.py` now rejects example values instead of writing them; integration pytest helpers share the same validation; `REQUIRE_INTEGRATION_ENV=1` surfaces setup-script failure at collection time.
+
+**Files:** `backend/integration_env.py`, `backend/test/integration_env.py`, `backend/test/test_integration_env.py`, `scripts/setup_integration_env.py`, `backend/test/conftest.py`, `backend/test/test_rls_smoke.py`, `backend/test/test_products_integration.py`, `AGENTS.md`, `MEMORY.md`.
+
 ## [2026-06-13] T2.4 Gemini live-call guardrails
 
 **What:** Blocked live Gemini in pytest/CI: autouse `conftest` fixture clears `GEMINI_API_KEY` and mocks `genai.Client`; CI asserts empty key; smoke script defaults to dry-run heuristic path and requires `--live` for real API calls; regression test proves pytest passes with a key in the shell env.

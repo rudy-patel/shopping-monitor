@@ -123,8 +123,15 @@ def pytest_configure(config) -> None:
         return
     if not SETUP_SCRIPT.exists():
         return
-    subprocess.run(
+    result = subprocess.run(
         [sys.executable, str(SETUP_SCRIPT)],
         cwd=ROOT,
         check=False,
+        capture_output=True,
+        text=True,
     )
+    if result.returncode != 0 and os.getenv("REQUIRE_INTEGRATION_ENV") == "1":
+        message = (result.stderr or result.stdout or "").strip()
+        raise pytest.UsageError(
+            message or "setup_integration_env.py failed; see make setup-integration-env"
+        )
