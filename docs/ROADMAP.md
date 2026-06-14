@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-14.
+> **Last updated:** 2026-06-13.
 
 ---
 
@@ -45,17 +45,15 @@ Agents may do small read-only/admin tasks and routine migration/application step
 
 ## 2. Milestones
 
-> **Status legend:** ✅ Complete · 🟢 Ready to start · 🟡 Blocked (waiting on upstream task and/or a human-setup checkpoint H1–H5). Completed milestones and tasks are also struck through.
-
 | Milestone | Status | Definition of done | Unlocks |
 | --- | --- | --- | --- |
-| ~~M0: Planning baseline~~ | ✅ Complete | Roadmap exists, linked from agent docs. | Agents can pick scoped tasks safely. |
-| M1: Foundation | 🟢 Ready to start | Schema, auth primitives, app shell, service interfaces, and fixture harness contracts exist. | Product flows and scraper work can proceed in parallel. |
-| M2: First local vertical slice | 🟡 Blocked: M1 | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
-| M3: Real Best Buy validation | 🟡 Blocked: M2, H1, H2 | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
-| M4: MVP product workflows | 🟡 Blocked: M3 | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. | Deployment hardening and broader retailer expansion. |
-| M5: V1 retailer coverage | 🟡 Blocked: M3 | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. | V1 success criteria can be tested end-to-end. |
-| M6: Production-ready V1 | 🟡 Blocked: M4, H5 | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. | Invite early friends for feedback. |
+| M0: Planning baseline | done | Roadmap exists, linked from agent docs. | Agents can pick scoped tasks safely. |
+| M1: Foundation | in progress | Schema, auth primitives, app shell, service interfaces, and fixture harness contracts exist. | Product flows and scraper work can proceed in parallel. |
+| M2: First local vertical slice | pending | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
+| M3: Real Best Buy validation | pending | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
+| M4: MVP product workflows | pending | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. | Deployment hardening and broader retailer expansion. |
+| M5: V1 retailer coverage | pending | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. | V1 success criteria can be tested end-to-end. |
+| M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. | Invite early friends for feedback. |
 
 ---
 
@@ -150,12 +148,14 @@ All core workflows + H5
 
 ## 5. Phase 0 — roadmap and coordination
 
-### ~~T0.1 Roadmap documentation~~
+### T0.1 Roadmap documentation
 
-- **Status:** ✅ Complete (M0 closed 2026-06-13). `AGENTS.md` now references the roadmap; status indicators added to milestones and tasks.
+**Status:** done
+
+
 - **Owner:** agent.
 - **PR size:** single docs PR.
-- **Files:** `docs/ROADMAP.md`, `README.md`, `MEMORY.md`, `.cursor/rules/project-memory.mdc`, `AGENTS.md`.
+- **Files:** `docs/ROADMAP.md`, `README.md`, `MEMORY.md`, `.cursor/rules/project-memory.mdc`.
 - **Verification:** docs render as Markdown; links are correct.
 
 ---
@@ -164,9 +164,11 @@ All core workflows + H5
 
 These tasks should land before broad feature work. They are intentionally small enough to minimize merge conflicts.
 
-### ~~T1.1 Core database schema and RLS~~
+### T1.1 Core database schema and RLS
 
-- **Status:** ✅ Complete (T1.1; migration applied, unit tests green, RLS verified via MCP).
+**Status:** done
+
+
 - **Owner:** agent, with Supabase MCP allowed for non-destructive application/checks.
 - **Human setup:** H1.
 - **PR size:** one PR is acceptable because the schema is tightly coupled, but keep it schema-only.
@@ -184,7 +186,9 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.2 Backend settings, clients, and auth dependency
 
-- **Status:** 🟢 Ready to start (H1/H2 only required for live verification; local tests use auth bypass).
+**Status:** pending
+
+
 - **Owner:** agent.
 - **Human setup:** H1 and H2 for live verification; local tests use auth bypass.
 - **PR size:** single PR.
@@ -202,7 +206,9 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.3 Frontend app shell and shared dependencies
 
-- **Status:** 🟢 Ready to start.
+**Status:** pending
+
+
 - **Owner:** agent.
 - **Human setup:** none for fixture/local mode.
 - **PR size:** one PR; it will touch shared frontend files, so land before feature UI PRs.
@@ -218,7 +224,9 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.4 Scraper contract and fixture mode harness
 
-- **Status:** 🟢 Ready to start.
+**Status:** pending
+
+
 - **Owner:** agent.
 - **Human setup:** none.
 - **PR size:** single backend PR.
@@ -233,7 +241,9 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.5 Service interfaces
 
-- **Status:** 🟡 Blocked: T1.2, T1.4 (interfaces sit on top of settings/clients and the scraper contract).
+**Status:** pending
+
+
 - **Owner:** agent.
 - **Human setup:** none.
 - **PR size:** single backend PR, preferably after T1.2 and T1.4.
@@ -251,7 +261,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.1 Auth and profile bootstrap
 
-- **Status:** 🟡 Blocked: T1.2, T1.3 (and H1/H2 for live Google OAuth smoke).
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H1 and H2.
 - **PR size:** single full-stack PR is acceptable if verified end-to-end; otherwise split backend profile endpoints and frontend login UI.
@@ -268,7 +279,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.2 Generic JSON-LD/OG scraper
 
-- **Status:** 🟡 Blocked: T1.4 (needs the scraper contract and fixture harness).
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** none.
 - **PR size:** single backend PR.
@@ -282,7 +294,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.3 `bestbuy_ca` fixture-backed scraper
 
-- **Status:** 🟡 Blocked: T1.4 (needs the scraper contract and fixture harness).
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** none for fixture mode.
 - **PR size:** single backend PR.
@@ -297,7 +310,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.4 Categorization service
 
-- **Status:** 🟡 Blocked: T1.5 (needs `LlmProvider` and `Categorizer` interfaces). H3 only for live Gemini smoke.
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H3 only for live Gemini smoke; tests use fakes.
 - **PR size:** single backend PR.
@@ -311,7 +325,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.5 Product API vertical slice
 
-- **Status:** 🟡 Blocked: T1.2, T1.4, T1.5, T2.2, T2.3, T2.4.
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H1.
 - **PR size:** likely one backend PR; keep frontend out to reduce conflicts.
@@ -332,7 +347,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.6 Product frontend vertical slice
 
-- **Status:** 🟡 Blocked: T1.3, T2.5.
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H1/H2 for live auth; local auth-bypass acceptable.
 - **PR size:** one full frontend PR after T1.3 and T2.5 land.
@@ -349,7 +365,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.7 Local end-to-end one-retailer slice
 
-- **Status:** 🟡 Blocked: T2.6 (and the rest of the M2 vertical slice).
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H1/H2 optional if using local auth bypass; required for full auth test.
 - **PR size:** test-only/small wiring PR.
@@ -362,7 +379,8 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.8 Controlled live Best Buy validation
 
-- **Status:** 🟡 Blocked: T2.7, H1, H2 (this is the M3 gate — first and only intentional live retailer hit before broader expansion).
+**Status:** pending
+
 - **Owner:** agent with human awareness.
 - **Human setup:** H1/H2; optionally H3 if categorization live path is included.
 - **PR size:** docs/test artifact PR only if code changes are needed. Otherwise record result in `MEMORY.md`.
@@ -382,7 +400,8 @@ These can proceed after the local vertical slice lands.
 
 ### T3.1 Cross-retailer discovery engine
 
-- **Status:** 🟡 Blocked: T2.5 (and T2.8 / M3 before broad LLM use). H3 for live LLM smoke.
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H3 for live LLM smoke.
 - **PR size:** backend PR.
@@ -397,7 +416,8 @@ These can proceed after the local vertical slice lands.
 
 ### T3.2 Listing review API and UI
 
-- **Status:** 🟡 Blocked: T3.1.
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** single full-stack PR if T3.1 is stable.
 - **Build:**
@@ -412,7 +432,8 @@ These can proceed after the local vertical slice lands.
 
 ### T3.3 Notification API and in-app bell
 
-- **Status:** 🟡 Blocked: T2.5 (uses notification rows produced by product/listing flows).
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** single full-stack PR.
 - **Build:**
@@ -428,7 +449,8 @@ These can proceed after the local vertical slice lands.
 
 ### T3.4 Price-drop, stock, scrape-failing, and revisit evaluators
 
-- **Status:** 🟡 Blocked: T2.5, T3.3 (evaluators write into the notifications surface).
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** backend PR.
 - **Build:**
@@ -442,7 +464,8 @@ These can proceed after the local vertical slice lands.
 
 ### T3.5 Internal scrape job endpoint
 
-- **Status:** 🟡 Blocked: T2.5, T3.4 (scrape job invokes evaluators). H5 only when wiring GitHub Actions.
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H5 only when connecting GitHub Actions.
 - **PR size:** backend PR plus thin workflow/scripts if ready.
@@ -460,7 +483,8 @@ These can proceed after the local vertical slice lands.
 
 ### T3.6 Digest email service and job
 
-- **Status:** 🟡 Blocked: T3.3, T3.5, H4.
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H4.
 - **PR size:** backend PR plus frontend copy if needed.
@@ -481,7 +505,8 @@ These can proceed after the local vertical slice lands.
 
 ### T4.1 FX rates and display currency
 
-- **Status:** 🟡 Blocked: T1.3 (header switcher).
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** single full-stack PR.
 - **Build:**
@@ -496,7 +521,8 @@ These can proceed after the local vertical slice lands.
 
 ### T4.2 Settings page
 
-- **Status:** 🟡 Blocked: T2.1, T4.1 (profile endpoints + currency toggle).
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** frontend-heavy full-stack PR.
 - **Build:**
@@ -513,7 +539,8 @@ These can proceed after the local vertical slice lands.
 
 ### T4.3 Delete account
 
-- **Status:** 🟡 Blocked: T2.1, T4.2 (live destructive test requires explicit human confirmation per §1).
+**Status:** pending
+
 - **Owner:** agent with human confirmation before destructive live test.
 - **PR size:** focused backend/frontend PR if not completed in T4.2.
 - **Build:**
@@ -533,7 +560,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.1 Benchmark harness
 
-- **Status:** 🟡 Blocked: T1.4, T2.8 (M3 must prove the one-retailer architecture before broader benchmarking).
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** backend tooling PR.
 - **Build:**
@@ -546,7 +574,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.2 Easy Shopify/scrape-friendly retailers
 
-- **Status:** 🟡 Blocked: T2.8 (M3), T5.1.
+**Status:** pending
+
 - **Owner:** parallel agents, one PR per 1-3 retailers if fixtures and tests are independent.
 - **Retailers:** `palmisleskate`, `dimemtl`, `tikiroomskate`, `eatyourwater`, then `indigo`.
 - **Build:** scraper module, registry entry, fixtures, tests.
@@ -554,7 +583,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.3 Moderate retailers
 
-- **Status:** 🟡 Blocked: T2.8 (M3), T5.1.
+**Status:** pending
+
 - **Owner:** parallel agents, one retailer per PR unless two share identical implementation.
 - **Retailers:** `apple_ca`, `canadiantire`, `costco_ca`, `abercrombie`, `oakley`, `vans_ca`.
 - **Build:** benchmark first, then scraper/fixtures/tests.
@@ -562,7 +592,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.4 Bot-protected retailers
 
-- **Status:** 🟡 Blocked: T2.8 (M3), T5.1.
+**Status:** pending
+
 - **Owner:** focused agents, one retailer per PR.
 - **Retailers:** `sportchek`, `footlocker_ca`, `nike_ca`, `amazon_ca`.
 - **Build:** benchmark-driven strategy, minimal Playwright fallback only if measured.
@@ -571,7 +602,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.5 Drift detection workflow
 
-- **Status:** 🟡 Blocked: T5.1 plus at least one retailer module landed (T5.2/T5.3/T5.4).
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** GitHub issue permissions/secrets if needed.
 - **PR size:** tooling/workflow PR.
@@ -590,7 +622,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T6.1 Deployment docs and config hardening
 
-- **Status:** 🟡 Blocked: M4, H5.
+**Status:** pending
+
 - **Owner:** agent.
 - **Human setup:** H5.
 - **PR size:** docs/config PR.
@@ -603,7 +636,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T6.2 Production smoke
 
-- **Status:** 🟡 Blocked: T6.1, H1–H5.
+**Status:** pending
+
 - **Owner:** agent with human coordination.
 - **Human setup:** H1-H5 complete.
 - **PR size:** usually no code PR unless smoke uncovers bugs.
@@ -618,7 +652,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T6.3 Enable schedules
 
-- **Status:** 🟡 Blocked: T6.2 (and explicit human confirmation per §1).
+**Status:** pending
+
 - **Owner:** agent with explicit human confirmation.
 - **PR size:** workflow PR if schedules were deferred.
 - **Build:**
@@ -631,7 +666,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T6.4 Seven-day reliability check
 
-- **Status:** 🟡 Blocked: T6.3.
+**Status:** pending
+
 - **Owner:** human + agents.
 - **Verify:**
   - Daily scrape runs 7 consecutive days.
@@ -645,7 +681,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T7.1 UI polish and accessibility
 
-- **Status:** 🟡 Blocked: M4 (settle product/notification/settings UI before polish pass).
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** frontend PR.
 - **Build:**
@@ -660,7 +697,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T7.2 Lighthouse gate
 
-- **Status:** 🟡 Blocked: T7.1.
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** optimization PR(s) if needed.
 - **Verify:**
@@ -669,7 +707,8 @@ Start after M3 proves the one-retailer architecture.
 
 ### T7.3 V1 success-criteria checklist
 
-- **Status:** 🟡 Blocked: M5 (and substantively M6 for full criterion coverage).
+**Status:** pending
+
 - **Owner:** agent.
 - **PR size:** docs PR.
 - **Build:**
@@ -721,7 +760,7 @@ Constraints:
 
 If starting from the current scaffold, run the first agents in this order:
 
-1. ~~T1.1 Core database schema and RLS~~ ✅ Complete.
+1. T1.1 Core database schema and RLS.
 2. T1.2 Backend settings, clients, and auth dependency.
 3. T1.3 Frontend app shell and shared dependencies.
 4. T1.4 Scraper contract and fixture mode harness.
