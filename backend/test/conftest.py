@@ -13,6 +13,7 @@ from core.settings import clear_settings_cache
 from scrapers.contract import ProductSnapshot, ScrapeSource, utc_now
 from scrapers.mode import SCRAPER_MODE_ENV_VAR
 from scrapers.registry import RetailerEntry, register, reset_registry
+from integration_markexpr import markexpr_selects_integration
 
 ROOT = Path(__file__).resolve().parents[2]
 SETUP_SCRIPT = ROOT / "scripts" / "setup_integration_env.py"
@@ -89,7 +90,7 @@ def _isolate_scraper_mode_env(request, monkeypatch):
 
 def pytest_configure(config) -> None:
     markexpr = config.getoption("markexpr") or ""
-    if "integration" not in markexpr:
+    if not markexpr_selects_integration(markexpr):
         return
     if not SETUP_SCRIPT.exists():
         return
