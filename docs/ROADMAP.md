@@ -392,7 +392,7 @@ The tasks in this phase converge on the one-retailer MVP.
 - **Verification:**
   - One real Best Buy URL creates a product with current price and stock.
   - Fixture-mode tests remain the default and still pass.
-- **Notes:** HTML PDP requests returned Akamai 403 from the agent VM; live scrape succeeded via Best Buy JSON product API fallback (`ScrapeSource.HTTP_PARSE`). Fixture `switch_2_in_stock` recorded as JSON-LD HTML synthesized from API payload plus raw `.json` snapshot. Live Gemini categorization requires non-empty `GEMINI_API_KEY` (Tier B used heuristic fallback when unset).
+- **Notes:** HTML PDP requests returned Akamai 403 from the agent VM; live scrape succeeded via Best Buy JSON product API fallback (`ScrapeSource.HTTP_PARSE`). Fixture `switch_2_in_stock` recorded as JSON-LD HTML synthesized from API payload plus raw `.json` snapshot. Tier A/B/C re-verified locally with live Gemini (`category_source=llm`).
 
 ---
 

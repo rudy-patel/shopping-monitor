@@ -6,19 +6,19 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ## [2026-06-14] T2.8 Controlled live Best Buy validation
 
-**What:** Completed controlled live validation for Nintendo Switch 2 Console (`https://www.bestbuy.ca/en-ca/product/nintendo-switch-2-console/19296507`). Tier A/B/C passed for scrape price/stock and full UI add flow. HTML PDP requests returned Akamai **403 Access Denied** from the agent environment (curl_cffi and Playwright); live scrape succeeded via Best Buy JSON product API fallback (`/api/v2/json/product/{sku}` → `ScrapeSource.HTTP_PARSE`). Recorded `switch_2_in_stock` fixture (JSON-LD HTML synthesized from API + raw `.json` snapshot). Tier B categorization used **heuristic** fallback because `GEMINI_API_KEY` is empty in local `backend/.env` — set the key to verify live Gemini (`category_source=llm`).
+**What:** Completed controlled live validation for Nintendo Switch 2 Console (`https://www.bestbuy.ca/en-ca/product/nintendo-switch-2-console/19296507`). Tier A/B/C all pass with live scrape, live Gemini categorization, and full UI add flow. HTML PDP requests returned Akamai **403 Access Denied** from the agent environment (curl_cffi and Playwright); live scrape succeeded via Best Buy JSON product API fallback (`/api/v2/json/product/{sku}` → `ScrapeSource.HTTP_PARSE`). Recorded `switch_2_in_stock` fixture (JSON-LD HTML synthesized from API + raw `.json` snapshot).
 
-**Validation results:**
+**Validation results (2026-06-14, `GEMINI_API_KEY` configured):**
 
 | Tier | Result | Notes |
 | --- | --- | --- |
 | A (scraper) | pass | title *Nintendo Switch 2 Console*, price **62999** CAD cents, in stock, brand Nintendo, source `http_parse` |
-| B (API) | partial pass | `POST /api/products` 201, listing `scrape_status=ok`, `category=tech`, `category_source=heuristic` (no Gemini key) |
-| C (UI) | pass | Dev login → Add Product with live URL → detail shows title/price/stock/Best Buy listing → dashboard lists under Tech |
+| B (API) | pass | `POST /api/products` 201, listing `scrape_status=ok`, `category=tech`, **`category_source=llm`** |
+| C (UI) | pass | Dev login → Add Product with live URL → detail shows title/$629.99/stock/Best Buy/Tech → dashboard lists product; API confirms `category_source=llm` |
 
 **Files:** `backend/scrapers/bestbuy_ca.py`, `backend/scrapers/extraction/bestbuy_api.py`, `scripts/record_bestbuy_fixtures.py`, `backend/test/fixtures/retailers/bestbuy_ca/switch_2_in_stock.html`, `backend/test/fixtures/retailers/bestbuy_ca/switch_2_in_stock.json`, `backend/test/test_bestbuy_ca_scraper.py`, `backend/test/test_bestbuy_api_extraction.py`, `backend/scrapers/README.md`, `docs/ROADMAP.md`, `MEMORY.md`.
 
-**Deferred:** Playwright HTML fallback if JSON API is ever blocked; live Gemini smoke once `GEMINI_API_KEY` is configured locally.
+**Deferred:** Playwright HTML fallback if JSON API is ever blocked.
 
 ## [2026-06-14] T2.7 Local e2e vertical slice
 
