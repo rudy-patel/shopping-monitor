@@ -20,7 +20,7 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Files:** `backend/db/migrations/002_scrape_job_advisory_lock.sql`, `backend/services/scrape_job_service.py`, `backend/services/product_service.py`, `backend/services/notification_evaluation.py`, `backend/routers/internal_jobs.py`, `backend/workers/scrape_all.py`, `.github/workflows/scrape.yml`, `backend/test/test_scrape_job_service.py`, `backend/test/test_internal_jobs_router.py`, `backend/test/test_workers_scrape_all.py`, `backend/test/test_migration_002_scrape_job_advisory_lock.py`, `backend/test/test_notification_evaluation_service.py`, `backend/test/fake_supabase.py`, `docs/DATABASE.md`, `docs/DEPLOYMENT.md`, `docs/ROADMAP.md`, `backend/services/README.md`, `AGENTS.md`, `MEMORY.md`.
 
-**Verification:** `ruff check .`, `python scripts/check_migrations.py`, `pytest -m "not integration"` (395 passed) with `SCRAPER_MODE=fixtures`. Post-merge: apply migration `002_*` on Supabase, then one production `workflow_dispatch` of `scrape.yml`.
+**Verification:** `ruff check .`, `python scripts/check_migrations.py`, `pytest -m "not integration"` (395 passed) with `SCRAPER_MODE=fixtures`. PR https://github.com/rudy-patel/shopping-monitor/pull/31. Post-merge: apply migration `002_*` on Supabase, then one production `workflow_dispatch` of `scrape.yml`.
 
 **Deferred:** Cron schedule → T6.3; digest job → T3.6.
 

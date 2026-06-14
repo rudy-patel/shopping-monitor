@@ -489,7 +489,7 @@ These can proceed after the local vertical slice lands.
 
 ### T3.5 Internal scrape job endpoint
 
-**Status:** done — branch `cursor/t35-scrape-all-job-f127`.
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/31.
 
 - **Owner:** agent.
 - **Human setup:** H5 done for deployed `workflow_dispatch` smoke; defer cron `schedule` to T6.3.
