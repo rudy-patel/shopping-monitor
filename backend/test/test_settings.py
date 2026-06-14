@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from uuid import UUID
 
 import pytest
@@ -19,6 +20,9 @@ from core.settings import (
     clear_settings_cache,
     get_settings,
 )
+
+_BACKEND_DIR = Path(__file__).resolve().parents[1]
+_ENV_EXAMPLE_PATH = _BACKEND_DIR / ".env.example"
 
 SETTINGS_ENV_KEYS = [
     "SUPABASE_URL",
@@ -124,3 +128,16 @@ def test_cors_origins_csv(settings_env, monkeypatch):
 def test_cache_returns_same_instance(settings_env):
     clear_settings_cache()
     assert get_settings() is get_settings()
+
+
+def test_env_example_documents_settings_keys():
+    """backend/.env.example should list env vars that Settings reads for local setup."""
+    contents = _ENV_EXAMPLE_PATH.read_text(encoding="utf-8")
+    documented = {
+        line.split("=", 1)[0]
+        for line in contents.splitlines()
+        if line and not line.startswith("#") and "=" in line
+    }
+    expected = {key for key in SETTINGS_ENV_KEYS if key != "DEV_USER_ID"}
+    missing = expected - documented
+    assert not missing, f"backend/.env.example missing keys: {sorted(missing)}"

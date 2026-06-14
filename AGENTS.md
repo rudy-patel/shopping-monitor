@@ -30,7 +30,7 @@ Two `.env` files are needed (not committed). Backend secrets (`SUPABASE_URL`, `S
   - `SUPABASE_ACCESS_TOKEN` — optional; Supabase dashboard **Account → Access Tokens**. Required for agents to apply SQL migrations when MCP is unavailable. (`SUPABASE_SERVICE_ROLE_KEY` alone cannot run DDL.)
 - `frontend/.env` — `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_API_URL=http://localhost:8000`.
 
-See `backend/.env.example` and `frontend/.env.example` for placeholders.
+See `backend/.env.example` and `frontend/.env.example` for placeholders. Production URLs and the full env matrix: `docs/DEPLOYMENT.md`.
 
 ### Running services
 
@@ -54,7 +54,7 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 | Frontend unit tests | `cd frontend && npm run test:run` | Vitest (`frontend/src/test/`). |
 | Frontend live API integration | `cd frontend && VITE_INTEGRATION=1 npm run test:run -- src/test/integration/` | Requires backend on :8000 with `AUTH_BYPASS_ENABLED=true`, `SCRAPER_MODE=fixtures`, Supabase creds. Skipped in default CI. |
 | Playwright e2e | `make test-e2e` or `cd frontend && npm run test:e2e` | Auto-starts backend :8000 + frontend :3000 via Playwright `webServer`. Requires Supabase creds in `backend/.env` (`make setup-integration-env`). CI: `playwright-e2e` job runs when GitHub Actions Supabase secrets are set; otherwise skips with a warning. |
-| Scheduled scrape workflow | `.github/workflows/scrape.yml` (`workflow_dispatch` only; cron deferred T6.3) | Requires GitHub secrets `BACKEND_BASE_URL` + `WORKER_TOKEN` matching Render backend. |
+| Scheduled scrape workflow | `.github/workflows/scrape.yml` (`workflow_dispatch` only; cron deferred T6.3) | Requires GitHub secrets `BACKEND_BASE_URL` + `WORKER_TOKEN` matching Render backend. Prod `workflow_dispatch` verified — `docs/DEPLOYMENT.md`. |
 | Frontend build | `cd frontend && npm run build` | `tsc && vite build` |
 | All unit tests | `make test` | Backend pytest (`-m "not integration"`) + frontend vitest |
 | Integration tests | `make test-integration` | Requires Supabase credentials; writes `backend/.env` via `make setup-integration-env` |

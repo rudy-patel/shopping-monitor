@@ -101,7 +101,7 @@ The PRD describes **complete V1**, but implementation should start with a **firs
 - `SCRAPER_MODE=fixtures` works in local dev, CI, and automated agent tests with no outbound retailer requests.
 - Scheduled scrape and fixed-time digest paths run against fixture data in tests.
 
-After this slice is working, agents can expand in parallel across UI polish, remaining notification workflows, LLM discovery/categorization hardening, additional retailer modules, drift detection, deployment docs, and fixture coverage. Completing a reliable app with fewer retailers is higher priority than shipping many flaky retailer modules.
+After this slice is working, agents can expand in parallel across UI polish, remaining notification workflows, LLM discovery/categorization hardening, additional retailer modules, drift detection, production validation (T6.2+), and fixture coverage. Deployment docs and production URLs are documented in `docs/DEPLOYMENT.md` (T6.1). Completing a reliable app with fewer retailers is higher priority than shipping many flaky retailer modules.
 
 
 ---
@@ -604,7 +604,7 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 
 ### 10.3 Background jobs
 
-- **Daily scrape runner:** GitHub Actions workflow under `.github/workflows/scrape.yml`, scheduled at `0 8 * * *` UTC (≈ 04:00 America/Toronto). **T3.5 ships `workflow_dispatch` only;** enable the cron trigger in T6.3 after one successful production run.
+- **Daily scrape runner:** GitHub Actions workflow under `.github/workflows/scrape.yml`, scheduled at `0 8 * * *` UTC (≈ 04:00 America/Toronto). **T3.5 ships `workflow_dispatch` only;** enable the cron trigger in T6.3 after production validation. Production `workflow_dispatch` verified 2026-06-14 (see `docs/DEPLOYMENT.md`).
 - **Daily digest runner:** GitHub Actions cron workflow under `.github/workflows/digest.yml`, scheduled at `0 14 * * *` UTC. This is a fixed UTC time chosen to land in the Pacific morning and keeps V1 simple by avoiding timezone/daylight-saving scheduling.
 - **Action entrypoints:** small Python scripts in `backend/workers/` call the deployed backend's internal endpoints (`POST /internal/jobs/scrape-all`, `POST /internal/jobs/send-digests`) with `X-Worker-Token` from `WORKER_TOKEN`.
 - **Business logic location:** the real scrape, notification, revisit, and digest logic lives in importable backend service modules used by the FastAPI internal endpoints. Worker scripts stay thin wrappers around HTTP calls so deployed jobs exercise the same path as production, while unit tests can call service modules directly with fixtures.
@@ -649,24 +649,11 @@ V1 should optimize for a free, maintainable, Python-native scraping stack rather
 
 ### 10.8 Secrets & environment
 
-Add to `backend/.env.example`:
+Copy `backend/.env.example` → `backend/.env` and `frontend/.env.example` → `frontend/.env` for local development. Variable names and production guidance live in `backend/.env.example`, `backend/core/settings.py`, and `docs/DEPLOYMENT.md` (production URLs, required vs optional vars, GitHub Actions secrets).
 
-```
-SUPABASE_URL=
-SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_ROLE_KEY=
-AUTH_BYPASS_ENABLED=true
+Local defaults: `AUTH_BYPASS_ENABLED=true`, `SCRAPER_MODE=fixtures`. Production: `AUTH_BYPASS_ENABLED=false`, `SCRAPER_MODE=live`, plus `WORKER_TOKEN`, `CORS_ALLOWED_ORIGINS`, and provider keys per `docs/DEPLOYMENT.md`. `RESEND_API_KEY` is intentionally unset until H4/T3.6.
 
-GEMINI_API_KEY=
-RESEND_API_KEY=
-WORKER_TOKEN=          # shared secret for /internal/jobs/* endpoints
-APP_BASE_URL=          # used in email links
-SCRAPER_MODE=fixtures  # fixtures|live|record; fixtures in local dev/CI, live in production
-```
-
-`frontend/.env.example` is unchanged from the scaffold.
-
-GitHub Actions secrets needed: `WORKER_TOKEN`, `BACKEND_BASE_URL`. CI sets `SCRAPER_MODE=fixtures` and must not require retailer network access.
+GitHub Actions secrets: `WORKER_TOKEN`, `BACKEND_BASE_URL`. CI sets `SCRAPER_MODE=fixtures` and must not require retailer network access.
 
 ### 10.9 Development load assumptions
 
