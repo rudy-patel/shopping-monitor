@@ -174,6 +174,8 @@ def test_noop_provider_does_not_send_or_mark(fake_client):
 
     assert result.mail_provider == "noop"
     assert result.users_emailed == 0
+    assert result.users_skipped_noop == 1
+    assert result.users_skipped_no_unread == 1
     assert len(mail.sent) == 0
     assert fake_client.notifications[notification_id]["email_sent_at"] is None
 
@@ -203,6 +205,26 @@ def test_skips_read_notifications(fake_client):
 
     assert result.users_skipped_no_unread >= 1
     assert result.users_emailed == 0
+
+
+def test_emails_multiple_users_in_one_run(fake_client):
+    _insert_notification(fake_client, user_id=USER_A)
+    _insert_notification(fake_client, user_id=USER_B)
+    mail = NoOpMailService()
+
+    result = run_send_digests(
+        fake_client,
+        mail_service=mail,
+        settings=_settings_with_resend(),
+    )
+
+    assert result.users_emailed == 2
+    assert result.notifications_marked_sent == 2
+    assert len(mail.sent) == 2
+    assert {entry.to_email for entry in mail.sent} == {
+        "alice@example.com",
+        "bob@example.com",
+    }
 
 
 def test_excludes_notifications_outside_retention_window(fake_client):

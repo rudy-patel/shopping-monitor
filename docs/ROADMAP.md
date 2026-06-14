@@ -522,7 +522,7 @@ These can proceed after the local vertical slice lands.
   - Thin `backend/workers/send_digests.py`.
   - `.github/workflows/digest.yml` with `workflow_dispatch`; add `schedule` only when production is ready.
 - **Verification:**
-  - Unit tests for no-unread suppression, email-disabled suppression, rendered template contents, marking sent.
+  - Unit tests for no-unread suppression, email-disabled suppression, noop skip counting, rendered template contents, marking sent.
   - Sandbox live send smoke with H4 complete (`scripts/smoke_resend_digest.py --live`); production digest `workflow_dispatch` → T6.2.
 
 ---

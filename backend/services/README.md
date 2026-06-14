@@ -156,7 +156,7 @@ mail.send_digest(
 )
 ```
 
-**Digest job:** `POST /internal/jobs/send-digests` (worker token) runs `digest_job_service.run_send_digests()`. Selects unread notifications with `email_sent_at IS NULL` within the 90-day window. Skips users with `email_digest_enabled=false` or zero qualifying rows. Resolves recipient via Supabase Auth admin API (`auth.admin.get_user_by_id`), not `profiles`. Marks `email_sent_at` only after a successful Resend send. `profiles.notifications_enabled` does **not** gate digest delivery (PRD §7.6).
+**Digest job:** `POST /internal/jobs/send-digests` (worker token) runs `digest_job_service.run_send_digests()`. Selects unread notifications with `email_sent_at IS NULL` within the 90-day window. Skips users with `email_digest_enabled=false` or zero qualifying rows. Resolves recipient via Supabase Auth admin API (`auth.admin.get_user_by_id`), not `profiles`. Marks `email_sent_at` only after a successful Resend send. When `RESEND_API_KEY` is unset, `mail_provider` is `noop` and qualifying users increment `users_skipped_noop` (no sends or marks). `profiles.notifications_enabled` does **not** gate digest delivery (PRD §7.6).
 
 **Worker boundary:** GitHub Actions `.github/workflows/digest.yml` (`workflow_dispatch` only; cron deferred T6.3) runs `backend/workers/send_digests.py`.
 
