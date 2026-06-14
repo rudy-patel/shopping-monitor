@@ -56,10 +56,14 @@ CI runs the same spec in the `playwright-e2e` job when GitHub Actions secrets ar
 
 See `AGENTS.md` for lint/test commands and environment details.
 
+### Implementation status (2026-06-14)
+
+Milestones **M0–M3** (planning, foundation, local vertical slice, live Best Buy validation) are **done**. **M4** (MVP product workflows) is **in progress**: discovery, listing review, notifications (read API + evaluators on manual refresh), and display currency are shipped; **remaining** — scheduled scrape job (T3.5), digest email (T3.6), settings page (T4.2), account delete (T4.3). Human setup **H5** (Render/Vercel/GitHub Actions) is **done**; **H4** (Resend) is still **pending**. See [`docs/ROADMAP.md`](docs/ROADMAP.md) §15 for the recommended next tasks.
+
 ## Documentation
 
 - [Product Requirements (V1)](docs/PRD.md)
-- [Development Roadmap](docs/ROADMAP.md)
+- [Development Roadmap](docs/ROADMAP.md) — task-level status, PR links, and what to pick up next
 - [Database conventions & RLS](docs/DATABASE.md)
 - [Authentication](docs/AUTHENTICATION.md)
 - [Deployment (Vercel + Render + Supabase)](docs/DEPLOYMENT.md)
