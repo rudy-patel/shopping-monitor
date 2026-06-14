@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-14 (status sync: task PR links, M4 in progress, H5 complete, H4 pending).
+> **Last updated:** 2026-06-14 (T6.1 deployment docs; migrations applied; scrape workflow_dispatch verified).
 
 ---
 
@@ -53,7 +53,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
 | M4: MVP product workflows | in progress | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5). **Remaining:** digest email (T3.6), settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
 | M5: V1 retailer coverage | pending | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. | V1 success criteria can be tested end-to-end. |
-| M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. | Invite early friends for feedback. |
+| M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. **Progress:** T6.1 deployment docs done; prod scrape `workflow_dispatch` verified (T6.2–T6.4, cron T6.3 remain). | Invite early friends for feedback. |
 
 ---
 
@@ -113,7 +113,7 @@ Needed before digest delivery verification.
 
 ### H5. Render, Vercel, and GitHub Actions secrets
 
-**Status:** done (2026-06-14) — Render backend, Vercel frontend, Supabase Auth redirect URLs, and GitHub Actions secrets (`BACKEND_BASE_URL`, `WORKER_TOKEN`) are configured. **Do not** enable scrape/digest cron schedules until T6.3 and explicit human confirmation.
+**Status:** done (2026-06-14) — Render backend (`https://shopping-monitor-api.onrender.com`), Vercel frontend (`https://shopping-monitor-nine.vercel.app`), Supabase Auth redirect URLs, and GitHub Actions secrets (`BACKEND_BASE_URL`, `WORKER_TOKEN`) are configured. **Do not** enable scrape/digest cron schedules until T6.3 and explicit human confirmation.
 
 Needed before M6 production validation and T3.5 `workflow_dispatch` smoke against the deployed backend.
 
@@ -504,8 +504,8 @@ These can proceed after the local vertical slice lands.
 - **Verification:**
   - `ruff check .`, `pytest -m "not integration"` with `SCRAPER_MODE=fixtures`.
   - Worker script test/mocked HTTP call.
-  - Apply migration `002_scrape_job_advisory_lock.sql` on Supabase before prod smoke.
-  - Manual `workflow_dispatch` after deployment (one controlled prod pass).
+  - Migrations `001` + `002` applied on production Supabase.
+  - Production `workflow_dispatch` verified — [run #27509008501](https://github.com/rudy-patel/shopping-monitor/actions/runs/27509008501) (2026-06-14).
 
 ### T3.6 Digest email service and job
 
@@ -648,17 +648,16 @@ Start after M3 proves the one-retailer architecture.
 
 ### T6.1 Deployment docs and config hardening
 
-**Status:** pending
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/34
 
 - **Owner:** agent.
-- **Human setup:** H5 done (infra live); align `docs/DEPLOYMENT.md` with configured Render/Vercel/Actions secrets.
+- **Human setup:** H5 done (infra live); aligned `docs/DEPLOYMENT.md` with configured Render/Vercel/Actions secrets and confirmed production URLs.
 - **PR size:** docs/config PR.
 - **Build:**
-  - Update `docs/DEPLOYMENT.md` with final env vars: Gemini, Resend, worker token, app URL, scraper mode.
-  - Confirm Render build/start commands, Playwright install notes if needed.
-  - Confirm Vercel env setup.
-  - Document Supabase redirect URLs.
-- **Verification:** docs review and deployed health check.
+  - Rewrote `docs/DEPLOYMENT.md` with production reference table, env var matrix, Supabase redirects, scrape workflow + deploy-wait docs.
+  - Synced `backend/.env.example` with `settings.py` (`CORS_ALLOWED_ORIGINS`, `LOG_LEVEL`, `GEMINI_DISCOVER_TIMEOUT_S`).
+  - Migrations marked applied; Resend documented as H4/T3.6 deferred.
+- **Verification:** docs review; production health/OpenAPI/scrape checks in `docs/DEPLOYMENT.md`; `test_env_example_documents_settings_keys` guards `.env.example` sync.
 
 ### T6.2 Production smoke
 
@@ -667,13 +666,13 @@ Start after M3 proves the one-retailer architecture.
 - **Owner:** agent with human coordination.
 - **Human setup:** H1–H3 and H5 complete; **H4 pending** (digest send smoke).
 - **PR size:** usually no code PR unless smoke uncovers bugs.
+- **Pre-verified (2026-06-14):** Scrape `workflow_dispatch` — [run #27509008501](https://github.com/rudy-patel/shopping-monitor/actions/runs/27509008501).
 - **Verify:**
   - Google sign-in on deployed frontend.
   - Add one real Best Buy Canada URL.
   - Product appears with current price and category within 10 seconds.
   - Manual refresh works or returns a clear failure.
-  - Internal scrape workflow dispatch succeeds.
-  - Digest workflow dispatch sends or correctly suppresses email.
+  - Digest workflow dispatch sends or correctly suppresses email (blocked: H4 / T3.6).
   - Account-delete flow verified on disposable test user only with confirmation.
 
 ### T6.3 Enable schedules
@@ -784,12 +783,13 @@ Constraints:
 
 ## 15. Near-term recommended execution order
 
-**Phase 3 notification/discovery work through T3.5 and Phase 4 currency (T4.1) are complete.** Pick next from:
+**Phase 3 notification/discovery work through T3.5, Phase 4 currency (T4.1), and deployment docs (T6.1) are complete.** Pick next from:
 
-1. **T3.6** Digest email service and job — **blocked on H4 (Resend)** for live send smoke; unit tests with `NoOpMailService` can proceed in parallel.
+1. **T6.2** Production smoke — sign-in, add live Best Buy URL, manual refresh (scrape `workflow_dispatch` pre-verified 2026-06-14).
 2. **T4.2** Settings page — profile-backed theme, digest toggle, thresholds, revisit prefs (currency switcher already in header from T4.1).
-3. **T4.3** Delete account — can ship with T4.2 or as a follow-up PR.
-4. ~~**T3.5** Internal scrape job endpoint~~ — **done**; enable cron in T6.3 after production `workflow_dispatch` validation.
+3. **T3.6** Digest email service and job — **blocked on H4 (Resend)** for live send smoke; unit tests with `NoOpMailService` can proceed in parallel.
+4. **T4.3** Delete account — can ship with T4.2 or as a follow-up PR.
+5. ~~**T3.5** Internal scrape job endpoint~~ — **done**; enable cron in T6.3 after explicit human confirmation.
 
 Do not prioritize broad retailer expansion (Phase 5) until M4 is done. T5.2 `dimemtl` has a partial fixture scraper from T3.1; the other easy retailers still need dedicated T5.2 PRs.
 

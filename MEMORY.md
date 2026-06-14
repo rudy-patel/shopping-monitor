@@ -4,6 +4,22 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T6.1 Deployment docs and config hardening
+
+**What:** Rewrote `docs/DEPLOYMENT.md` with confirmed production URLs, env-var matrix, Supabase redirects, scrape workflow + deploy-wait docs, and verification checklist. Synced `backend/.env.example`; added `test_env_example_documents_settings_keys` to keep example aligned with `Settings`. Updated `docs/ROADMAP.md`, `docs/PRD.md` (§10.3/§10.8 — defer to DEPLOYMENT.md, scrape dispatch verified), `AGENTS.md`, and `README.md`.
+
+**Production reference:** Frontend `https://shopping-monitor-nine.vercel.app`, backend `https://shopping-monitor-api.onrender.com`.
+
+**Verified:** Scrape `workflow_dispatch` [run #27509008501](https://github.com/rudy-patel/shopping-monitor/actions/runs/27509008501) — `status: completed`, `listings_total: 13`, `duration_seconds: 57.9`. Prior runs failed on deploy-wait timeout before PR #32.
+
+**Verification:** `make test` (396 backend + 80 frontend unit tests). PR https://github.com/rudy-patel/shopping-monitor/pull/34
+
+**Deferred:** H4/Resend empty until T3.6; health probe `PGRST205` hardening → optional T6.2; cron schedules → T6.3.
+
+**Files:** `docs/DEPLOYMENT.md`, `docs/ROADMAP.md`, `docs/PRD.md`, `backend/.env.example`, `backend/test/test_settings.py`, `AGENTS.md`, `README.md`, `MEMORY.md`.
+
+---
+
 ## [2026-06-14] Roadmap status sync and H5 complete
 
 **What:** Synced implementation status across agent docs: added missing PR links (T3.1 #25, T3.2 #26, T4.1 #29), marked M4 in progress with done/remaining breakdown, refreshed ROADMAP §15 next-task order, and updated human-setup checkpoints — **H5 done** (Render, Vercel, Supabase redirects, GitHub Actions `BACKEND_BASE_URL` + `WORKER_TOKEN`); **H4 pending** (Resend). T3.5 marked ready to start; T3.6 notes H4 blocks live digest smoke only.
@@ -20,7 +36,7 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Files:** `backend/db/migrations/002_scrape_job_advisory_lock.sql`, `backend/services/scrape_job_service.py`, `backend/services/product_service.py`, `backend/services/notification_evaluation.py`, `backend/routers/internal_jobs.py`, `backend/workers/scrape_all.py`, `.github/workflows/scrape.yml`, `backend/test/test_scrape_job_service.py`, `backend/test/test_internal_jobs_router.py`, `backend/test/test_workers_scrape_all.py`, `backend/test/test_migration_002_scrape_job_advisory_lock.py`, `backend/test/test_notification_evaluation_service.py`, `backend/test/fake_supabase.py`, `docs/DATABASE.md`, `docs/DEPLOYMENT.md`, `docs/ROADMAP.md`, `backend/services/README.md`, `AGENTS.md`, `MEMORY.md`.
 
-**Verification:** `ruff check .`, `python scripts/check_migrations.py`, `pytest -m "not integration"` (395 passed) with `SCRAPER_MODE=fixtures`. PR https://github.com/rudy-patel/shopping-monitor/pull/31. Post-merge: apply migration `002_*` on Supabase, then one production `workflow_dispatch` of `scrape.yml`.
+**Verification:** `ruff check .`, `python scripts/check_migrations.py`, `pytest -m "not integration"` (395 passed) with `SCRAPER_MODE=fixtures`. PR https://github.com/rudy-patel/shopping-monitor/pull/31. Migrations applied on production; scrape `workflow_dispatch` verified [run #27509008501](https://github.com/rudy-patel/shopping-monitor/actions/runs/27509008501) (documented in T6.1).
 
 **Deferred:** Cron schedule → T6.3; digest job → T3.6.
 
