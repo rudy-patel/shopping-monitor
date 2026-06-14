@@ -240,7 +240,7 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.5 Service interfaces
 
-**Status:** pending
+**Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/13.
 
 
 - **Owner:** agent.
