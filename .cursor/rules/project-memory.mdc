@@ -21,4 +21,6 @@ Use the PRD as the source of truth for behavior and the roadmap as the default i
 
 **Scrapers:** Automated tests, CI, and local agent work default to `SCRAPER_MODE=fixtures`. Do not hit live retailer URLs unless the task explicitly requires live benchmarking, drift checking, or fixture recording.
 
+**Pull requests:** Summary-only PR bodies for agents — no `## Test plan` or `- [ ]` checkbox tasks (they block merge on GitHub). See **AGENTS.md** § Pull requests.
+
 Include these files in context via **@MEMORY.md**, **@docs/PRD.md**, **@docs/ROADMAP.md**, and **@AGENTS.md** when starting feature work.

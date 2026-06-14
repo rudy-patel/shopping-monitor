@@ -8,6 +8,15 @@
 
 Before feature work, read `MEMORY.md`, `docs/PRD.md`, and this file. The PRD is the source of truth for V1 scope, non-goals, data model, worker boundaries, and the first integrated vertical slice.
 
+### Pull requests (agents)
+
+When opening a PR with `gh pr create`:
+
+- Use a **`## Summary`** section only (1–3 bullets: what changed and why).
+- **Do not** add a `## Test plan` section with `- [ ]` checkbox tasks. GitHub tracks those as incomplete PR tasks and they can block merge.
+- **Do not** list post-merge manual verification (deploy smoke, dashboard checks, production URLs) as PR checkboxes. Put those in the chat if the user needs them; rely on CI for automated checks.
+- Optional: one short plain-text sentence for non-obvious manual follow-up — no task list syntax.
+
 ### Environment variables
 
 Two `.env` files are needed (not committed). Backend secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`, `RESEND_API_KEY`, `WORKER_TOKEN`) should be injected as environment variables in the Cursor Cloud secrets panel when using Cloud Agents.
