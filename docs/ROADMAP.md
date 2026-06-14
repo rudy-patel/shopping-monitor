@@ -48,7 +48,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | Milestone | Status | Definition of done | Unlocks |
 | --- | --- | --- | --- |
 | M0: Planning baseline | done | Roadmap exists, linked from agent docs. | Agents can pick scoped tasks safely. |
-| M1: Foundation | in progress | Schema, auth primitives, app shell, service interfaces, and fixture harness contracts exist. | Product flows and scraper work can proceed in parallel. |
+| M1: Foundation | done | Schema, auth primitives, app shell, service interfaces, and fixture harness contracts exist. | Product flows and scraper work can proceed in parallel. |
 | M2: First local vertical slice | pending | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
 | M3: Real Best Buy validation | pending | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
 | M4: MVP product workflows | pending | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. | Deployment hardening and broader retailer expansion. |
@@ -324,7 +324,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.5 Product API vertical slice
 
-**Status:** pending
+**Status:** done
 
 - **Owner:** agent.
 - **Human setup:** H1.
