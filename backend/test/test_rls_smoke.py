@@ -32,6 +32,8 @@ def _require_supabase_env() -> tuple[str, str, str]:
     anon_key = _env("SUPABASE_ANON_KEY")
     service_key = _env("SUPABASE_SERVICE_ROLE_KEY")
     if not url or not anon_key or not service_key:
+        if _env("REQUIRE_INTEGRATION_ENV") == "1":
+            pytest.fail(_SKIP_REASON)
         pytest.skip(_SKIP_REASON)
     return url, anon_key, service_key
 
