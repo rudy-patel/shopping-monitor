@@ -437,7 +437,7 @@ These can proceed after the local vertical slice lands.
 
 ### T3.3 Notification API and in-app bell
 
-**Status:** pending
+**Status:** done (2026-06-14)
 
 - **Owner:** agent.
 - **PR size:** single full-stack PR.

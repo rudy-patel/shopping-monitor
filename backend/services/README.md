@@ -89,6 +89,16 @@ Authenticated product routes for user-owned listings:
 
 All three touch `products.last_user_interaction_at` and return refreshed `ProductDetail`. Invalid transitions return 409; wrong owner returns 404.
 
+## Notifications read API (T3.3)
+
+`services/notification_service.py` powers the authenticated notification list and actions:
+
+- `GET /api/notifications` — paginated list (offset/limit, 90-day query filter), global `unread_count`, product title enrichment
+- `POST /api/notifications/mark-read` — bulk or per-id mark-read; touches `products.last_user_interaction_at` when `product_id` is set
+- `POST /api/notifications/{id}/action` — revisit `keep` / `archive` (archive reuses `update_product(status='archived')`)
+
+Click-to-navigate on non-revisit types marks read before routing. Bell unread count refetches on window focus only (no polling).
+
 ## FxService
 
 ```python

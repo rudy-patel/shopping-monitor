@@ -23,7 +23,10 @@ class FakeQuery:
         self._select_cols: list[str] | None = None
         self._eq_filters: list[tuple[str, str]] = []
         self._in_filter: tuple[str, list[str]] | None = None
+        self._gte_filters: list[tuple[str, str]] = []
         self._limit: int | None = None
+        self._range: tuple[int, int] | None = None
+        self._order: tuple[str, bool] | None = None
         self._insert_payload: dict | list | None = None
         self._update_payload: dict | None = None
         self._delete_mode = False
@@ -44,6 +47,18 @@ class FakeQuery:
 
     def limit(self, count: int):
         self._limit = count
+        return self
+
+    def gte(self, column: str, value: str):
+        self._gte_filters.append((column, value))
+        return self
+
+    def order(self, column: str, *, desc: bool = False):
+        self._order = (column, desc)
+        return self
+
+    def range(self, start: int, end: int):
+        self._range = (start, end)
         return self
 
     def maybe_single(self):
@@ -91,7 +106,15 @@ class FakeQuery:
             col, values = self._in_filter
             value_set = set(values)
             filtered = [row for row in filtered if row.get(col) in value_set]
-        if self._limit is not None:
+        for col, val in self._gte_filters:
+            filtered = [row for row in filtered if row.get(col) is not None and row.get(col) >= val]
+        if self._order is not None:
+            col, desc = self._order
+            filtered = sorted(filtered, key=lambda row: row.get(col, ""), reverse=desc)
+        if self._range is not None:
+            start, end = self._range
+            filtered = filtered[start : end + 1]
+        elif self._limit is not None:
             filtered = filtered[: self._limit]
         return filtered
 
@@ -147,6 +170,7 @@ class FakeQuery:
                 notification_id = row.setdefault("id", str(uuid4()))
                 row.setdefault("created_at", now)
                 row.setdefault("payload", {})
+                row.setdefault("is_read", False)
                 self._store.notifications[notification_id] = row
             else:
                 raise ValueError(f"insert not supported for table: {self._table}")

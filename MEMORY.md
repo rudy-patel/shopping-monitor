@@ -4,6 +4,18 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T3.3 Notification API and in-app bell
+
+**What:** Implemented the notification read API and frontend bell: `notification_service.py` with 90-day query filter, offset/limit pagination, mark-read (per-id and all) with `last_user_interaction_at` touch, revisit keep/archive actions (archive via `update_product`), three authenticated routes, `FakeSupabaseClient` extensions (`order`, `gte`, `range`), notifications page with load-more and click-to-navigate mark-read, TopNav unread badge (refetch on window focus only), and Vitest coverage for page actions and bell badge.
+
+**Locked behavior:** Non-revisit rows mark-read on click before navigate; revisit types use Keep/Archive buttons only; bell count is global within 90-day window, not page-local.
+
+**Files:** `backend/services/notification_service.py`, `backend/routers/notifications.py`, `backend/main.py`, `backend/test/fake_supabase.py`, `backend/test/test_notifications_router.py`, `frontend/src/lib/notifications.ts`, `frontend/src/hooks/useNotifications.ts`, `frontend/src/components/notifications/NotificationRow.tsx`, `frontend/src/pages/NotificationsPage.tsx`, `frontend/src/components/layout/TopNav.tsx`, `frontend/src/test/notifications-page.test.tsx`, `frontend/src/test/top-nav.test.tsx`, `frontend/src/test/routes.test.tsx`, `backend/services/README.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `ruff check .`, `pytest -m "not integration"`, `npm run lint`, `npm run test:run`, `npm run build` with `SCRAPER_MODE=fixtures`.
+
+**Deferred:** Notification producers (price_drop, revisit triggers) → T3.4; digest email → T3.6; 90-day purge job → future.
+
 ## [2026-06-14] T3.2 Listing review API and UI
 
 **What:** Implemented listing review endpoints (`accept`, `reject`, `delete`), cap-counting helper (`count_cap_listings`; rejected rows no longer block discovery), truncated `discovery_justification` persisted in `scrape_snapshot`, review display fields on listing API responses, product detail Needs Review queue (Accept / Reject / Open source), main listings table with match confidence and Remove for non-primary `auto_added`/`accepted` rows, rejected and needs-review rows hidden from main table.

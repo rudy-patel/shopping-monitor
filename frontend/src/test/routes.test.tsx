@@ -21,7 +21,25 @@ vi.mock('@/hooks/useProducts', () => ({
   useDeleteListing: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }))
 
+vi.mock('@/hooks/useNotifications', () => ({
+  useNotifications: vi.fn(() => ({
+    items: [],
+    total: 0,
+    unreadCount: 0,
+    hasMore: false,
+    loadMore: vi.fn(),
+    isLoading: false,
+    isFetching: false,
+    isError: false,
+    refetch: vi.fn(),
+  })),
+  useUnreadNotificationCount: vi.fn(() => ({ data: 0 })),
+  useMarkNotificationsRead: vi.fn(() => ({ mutate: vi.fn(), mutateAsync: vi.fn(), isPending: false })),
+  useNotificationAction: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+}))
+
 import { useProduct } from '@/hooks/useProducts'
+import { useNotifications } from '@/hooks/useNotifications'
 
 describe('routes', () => {
   beforeEach(() => {
@@ -48,7 +66,20 @@ describe('routes', () => {
         } as ReturnType<typeof useProduct>)
       },
     },
-    { path: '/notifications', heading: /^notifications$/i },
+    { path: '/notifications', heading: /^notifications$/i, setup: () => {
+        vi.mocked(useNotifications).mockReturnValue({
+          items: [],
+          total: 0,
+          unreadCount: 0,
+          hasMore: false,
+          loadMore: vi.fn(),
+          isLoading: false,
+          isFetching: false,
+          isError: false,
+          refetch: vi.fn(),
+        } as ReturnType<typeof useNotifications>)
+      },
+    },
     { path: '/history', heading: /archived products/i },
     { path: '/settings', heading: /^settings$/i },
   ]
@@ -57,6 +88,12 @@ describe('routes', () => {
     setup?.()
     renderApp(path, { authenticated: true })
     expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
+  })
+
+  it('notifications page does not render the T3.3 stub', async () => {
+    renderApp('/notifications', { authenticated: true })
+    expect(await screen.findByRole('heading', { name: /^notifications$/i })).toBeInTheDocument()
+    expect(screen.queryByText(/coming in t3\.3/i)).not.toBeInTheDocument()
   })
 
   it('renders NotFoundPage for unknown routes', async () => {
