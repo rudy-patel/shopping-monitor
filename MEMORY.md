@@ -23,6 +23,22 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T5.3 Moderate retailers (indigo, apple_ca, abercrombie)
+
+**What:** Shipped T5.3 moderate retailers in a single PR: `indigo` (Shopify + ProductGroup physical-format stock), `apple_ca` (buy-flow JSON-LD + config grid variants), `abercrombie` (embedded `productPrices` + scoped `primarySizeArray` SKU inventory). Shared `scrapers/structured_retailer.py` factory; parsers in `scrapers/extraction/{indigo,apple,abercrombie,embedded_json}.py`. Live-recorded fixtures, pytest per retailer, benchmark catalog (+9 entries), retailer labels, `scripts/record_retailer_fixtures.py`.
+
+**Deferred from original T5.3 scope:** `costco_ca`, `oakley`, `canadiantire`, `vans_ca` (bot protection / low ROI).
+
+**Locked behavior:** `default_strategy=STRUCTURED_DATA`, no Playwright fallbacks. Non-CAD rejected. Indigo OOS uses first physical ProductGroup variant (eBook may remain in stock). Abercrombie stock from scoped primary-product SKUs only (not sitewide recommendation widgets). Fixture post-processing applied for abercrombie in_stock SKU availability and apple_ca out_of_stock JSON-LD `OutOfStock`.
+
+**Fixture URLs recorded:** indigo — the-will-of-the-many (in_stock), here-one-moment-indigo-exclusive-edition (multi_variant), dune (out_of_stock); apple_ca — buy-iphone/iphone-16 (in_stock/multi_variant), 6.1-inch-display-128gb-black config (out_of_stock); abercrombie — essential-popover-hoodie-61980823 (in_stock/multi_variant), heritage-heavyweight-popover-hoodie-62788916 (out_of_stock).
+
+**Files:** `backend/scrapers/structured_retailer.py`, `backend/scrapers/{indigo,apple_ca,abercrombie}.py`, `backend/scrapers/extraction/{embedded_json,indigo,apple,abercrombie}.py`, `scripts/record_retailer_fixtures.py`, `backend/test/fixtures/retailers/{indigo,apple_ca,abercrombie}/*`, `backend/test/test_{indigo,apple_ca,abercrombie}_scraper.py`, `backend/test/test_structured_extraction.py`, `backend/scrapers/benchmark/catalog.yaml`, `docs/benchmarks/fixtures-2026-06-14.json`, `backend/scrapers/bootstrap.py`, `backend/services/factory.py`, labels in `digest_templates.py` + `frontend/src/lib/format.ts`.
+
+**Verification:** `ruff check .`, `pytest -m "not integration"` (491 passed), `npm run lint`, `npm run test:run` (94 passed), `make benchmark-retailers` with `SCRAPER_MODE=fixtures`.
+
+---
+
 ## [2026-06-14] T5.2 Shopify retailers (palmisleskate, tikiroomskate)
 
 **What:** Shipped T5.2 easy Shopify retailers: shared `scrapers/shopify.py` factory and `scrapers/extraction/shopify.py` meta variant parser (JSON-LD/OG + `var meta` merge). Added `palmisleskate` (`palmisleskateshop.com`) and `tikiroomskate` with live-recorded fixtures, pytest coverage, benchmark catalog entries, retailer labels, and `scripts/record_shopify_fixtures.py`. Removed `dimemtl` (T3.1 enabler); discovery tests now use palmisle/tikiroom fixtures and `discovery_d` for cap tests.

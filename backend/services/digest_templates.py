@@ -15,6 +15,9 @@ DIGEST_SUBJECT = "Your Shopping Monitor digest"
 
 _RETAILER_LABELS: dict[str, str] = {
     "bestbuy_ca": "Best Buy Canada",
+    "indigo": "Indigo",
+    "apple_ca": "Apple Canada",
+    "abercrombie": "Abercrombie & Fitch",
     "palmisleskate": "Palm Isle Skate Shop",
     "tikiroomskate": "Tiki Room Skateboards",
     "generic": "Generic scraper — may be unreliable",

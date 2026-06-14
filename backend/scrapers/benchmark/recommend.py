@@ -31,6 +31,9 @@ _DEFAULT_NOTES: dict[str, str] = {
     "generic": "JSON-LD/OG sufficient on fixtures.",
     "palmisleskate": "Shopify JSON-LD + theme meta; structured_data covers title/price/stock/variants on fixtures.",
     "tikiroomskate": "Shopify JSON-LD + theme meta; structured_data covers title/price/stock/variants on fixtures.",
+    "indigo": "Shopify meta plus ProductGroup JSON-LD for format-level stock on fixtures.",
+    "apple_ca": "Apple buy-flow JSON-LD plus config grid HTML for variants on fixtures.",
+    "abercrombie": "JSON-LD title/stock plus embedded productPrices and scoped SKU inventory on fixtures.",
     "bestbuy_ca": (
         "Fixture HTML succeeds via structured_data; live HTML likely blocked — "
         "http_parse retailer_api sub-probe expected in production."

@@ -5,6 +5,9 @@ const CAD_FORMATTER = new Intl.NumberFormat('en-CA', {
 
 const RETAILER_LABELS: Record<string, string> = {
   bestbuy_ca: 'Best Buy Canada',
+  indigo: 'Indigo',
+  apple_ca: 'Apple Canada',
+  abercrombie: 'Abercrombie & Fitch',
   palmisleskate: 'Palm Isle Skate Shop',
   tikiroomskate: 'Tiki Room Skateboards',
   generic: 'Generic scraper — may be unreliable',
