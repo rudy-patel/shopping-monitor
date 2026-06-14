@@ -3,8 +3,9 @@ import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { getSupabaseClient } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
-import { clearAuthStorage, ProviderStack } from './test-utils'
-import { createMockSupabaseClient, mockSignInWithOAuth } from './setup'
+import { PROFILE_QUERY_KEY } from '@/hooks/useProfile'
+import { clearAuthStorage, createTestQueryClient, ProviderStack } from './test-utils'
+import { createMockSupabaseClient, defaultProfileResponse, mockSignInWithOAuth } from './setup'
 
 function AuthStatus() {
   const { user, isAuthenticated, signInDev, signInWithGoogle, signOut } = useAuth()
@@ -65,6 +66,27 @@ describe('AuthContext', () => {
 
     expect(screen.getByText('signed-out')).toBeInTheDocument()
     expect(localStorage.getItem('shopping-monitor-dev-auth')).toBeNull()
+  })
+
+  it('signOut clears React Query cache', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem('shopping-monitor-dev-auth', 'true')
+    const queryClient = createTestQueryClient()
+    queryClient.setQueryData(PROFILE_QUERY_KEY, defaultProfileResponse)
+
+    render(
+      <ProviderStack queryClient={queryClient}>
+        <AuthStatus />
+      </ProviderStack>,
+    )
+
+    expect(await screen.findByText('signed-in:dev@local')).toBeInTheDocument()
+    expect(queryClient.getQueryData(PROFILE_QUERY_KEY)).toEqual(defaultProfileResponse)
+
+    await user.click(screen.getByRole('button', { name: /sign out/i }))
+
+    expect(screen.getByText('signed-out')).toBeInTheDocument()
+    expect(queryClient.getQueryData(PROFILE_QUERY_KEY)).toBeUndefined()
   })
 
   it('signInWithGoogle calls Supabase OAuth with redirectTo origin', async () => {

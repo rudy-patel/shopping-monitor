@@ -74,7 +74,7 @@ VITE_API_URL=http://localhost:8000
 
 ## OAuth providers
 
-Adding Google/GitHub/etc. on the Supabase dashboard typically requires **no backend changes** if you validate JWTs generically via JWKS and use `auth.uid()` in RLS policies.
+Google is the V1 provider. Supabase handles the OAuth callback; the backend validates resulting JWTs via JWKS with no provider-specific code.
 
 ## Security notes
 
@@ -90,6 +90,8 @@ Adding Google/GitHub/etc. on the Supabase dashboard typically requires **no back
 | `backend/core/auth.py` | `get_current_user` FastAPI dependency; Supabase JWT validation via JWKS (RS256/ES256); auth-bypass dev path. |
 | `backend/core/security.py` | `require_worker_token` dependency for `/internal/jobs/*` (fail-closed 503 when `WORKER_TOKEN` unset). |
 | `backend/core/logging.py` | Structured JSON logging (`configure_logging`, `get_logger`). |
+| `backend/services/profile_service.py` | Profile read/upsert/update via service-role client scoped by `user_id`. |
+| `backend/routers/profile.py` | `GET /api/profile`, `PATCH /api/profile` (authenticated). |
 
 ### Auth bypass (`AUTH_BYPASS_ENABLED=true`)
 

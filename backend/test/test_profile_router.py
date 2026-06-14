@@ -16,7 +16,6 @@ from routers.profile import router as profile_router
 from services.profile_service import PROFILE_COLUMNS, PROFILE_DEFAULTS
 
 DEV_USER_ID = "00000000-0000-0000-0000-000000000001"
-OTHER_USER_ID = "11111111-1111-1111-1111-111111111111"
 
 
 class FakeResponse:
@@ -119,6 +118,8 @@ class FakeQuery:
 
         row = self._store.get(self._eq_val)
         if row is None:
+            if self._mode == "single":
+                raise APIError({"message": "Row not found", "code": "PGRST116"})
             return FakeResponse(None)
 
         row.update(self._update_payload)

@@ -4,27 +4,9 @@ import { createMemoryRouter, RouterProvider } from 'react-router-dom'
 import { vi } from 'vitest'
 import * as apiModule from '@/lib/api'
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute'
-import { AuthProvider } from '@/contexts/AuthContext'
-import { CurrencyProvider } from '@/contexts/CurrencyContext'
-import { ThemeProvider } from '@/contexts/ThemeContext'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useUpdateProfile } from '@/hooks/useProfile'
-import { clearAuthStorage, ProviderStack } from './test-utils'
-
-const cannedProfile = {
-  user_id: '00000000-0000-0000-0000-000000000001',
-  display_currency: 'CAD' as const,
-  default_threshold_pct: 20,
-  notifications_enabled: true,
-  email_digest_enabled: true,
-  theme: 'light' as const,
-  revisit_prompts_enabled: true,
-  revisit_on_sale_enabled: true,
-  revisit_stale_enabled: true,
-  revisit_stale_days: 30,
-  created_at: '2026-06-14T00:00:00.000Z',
-  updated_at: '2026-06-14T00:00:00.000Z',
-}
+import { clearAuthStorage, createTestQueryClient, ProviderStack } from './test-utils'
+import { defaultProfileResponse } from './setup'
 
 function ProtectedContent() {
   return <h1>Protected Content</h1>
@@ -32,7 +14,7 @@ function ProtectedContent() {
 
 function renderProtectedRouteWithSharedClient() {
   localStorage.setItem('shopping-monitor-dev-auth', 'true')
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const queryClient = createTestQueryClient()
   const memoryRouter = createMemoryRouter(
     [
       {
@@ -44,15 +26,9 @@ function renderProtectedRouteWithSharedClient() {
   )
 
   const tree = (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <CurrencyProvider>
-            <RouterProvider router={memoryRouter} />
-          </CurrencyProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+    <ProviderStack queryClient={queryClient}>
+      <RouterProvider router={memoryRouter} />
+    </ProviderStack>
   )
 
   return { ...render(tree), tree, queryClient }
@@ -61,7 +37,7 @@ function renderProtectedRouteWithSharedClient() {
 describe('profile bootstrap', () => {
   beforeEach(() => {
     clearAuthStorage()
-    vi.spyOn(apiModule, 'apiFetch').mockResolvedValue(cannedProfile)
+    vi.spyOn(apiModule, 'apiFetch').mockResolvedValue(defaultProfileResponse)
   })
 
   afterEach(() => {
@@ -105,7 +81,7 @@ describe('useUpdateProfile', () => {
   beforeEach(() => {
     clearAuthStorage()
     vi.spyOn(apiModule, 'apiFetch').mockResolvedValue({
-      ...cannedProfile,
+      ...defaultProfileResponse,
       display_currency: 'USD',
     })
   })

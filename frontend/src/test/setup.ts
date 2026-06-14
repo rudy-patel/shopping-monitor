@@ -53,7 +53,7 @@ export function createMockSupabaseClient() {
   }
 }
 
-const defaultProfileResponse = {
+export const defaultProfileResponse = {
   user_id: '00000000-0000-0000-0000-000000000001',
   display_currency: 'CAD',
   default_threshold_pct: 20,

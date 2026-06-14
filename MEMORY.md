@@ -4,6 +4,12 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T2.1 review pass
+
+**What:** Second-pass cleanup: `update_profile` now catches PostgREST `PGRST116` (real Supabase behavior when PATCH hits a missing row) instead of checking `data is None`; extracted `_select_profile` / `_apply_profile_update` helpers; fake client update+single raises `PGRST116` to match production; deduped test profile fixture via exported `defaultProfileResponse`; `ProviderStack` accepts shared `QueryClient`; added test that `signOut` clears profile query cache; updated `docs/AUTHENTICATION.md` module table and OAuth note.
+
+**Files:** `backend/services/profile_service.py`, `backend/test/test_profile_router.py`, `frontend/src/test/setup.ts`, `frontend/src/test/test-utils.tsx`, `frontend/src/test/profile-bootstrap.test.tsx`, `frontend/src/test/auth-context.test.tsx`, `docs/AUTHENTICATION.md`, `MEMORY.md`.
+
 ## [2026-06-14] T2.1 auth and profile bootstrap
 
 **What:** Wired Google OAuth via Supabase on the login page; added GET /api/profile (idempotent upsert with PRD §8.1 defaults) and PATCH /api/profile (partial, range-validated update); added useProfile/useUpdateProfile hooks called from ProtectedRoute to bootstrap the profile on first authenticated render; signOut now clears the React Query cache so a re-login as another user starts clean.

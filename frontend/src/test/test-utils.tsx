@@ -18,7 +18,7 @@ interface RenderWithProvidersOptions {
   authenticated?: boolean
 }
 
-function createTestQueryClient() {
+export function createTestQueryClient() {
   return new QueryClient({
     defaultOptions: {
       queries: { retry: false },
@@ -26,8 +26,13 @@ function createTestQueryClient() {
   })
 }
 
-export function ProviderStack({ children }: { children: React.ReactNode }) {
-  const queryClient = createTestQueryClient()
+export function ProviderStack({
+  children,
+  queryClient = createTestQueryClient(),
+}: {
+  children: React.ReactNode
+  queryClient?: QueryClient
+}) {
   return (
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
