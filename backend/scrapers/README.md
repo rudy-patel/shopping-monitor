@@ -68,6 +68,8 @@ Use `resolve_fixture_scenario(url, retailer_slug)` from `scrapers.fixture_url` t
 
 Rules: host must be `fixtures.local`; path must be `/<retailer_slug>/<scenario>` where scenario matches `^[a-z][a-z0-9_]*$`. Unknown or missing scenarios raise `FixtureNotFoundError`.
 
+`lookup_by_url()` also resolves `fixtures.local/<retailer_slug>/...` URLs to the matching registry entry (used by the Product API in fixture mode).
+
 Production retailer modules are registered via `scrapers.bootstrap` (import for side effects in `main.py`). That module registers `generic` (unknown-domain fallback) and `bestbuy_ca`.
 
 ## HTTP requests — use `scraper_fetch` only

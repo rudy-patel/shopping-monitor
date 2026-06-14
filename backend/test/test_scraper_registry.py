@@ -70,6 +70,16 @@ def test_lookup_shop_subdomain_bestbuy_ca():
     assert entry.slug == "bestbuy_ca"
 
 
+def test_lookup_fixture_url_by_retailer_slug():
+    entry = lookup_by_url("https://fixtures.local/bestbuy_ca/in_stock")
+    assert entry.slug == "bestbuy_ca"
+
+
+def test_lookup_fixture_url_falls_back_to_generic():
+    entry = lookup_by_url("https://fixtures.local/generic/jsonld_friendly")
+    assert entry.slug == "generic"
+
+
 def test_scraper_error_carries_context():
     err = RetailerNotSupportedError(
         "no match",

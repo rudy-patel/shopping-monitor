@@ -65,6 +65,18 @@ def lookup_by_url(url: str) -> RetailerEntry:
             url=url,
         )
 
+    if host == "fixtures.local":
+        path = parsed.path.strip("/")
+        parts = path.split("/") if path else []
+        if parts:
+            slug = parts[0]
+            if slug in _REGISTRY:
+                return _REGISTRY[slug]
+        raise RetailerNotSupportedError(
+            f"No registered retailer matches fixture URL: {url!r}",
+            url=url,
+        )
+
     for entry in _REGISTRY.values():
         if entry.slug == "generic":
             continue

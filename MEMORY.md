@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-13] T2.5 Product API vertical slice
+
+**What:** Implemented the backend Product API vertical slice: seven authenticated endpoints (`POST/GET/PATCH/DELETE /api/products`, refresh, select-variant), product/listing orchestration with fixture-backed scraping and categorization, product-level trend/best-price helpers, discovery stub via BackgroundTasks (`discovery_status='complete'`), and first `price_history` row with `source='scheduled'` on add (no `last_refresh_at` on add). Extended scraper registry `lookup_by_url()` to resolve `fixtures.local/<retailer_slug>/<scenario>` URLs for tests and local dev.
+
+**Files:** `backend/routers/products.py`, `backend/services/product_service.py`, `backend/services/discovery_stub.py`, `backend/main.py`, `backend/scrapers/registry.py`, `backend/test/fake_supabase.py`, `backend/test/__init__.py`, `backend/test/test_products_router.py`, `backend/test/test_products_integration.py`, `backend/test/test_profile_router.py`, `backend/test/test_scraper_registry.py`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Gotchas:** Integration inserts require auth-bypass dev user `00000000-0000-0000-0000-000000000001` in Supabase Auth (FK on `products.user_id`). Unit tests must re-register scrapers after registry-resetting scraper tests — `test_products_router.py` fixture calls `register_generic()` / `register_bestbuy_ca()`. Generic `ScrapeBlockedError` on add still creates a product with `scrape_status='blocked'` and no price history.
+
+**Deferred:** Listing accept/reject/delete → T3.2; notification evaluators on refresh → T3.4; real discovery → T3.1; frontend product UI → T2.6.
+
 ## [2026-06-13] T2.4 Gemini live-call guardrails
 
 **What:** Blocked live Gemini in pytest/CI: autouse `conftest` fixture clears `GEMINI_API_KEY` and mocks `genai.Client`; CI asserts empty key; smoke script defaults to dry-run heuristic path and requires `--live` for real API calls; regression test proves pytest passes with a key in the shell env.
