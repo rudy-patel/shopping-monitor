@@ -1,7 +1,12 @@
 import { render, type RenderResult } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MemoryRouter, type MemoryRouterProps } from 'react-router-dom'
-import { RouterProvider, createMemoryRouter, type Router } from 'react-router-dom'
+import {
+  MemoryRouter,
+  RouterProvider,
+  createMemoryRouter,
+  type MemoryRouterProps,
+  type Router,
+} from 'react-router-dom'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { CurrencyProvider } from '@/contexts/CurrencyContext'
 import { ThemeProvider } from '@/contexts/ThemeContext'
@@ -21,7 +26,7 @@ function createTestQueryClient() {
   })
 }
 
-function ProviderStack({ children }: { children: React.ReactNode }) {
+export function ProviderStack({ children }: { children: React.ReactNode }) {
   const queryClient = createTestQueryClient()
   return (
     <ThemeProvider>
@@ -61,14 +66,17 @@ export interface RenderAppResult extends RenderResult {
 
 export function renderApp(
   initialRoute = '/',
-  { authenticated = false }: { authenticated?: boolean } = {},
+  {
+    authenticated = false,
+    state,
+  }: { authenticated?: boolean; state?: unknown } = {},
 ): RenderAppResult {
   if (authenticated) {
     localStorage.setItem('shopping-monitor-dev-auth', 'true')
   }
 
   const memoryRouter = createMemoryRouter(router.routes, {
-    initialEntries: [initialRoute],
+    initialEntries: [{ pathname: initialRoute, state }],
   })
 
   const result = render(
