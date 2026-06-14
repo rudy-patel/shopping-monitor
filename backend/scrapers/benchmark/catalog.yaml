@@ -121,3 +121,111 @@ entries:
       image: true
       variants: false
     notes: Out-of-stock JSON-LD availability
+
+  - slug: indigo
+    scenario: in_stock
+    url: https://fixtures.local/indigo/in_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: false
+    notes: Shopify JSON-LD + ProductGroup format variants
+
+  - slug: indigo
+    scenario: multi_variant
+    url: https://fixtures.local/indigo/multi_variant
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: true
+    notes: Multi-format book variants via ProductGroup
+
+  - slug: indigo
+    scenario: out_of_stock
+    url: https://fixtures.local/indigo/out_of_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: true
+    notes: Physical format out of stock while eBook may remain available
+
+  - slug: apple_ca
+    scenario: in_stock
+    url: https://fixtures.local/apple_ca/in_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: true
+    notes: Apple buy-flow JSON-LD plus config grid
+
+  - slug: apple_ca
+    scenario: multi_variant
+    url: https://fixtures.local/apple_ca/multi_variant
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: true
+    notes: Storage/color variant matrix on buy page
+
+  - slug: apple_ca
+    scenario: out_of_stock
+    url: https://fixtures.local/apple_ca/out_of_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: false
+    notes: Single-SKU config JSON-LD availability
+
+  - slug: abercrombie
+    scenario: in_stock
+    url: https://fixtures.local/abercrombie/in_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: true
+    notes: JSON-LD title plus embedded productPrices and SKU inventory
+
+  - slug: abercrombie
+    scenario: multi_variant
+    url: https://fixtures.local/abercrombie/multi_variant
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: true
+    notes: Size/length SKU matrix via primarySizeArray block
+
+  - slug: abercrombie
+    scenario: out_of_stock
+    url: https://fixtures.local/abercrombie/out_of_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: true
+    notes: All primary SKUs unavailable
