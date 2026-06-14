@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import re
 from urllib.parse import parse_qs, urlsplit
 
 from scrapers.contract import (
@@ -19,6 +18,7 @@ from scrapers.exceptions import (
     ScrapeParseError,
 )
 from scrapers.extraction.bestbuy import extract_bestbuy_embedded
+from scrapers.extraction.bestbuy_api import extract_from_product_url_via_api, product_id_from_url
 from scrapers.extraction.jsonld import collect_schema_types
 from scrapers.extraction.types import ExtractedFields
 from scrapers.fixture_url import resolve_fixture_scenario
@@ -27,13 +27,6 @@ from scrapers.http import scraper_fetch
 from scrapers.mode import is_fixtures_mode  # pragma: allowlist secret
 from scrapers.registry import RetailerEntry, register
 from scrapers.structured_data import extract_from_html
-
-_PRODUCT_ID_RE = re.compile(r"/(\d{5,})(?:[/?#]|$)")
-
-
-def _product_id_from_url(url: str) -> str | None:
-    match = _PRODUCT_ID_RE.search(urlsplit(url).path)
-    return match.group(1) if match else None
 
 
 def _resolve_selected_variant(
@@ -66,24 +59,18 @@ def extract_bestbuy_html(html: str, *, url: str) -> ExtractedFields:
     schema_types = collect_schema_types(html)
     raw_snapshot = dict(extracted.raw_snapshot)
     raw_snapshot["schema_types"] = schema_types
-    raw_snapshot["product_id"] = _product_id_from_url(url) or raw_snapshot.get("sku")
+    raw_snapshot["product_id"] = product_id_from_url(url) or raw_snapshot.get("sku")
     extracted.raw_snapshot = raw_snapshot
     extracted.selected_variant = _resolve_selected_variant(url, extracted.available_variants)
     return extracted
 
 
-def scrape(url: str) -> ProductSnapshot:
-    if is_fixtures_mode():  # pragma: allowlist secret
-        scenario = resolve_fixture_scenario(url, "bestbuy_ca")
-        html = FixtureLoader().load_text("bestbuy_ca", scenario)
-        source = ScrapeSource.FIXTURE
-    else:
-        response = scraper_fetch(url, retailer_slug="bestbuy_ca")
-        html = response.body_text
-        source = ScrapeSource.STRUCTURED_DATA
-
-    extracted = extract_bestbuy_html(html, url=url)
-
+def _snapshot_from_extracted(
+    *,
+    url: str,
+    extracted: ExtractedFields,
+    source: ScrapeSource,
+) -> ProductSnapshot:
     if extracted.currency and extracted.currency != "CAD":
         raise NotCanadianListingError(
             f"This product appears to be priced in {extracted.currency}. "
@@ -122,6 +109,33 @@ def scrape(url: str) -> ProductSnapshot:
         source=source,
         raw_snapshot=extracted.raw_snapshot,
     )
+
+
+def scrape(url: str) -> ProductSnapshot:
+    if is_fixtures_mode():  # pragma: allowlist secret
+        scenario = resolve_fixture_scenario(url, "bestbuy_ca")
+        html = FixtureLoader().load_text("bestbuy_ca", scenario)
+        extracted = extract_bestbuy_html(html, url=url)
+        return _snapshot_from_extracted(
+            url=url,
+            extracted=extracted,
+            source=ScrapeSource.FIXTURE,
+        )
+
+    source = ScrapeSource.STRUCTURED_DATA
+    try:
+        response = scraper_fetch(url, retailer_slug="bestbuy_ca")
+        extracted = extract_bestbuy_html(response.body_text, url=url)
+    except ScrapeBlockedError:
+        extracted = extract_from_product_url_via_api(url)
+        source = ScrapeSource.HTTP_PARSE
+        return _snapshot_from_extracted(url=url, extracted=extracted, source=source)
+
+    if extracted.price_cents is None:
+        extracted = extract_from_product_url_via_api(url)
+        source = ScrapeSource.HTTP_PARSE
+
+    return _snapshot_from_extracted(url=url, extracted=extracted, source=source)
 
 
 def register_bestbuy_ca() -> None:

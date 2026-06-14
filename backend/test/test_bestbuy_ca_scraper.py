@@ -5,11 +5,13 @@ from __future__ import annotations
 import pytest
 
 from scrapers.bestbuy_ca import extract_bestbuy_html, scrape
+from scrapers.exceptions import ScrapeBlockedError
 from scrapers.fixtures import FixtureLoader  # pragma: allowlist secret
 
 IN_STOCK_URL = "https://fixtures.local/bestbuy_ca/in_stock"
 OUT_OF_STOCK_URL = "https://fixtures.local/bestbuy_ca/out_of_stock"
 MULTI_VARIANT_URL = "https://fixtures.local/bestbuy_ca/multi_variant"
+SWITCH_2_IN_STOCK_URL = "https://fixtures.local/bestbuy_ca/switch_2_in_stock"
 
 
 def _expected_from_fixture(scenario: str):
@@ -82,6 +84,46 @@ def test_multi_variant_sku_query(multi_variant_expected):
     snapshot = scrape(url)
     assert snapshot.selected_variant is not None
     assert any(attr.attribute_value == "Pink" for attr in snapshot.selected_variant)
+
+
+def test_switch_2_in_stock_extracts_core_fields():
+    snapshot = scrape(SWITCH_2_IN_STOCK_URL)
+    assert snapshot.title == "Nintendo Switch 2 Console"
+    assert snapshot.current_price_cents == 62999
+    assert snapshot.currency_seen == "CAD"
+    assert snapshot.is_in_stock is True
+    assert snapshot.brand == "Nintendo"
+    assert snapshot.raw_snapshot["product_id"] == "19296507"
+    assert snapshot.source.value == "fixture"
+
+
+def test_bestbuy_live_html_blocked_falls_back_to_api(monkeypatch):
+    monkeypatch.setenv("SCRAPER_MODE", "live")
+
+    def blocked_html(*_args, **_kwargs):
+        raise ScrapeBlockedError("blocked", retailer_slug="bestbuy_ca", url="x")
+
+    api_payload = {
+        "name": "Nintendo Switch 2 Console",
+        "sku": "19296507",
+        "brandName": "NINTENDO",
+        "salePrice": 629.99,
+        "availability": {"onlineAvailability": "InStock"},
+    }
+
+    monkeypatch.setattr("scrapers.bestbuy_ca.scraper_fetch", blocked_html)
+    monkeypatch.setattr(
+        "scrapers.extraction.bestbuy_api.fetch_product_payload",
+        lambda _pid: api_payload,
+    )
+
+    snapshot = scrape(
+        "https://www.bestbuy.ca/en-ca/product/nintendo-switch-2-console/19296507"
+    )
+    assert snapshot.title == "Nintendo Switch 2 Console"
+    assert snapshot.current_price_cents == 62999
+    assert snapshot.source.value == "http_parse"
+    assert snapshot.raw_snapshot["extraction"] == "bestbuy_api"
 
 
 def test_fixture_mode_no_network(monkeypatch):
