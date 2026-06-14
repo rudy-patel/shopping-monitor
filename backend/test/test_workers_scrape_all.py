@@ -14,6 +14,16 @@ import httpx
 WORKER_SCRIPT = Path(__file__).resolve().parents[1] / "workers" / "scrape_all.py"
 
 
+def _load_worker_module(name: str):
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location(name, WORKER_SCRIPT)
+    module = importlib.util.module_from_spec(spec)
+    assert spec.loader is not None
+    spec.loader.exec_module(module)
+    return module
+
+
 def test_worker_missing_env_exits_1(monkeypatch):
     monkeypatch.delenv("BACKEND_BASE_URL", raising=False)
     monkeypatch.delenv("WORKER_TOKEN", raising=False)
@@ -33,22 +43,19 @@ def test_worker_success_prints_json(monkeypatch, capsys):
     monkeypatch.setenv("BACKEND_BASE_URL", "http://localhost:8000")
     monkeypatch.setenv("WORKER_TOKEN", "secret")
 
-    response = MagicMock()
-    response.status_code = 200
-    response.json.return_value = {"status": "completed", "listings_total": 1}
-    response.text = json.dumps(response.json.return_value)
+    post_response = MagicMock()
+    post_response.status_code = 200
+    post_response.json.return_value = {"status": "completed", "listings_total": 1}
+    post_response.text = json.dumps(post_response.json.return_value)
 
-    monkeypatch.setattr(
-        "httpx.post",
-        lambda *args, **kwargs: response,
-    )
+    client = MagicMock()
+    client.post.return_value = post_response
+    client.__enter__.return_value = client
+    client.__exit__.return_value = False
 
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location("scrape_all_worker", WORKER_SCRIPT)
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    spec.loader.exec_module(module)
+    module = _load_worker_module("scrape_all_worker")
+    monkeypatch.setattr(module, "_endpoint_available", lambda base_url, client: True)
+    monkeypatch.setattr(module.httpx, "Client", lambda: client)
 
     assert module.main() == 0
     captured = capsys.readouterr()
@@ -59,17 +66,18 @@ def test_worker_http_error_exits_1(monkeypatch):
     monkeypatch.setenv("BACKEND_BASE_URL", "http://localhost:8000")
     monkeypatch.setenv("WORKER_TOKEN", "secret")
 
-    response = MagicMock()
-    response.status_code = 500
-    response.text = "internal error"
-    monkeypatch.setattr("httpx.post", lambda *args, **kwargs: response)
+    post_response = MagicMock()
+    post_response.status_code = 500
+    post_response.text = "internal error"
 
-    import importlib.util
+    client = MagicMock()
+    client.post.return_value = post_response
+    client.__enter__.return_value = client
+    client.__exit__.return_value = False
 
-    spec = importlib.util.spec_from_file_location("scrape_all_worker_err", WORKER_SCRIPT)
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    spec.loader.exec_module(module)
+    module = _load_worker_module("scrape_all_worker_err")
+    monkeypatch.setattr(module, "_endpoint_available", lambda base_url, client: True)
+    monkeypatch.setattr(module.httpx, "Client", lambda: client)
 
     assert module.main() == 1
 
@@ -78,16 +86,62 @@ def test_worker_network_error_exits_1(monkeypatch):
     monkeypatch.setenv("BACKEND_BASE_URL", "http://localhost:8000")
     monkeypatch.setenv("WORKER_TOKEN", "secret")
 
-    def raise_error(*args, **kwargs):
-        raise httpx.ConnectError("connection refused")
+    client = MagicMock()
+    client.post.side_effect = httpx.ConnectError("connection refused")
+    client.__enter__.return_value = client
+    client.__exit__.return_value = False
 
-    monkeypatch.setattr("httpx.post", raise_error)
-
-    import importlib.util
-
-    spec = importlib.util.spec_from_file_location("scrape_all_worker_net", WORKER_SCRIPT)
-    module = importlib.util.module_from_spec(spec)
-    assert spec.loader is not None
-    spec.loader.exec_module(module)
+    module = _load_worker_module("scrape_all_worker_net")
+    monkeypatch.setattr(module, "_endpoint_available", lambda base_url, client: True)
+    monkeypatch.setattr(module.httpx, "Client", lambda: client)
 
     assert module.main() == 1
+
+
+def test_worker_waits_for_deploy_then_succeeds(monkeypatch, capsys):
+    monkeypatch.setenv("BACKEND_BASE_URL", "http://localhost:8000")
+    monkeypatch.setenv("WORKER_TOKEN", "secret")
+    monkeypatch.setattr("time.sleep", lambda _seconds: None)
+
+    post_response = MagicMock()
+    post_response.status_code = 200
+    post_response.json.return_value = {"status": "completed", "listings_total": 0}
+    post_response.text = json.dumps(post_response.json.return_value)
+
+    client = MagicMock()
+    client.post.return_value = post_response
+    client.__enter__.return_value = client
+    client.__exit__.return_value = False
+
+    availability_checks = iter([False, False, True])
+
+    module = _load_worker_module("scrape_all_worker_wait")
+    monkeypatch.setattr(
+        module,
+        "_endpoint_available",
+        lambda base_url, client: next(availability_checks),
+    )
+    monkeypatch.setattr(module.httpx, "Client", lambda: client)
+
+    assert module.main() == 0
+    captured = capsys.readouterr()
+    assert "Waiting up to" in captured.err
+
+
+def test_worker_deploy_wait_timeout_exits_1(monkeypatch, capsys):
+    monkeypatch.setenv("BACKEND_BASE_URL", "http://localhost:8000")
+    monkeypatch.setenv("WORKER_TOKEN", "secret")
+    monkeypatch.setattr("time.sleep", lambda _seconds: None)
+    monkeypatch.setattr("time.monotonic", iter([0.0, 601.0]).__next__)
+
+    client = MagicMock()
+    client.__enter__.return_value = client
+    client.__exit__.return_value = False
+
+    module = _load_worker_module("scrape_all_worker_timeout")
+    monkeypatch.setattr(module, "_endpoint_available", lambda base_url, client: False)
+    monkeypatch.setattr(module.httpx, "Client", lambda: client)
+
+    assert module.main() == 1
+    captured = capsys.readouterr()
+    assert "Timed out waiting for" in captured.err

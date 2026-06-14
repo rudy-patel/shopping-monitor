@@ -6,8 +6,37 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 
 import httpx
+
+SCRAPE_ALL_PATH = "/internal/jobs/scrape-all"
+DEPLOY_WAIT_MAX_SECONDS = 600
+DEPLOY_POLL_INTERVAL_SECONDS = 15
+
+
+def _endpoint_available(base_url: str, client: httpx.Client) -> bool:
+    try:
+        response = client.get(f"{base_url}/openapi.json", timeout=30.0)
+    except httpx.HTTPError:
+        return False
+    if response.status_code != 200:
+        return False
+    try:
+        paths = response.json().get("paths", {})
+    except json.JSONDecodeError:
+        return False
+    return SCRAPE_ALL_PATH in paths
+
+
+def wait_for_deploy(base_url: str, client: httpx.Client) -> bool:
+    """Poll until the scrape-all route is registered on the deployed backend."""
+    deadline = time.monotonic() + DEPLOY_WAIT_MAX_SECONDS
+    while time.monotonic() < deadline:
+        if _endpoint_available(base_url, client):
+            return True
+        time.sleep(DEPLOY_POLL_INTERVAL_SECONDS)
+    return False
 
 
 def main() -> int:
@@ -17,20 +46,36 @@ def main() -> int:
         print("BACKEND_BASE_URL and WORKER_TOKEN are required", file=sys.stderr)
         return 1
 
-    url = f"{base_url}/internal/jobs/scrape-all"
-    try:
-        response = httpx.post(
-            url,
-            headers={"X-Worker-Token": worker_token},
-            timeout=600.0,
-        )
-    except httpx.HTTPError as exc:
-        print(f"Request failed: {exc}", file=sys.stderr)
-        return 1
+    url = f"{base_url}{SCRAPE_ALL_PATH}"
+    with httpx.Client() as client:
+        if not _endpoint_available(base_url, client):
+            print(
+                f"Waiting up to {DEPLOY_WAIT_MAX_SECONDS}s for {SCRAPE_ALL_PATH} "
+                f"on {base_url} (Render deploy may still be in progress)...",
+                file=sys.stderr,
+            )
+            if not wait_for_deploy(base_url, client):
+                print(
+                    f"Timed out waiting for {SCRAPE_ALL_PATH} on {base_url}. "
+                    "Confirm Render auto-deploy from main completed and "
+                    "BACKEND_BASE_URL points at the backend service (not the Vercel frontend).",
+                    file=sys.stderr,
+                )
+                return 1
+
+        try:
+            response = client.post(
+                url,
+                headers={"X-Worker-Token": worker_token},
+                timeout=600.0,
+            )
+        except httpx.HTTPError as exc:
+            print(f"Request failed: {exc}", file=sys.stderr)
+            return 1
 
     if response.status_code >= 400:
         print(
-            f"HTTP {response.status_code}: {response.text}",
+            f"HTTP {response.status_code} for POST {url}: {response.text}",
             file=sys.stderr,
         )
         return 1
