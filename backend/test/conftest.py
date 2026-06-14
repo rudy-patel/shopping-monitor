@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from _pytest.mark.expression import Expression
 
 from core.settings import clear_settings_cache
 from scrapers.contract import ProductSnapshot, ScrapeSource, utc_now
@@ -87,9 +88,17 @@ def _isolate_scraper_mode_env(request, monkeypatch):
     clear_settings_cache()
 
 
+def _markexpr_selects_integration(markexpr: str) -> bool:
+    """Return True when pytest's -m filter positively selects integration tests."""
+    normalized = markexpr.strip()
+    if not normalized:
+        return False
+    return Expression.compile(normalized).evaluate(lambda name: name == "integration")
+
+
 def pytest_configure(config) -> None:
     markexpr = config.getoption("markexpr") or ""
-    if "integration" not in markexpr:
+    if not _markexpr_selects_integration(markexpr):
         return
     if not SETUP_SCRIPT.exists():
         return
