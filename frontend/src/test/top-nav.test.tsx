@@ -3,9 +3,23 @@ import userEvent from '@testing-library/user-event'
 import { TopNav } from '@/components/layout/TopNav'
 import { renderWithProviders, clearAuthStorage } from './test-utils'
 
+vi.mock('@/hooks/useNotifications', () => ({
+  useUnreadNotificationCount: vi.fn(),
+  useNotifications: vi.fn(),
+  useMarkNotificationsRead: vi.fn(),
+  useNotificationAction: vi.fn(),
+}))
+
+import { useUnreadNotificationCount } from '@/hooks/useNotifications'
+
 describe('TopNav', () => {
   beforeEach(() => {
     clearAuthStorage()
+    vi.mocked(useUnreadNotificationCount).mockReturnValue({
+      data: 0,
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useUnreadNotificationCount>)
   })
 
   it('renders logo, Add Product, currency switcher, bell, and avatar menu', () => {
@@ -27,5 +41,31 @@ describe('TopNav', () => {
 
     expect(screen.getByRole('button', { name: /display currency/i })).toHaveTextContent('USD')
     expect(localStorage.getItem('display-currency')).toBe('USD')
+  })
+
+  it('shows unread badge when count is greater than zero', () => {
+    vi.mocked(useUnreadNotificationCount).mockReturnValue({
+      data: 3,
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useUnreadNotificationCount>)
+
+    renderWithProviders(<TopNav />, { authenticated: true })
+
+    expect(screen.getByRole('link', { name: /notifications, 3 unread/i })).toBeInTheDocument()
+    expect(screen.getByText('3')).toBeInTheDocument()
+  })
+
+  it('caps badge display at 9+', () => {
+    vi.mocked(useUnreadNotificationCount).mockReturnValue({
+      data: 12,
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useUnreadNotificationCount>)
+
+    renderWithProviders(<TopNav />, { authenticated: true })
+
+    expect(screen.getByRole('link', { name: /notifications, 12 unread/i })).toBeInTheDocument()
+    expect(screen.getByText('9+')).toBeInTheDocument()
   })
 })

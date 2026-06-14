@@ -437,7 +437,7 @@ These can proceed after the local vertical slice lands.
 
 ### T3.3 Notification API and in-app bell
 
-**Status:** pending
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/27
 
 - **Owner:** agent.
 - **PR size:** single full-stack PR.

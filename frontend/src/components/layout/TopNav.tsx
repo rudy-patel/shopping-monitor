@@ -15,12 +15,22 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useUnreadNotificationCount } from '@/hooks/useNotifications'
+
+function formatUnreadBadge(count: number): string {
+  if (count > 9) return '9+'
+  return String(count)
+}
 
 export function TopNav() {
   const { signOut } = useAuth()
   const { currency, setCurrency } = useCurrency()
   const navigate = useNavigate()
   const [addDialogOpen, setAddDialogOpen] = useState(false)
+  const { data: unreadCount = 0 } = useUnreadNotificationCount()
+
+  const bellAriaLabel =
+    unreadCount > 0 ? `Notifications, ${unreadCount} unread` : 'Notifications'
 
   const handleSignOut = async () => {
     await signOut()
@@ -59,9 +69,14 @@ export function TopNav() {
   )
 
   const notificationsLink = (
-    <Button variant="ghost" size="icon" asChild aria-label="Notifications">
-      <Link to="/notifications">
+    <Button variant="ghost" size="icon" asChild aria-label={bellAriaLabel}>
+      <Link to="/notifications" className="relative">
         <Bell className="h-5 w-5" />
+        {unreadCount > 0 ? (
+          <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-medium text-background">
+            {formatUnreadBadge(unreadCount)}
+          </span>
+        ) : null}
       </Link>
     </Button>
   )
