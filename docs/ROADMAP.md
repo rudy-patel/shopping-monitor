@@ -402,19 +402,21 @@ These can proceed after the local vertical slice lands.
 
 ### T3.1 Cross-retailer discovery engine
 
-**Status:** pending
+**Status:** done (2026-06-14)
 
 - **Owner:** agent.
 - **Human setup:** H3 for live LLM smoke.
-- **PR size:** backend PR.
+- **PR size:** full-stack PR (+ embedded `dimemtl` scraper for fixture-mode cross-retailer validation).
 - **Build:**
   - `LlmProvider.discover(...)` with bounded prompt and up to 8 candidates.
   - Candidate scraping through registry.
-  - Confidence scoring: title token Jaccard, brand exact match, variant exact match, optional image pHash only if low complexity.
+  - Confidence scoring: title token Jaccard, brand exact match, variant exact match (no pHash; renormalized weights).
   - Auto-add, needs-review, discard, cap at 5 listings total.
-  - BackgroundTasks orchestration and `discovery_complete` notification.
+  - BackgroundTasks orchestration and `discovery_complete` notification (only when ≥1 match added/queued).
+  - Frontend polling: product detail 3s / list 5s while discovery in flight.
 - **Verification:**
   - Unit tests with fake LLM and fake scrapers for auto-add/needs-review/discard/cap/failure.
+  - `dimemtl` fixture scraper enables two-retailer fixture discovery path.
 
 ### T3.2 Listing review API and UI
 
