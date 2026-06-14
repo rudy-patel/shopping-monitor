@@ -40,6 +40,22 @@ Unknown fields are rejected (422). Empty body returns 400.
 
 Implementation: `backend/services/profile_service.py`, `backend/routers/profile.py`. Frontend hooks: `useProfile`, `useUpdateProfile` (called from `ProtectedRoute` to bootstrap on first authenticated render).
 
+### `DELETE /api/account`
+
+Permanently deletes the authenticated user's account. Calls Supabase Auth admin `delete_user`; Postgres cascades remove profile, products, listings, price history, and notifications.
+
+| Condition | HTTP | Detail |
+| --- | --- | --- |
+| Success | 204 | Empty body |
+| `AUTH_BYPASS_ENABLED=true` | 403 | Account deletion disabled in auth bypass mode |
+| Protected identity | 403 | Cannot delete protected account |
+| Auth user missing | 404 | Account not found |
+| Admin delete failure | 502 | Could not delete account |
+
+Requires a real bearer token (`AUTH_BYPASS_ENABLED` must be `false`). Frontend: settings **Account** section → confirmation dialog → `signOut()` and redirect to `/login` on success.
+
+Implementation: `backend/services/account_service.py`, `backend/routers/account.py`, `backend/core/protected_accounts.py`. Frontend: `useDeleteAccount`, `DeleteAccountDialog`.
+
 ## Google OAuth (Supabase)
 
 Human setup (H2):
@@ -92,6 +108,9 @@ Google is the V1 provider. Supabase handles the OAuth callback; the backend vali
 | `backend/core/logging.py` | Structured JSON logging (`configure_logging`, `get_logger`). |
 | `backend/services/profile_service.py` | Profile read/upsert/update via service-role client scoped by `user_id`. |
 | `backend/routers/profile.py` | `GET /api/profile`, `PATCH /api/profile` (authenticated). |
+| `backend/core/protected_accounts.py` | Hard-deny list for account deletion (dev user, owner email). |
+| `backend/services/account_service.py` | Auth admin `delete_user`; DB cascades remove app data. |
+| `backend/routers/account.py` | `DELETE /api/account` (authenticated; 403 in auth bypass). |
 
 ### Auth bypass (`AUTH_BYPASS_ENABLED=true`)
 

@@ -253,4 +253,17 @@ trend = compute_trend(observations, today=date(2026, 6, 14))
 ## Deferred to later tasks
 
 - **T6.3** — Enable cron schedules on scrape/digest workflows after production validation.
-- **T4.3** — Delete account backend + enable gated settings UI.
+
+## Account deletion (T4.3)
+
+`DELETE /api/account` (authenticated) calls `account_service.delete_account()`:
+
+1. Verify the auth user exists via `auth.admin.get_user_by_id`.
+2. Delete via `auth.admin.delete_user` (service-role client).
+3. Postgres `ON DELETE CASCADE` from `001_core_schema.sql` removes `profiles`, `products`, `notifications`, and dependent `product_listings` / `price_history`.
+
+**Guards:** Returns **403** when `AUTH_BYPASS_ENABLED=true` (protects the dev bypass user). Protected identities (`00000000-0000-0000-0000-000000000001`, `rutvik@ualberta.ca`) must never be deleted — enforced in `backend/core/protected_accounts.py` (re-exported in `backend/test/disposable_users.py` for tests/smoke).
+
+**Frontend:** Settings **Account** section opens `DeleteAccountDialog`; on success the client signs out and navigates to `/login`.
+
+**Manual smoke:** `python scripts/smoke_delete_account.py` (dry-run default); `--live --confirm` against local Supabase only (never CI or production).

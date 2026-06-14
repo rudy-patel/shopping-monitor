@@ -283,6 +283,15 @@ class FakeAuthAdmin:
         email = raw if isinstance(raw, str) else raw.get("email")
         return type("AuthUserResponse", (), {"user": FakeAuthUser(email)})()
 
+    def delete_user(self, user_id: str) -> None:
+        if self._store.force_delete_user_error:
+            raise APIError({"message": "delete failed", "code": "auth_error"})
+        user_id_str = str(user_id)
+        raw = self._store.auth_users.get(user_id_str)
+        if raw is None:
+            raise APIError({"message": "User not found", "code": "user_not_found"})
+        self._store._cascade_delete_user(user_id_str)
+
 
 class FakeAuth:
     def __init__(self, store: "FakeSupabaseClient"):
@@ -299,6 +308,7 @@ class FakeSupabaseClient:
         self.fx_rates_cache: dict[str, dict] = {}
         self.auth_users: dict[str, object] = {}
         self.force_duplicate_on_insert = False
+        self.force_delete_user_error = False
         self.rpc_returns: dict[str, Any] = {}
         self._price_history_counter = 1
 
@@ -325,6 +335,20 @@ class FakeSupabaseClient:
         if table == "fx_rates_cache":
             return self.fx_rates_cache
         raise ValueError(f"unexpected table: {table}")
+
+    def _cascade_delete_user(self, user_id: str) -> None:
+        self.auth_users.pop(user_id, None)
+        self.profiles.pop(user_id, None)
+        product_ids = [
+            pid for pid, row in self.products.items() if row.get("user_id") == user_id
+        ]
+        for product_id in product_ids:
+            self._cascade_delete_product(product_id)
+        self.notifications = {
+            nid: row
+            for nid, row in self.notifications.items()
+            if row.get("user_id") != user_id
+        }
 
     def _cascade_delete_product(self, product_id: str) -> None:
         listing_ids = [

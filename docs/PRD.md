@@ -101,7 +101,7 @@ The PRD describes **complete V1**, but implementation should start with a **firs
 - `SCRAPER_MODE=fixtures` works in local dev, CI, and automated agent tests with no outbound retailer requests.
 - Scheduled scrape and fixed-time digest paths run against fixture data in tests.
 
-After this slice is working, agents can expand in parallel across UI polish, account deletion (T4.3), additional retailer modules, drift detection, production validation (T6.2+), and fixture coverage. Notification workflows through the daily digest job (T3.1–T3.6) and the settings page (T4.2) are shipped; deployment docs and production URLs are in `docs/DEPLOYMENT.md` (T6.1). Completing a reliable app with fewer retailers is higher priority than shipping many flaky retailer modules.
+After this slice is working, agents can expand in parallel across additional retailer modules, drift detection, production validation (T6.2+), and fixture coverage. Notification workflows through the daily digest job (T3.1–T3.6), the settings page (T4.2), and account deletion (T4.3) are shipped; deployment docs and production URLs are in `docs/DEPLOYMENT.md` (T6.1). Completing a reliable app with fewer retailers is higher priority than shipping many flaky retailer modules.
 
 
 ---
@@ -174,7 +174,7 @@ Each story below is a V1 commitment.
 
 ### 5.9 Settings
 
-- **U-SET-1.** Settings include: display currency, global notifications on/off, global default notification threshold %, daily email digest on/off, light/dark theme toggle, revisit-prompt cadence + on/off, and a delete-account entry point (backend deletion ships in T4.3).
+- **U-SET-1.** Settings include: display currency, global notifications on/off, global default notification threshold %, daily email digest on/off, light/dark theme toggle, revisit-prompt cadence + on/off, and a delete-account entry point (`DELETE /api/account` with confirmation dialog).
 
 ### 5.10 Revisit prompts (healthy-consumerism nudges)
 
@@ -216,7 +216,7 @@ The "Add Product" CTA opens a modal with a single URL input. On submit, the moda
 - Frontend uses `@supabase/supabase-js` for client-side session.
 - Backend validates the user's Supabase JWT on every API call using JWKS (see `docs/AUTHENTICATION.md`). `AUTH_BYPASS_ENABLED=true` is permitted in local dev only and uses a fixed dev user UUID.
 - On first sign-in, a row is upserted into `profiles` with defaults (see §8.1).
-- Delete-account flow: backend deletes all of the user's `products`, `product_listings`, `price_history`, `notifications`, and `profiles` rows in a single transaction, then calls Supabase Auth admin API to delete the auth user.
+- Delete-account flow: `DELETE /api/account` calls Supabase Auth admin `delete_user`; Postgres `ON DELETE CASCADE` from `auth.users` removes the user's `profiles`, `products`, `product_listings`, `price_history`, and `notifications` rows. Disabled when `AUTH_BYPASS_ENABLED=true`. Hard-denied identities are listed in `backend/core/protected_accounts.py`.
 
 ### 7.2 Product addition
 
@@ -829,7 +829,7 @@ V1 is considered complete when:
 11. A user can toggle between light and dark theme from `/settings`; the preference survives reload.
 12. The dashboard and product detail pages hit Lighthouse Performance ≥ 95 and Accessibility ≥ 95 on a desktop throttled run.
 13. `SCRAPER_MODE=fixtures` lets engineers run the full backend test suite and a local dev session end-to-end with zero outbound requests to retailer domains, and the weekly drift-detection workflow opens an issue when a canonical fixture diverges from a fresh live scrape.
-14. A user can delete their account and verify (via Supabase dashboard) that their data is gone.
+14. A user can delete their account from `/settings` and verify (via Supabase dashboard or integration test) that their data is gone. Production disposable-user smoke is deferred to T6.2.
 
 ---
 
