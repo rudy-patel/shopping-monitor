@@ -11,6 +11,8 @@ from pydantic import ValidationError
 from core.settings import (
     DEFAULT_APP_BASE_URL,
     DEFAULT_CORS_ORIGINS,
+    DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S,
+    DEFAULT_GEMINI_MODEL,
     DEFAULT_SCRAPER_MODE,
     Settings,
     clear_settings_cache,
@@ -25,6 +27,8 @@ SETTINGS_ENV_KEYS = [
     "DEV_USER_ID",
     "WORKER_TOKEN",
     "GEMINI_API_KEY",
+    "GEMINI_MODEL",
+    "GEMINI_CATEGORIZE_TIMEOUT_S",
     "RESEND_API_KEY",
     "APP_BASE_URL",
     "SCRAPER_MODE",
@@ -57,6 +61,8 @@ def test_defaults_when_env_unset(settings_env, monkeypatch):
     assert settings.dev_user_id == UUID("00000000-0000-0000-0000-000000000001")
     assert settings.worker_token == ""
     assert settings.gemini_api_key == ""
+    assert settings.gemini_model == DEFAULT_GEMINI_MODEL
+    assert settings.gemini_categorize_timeout_s == DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S
     assert settings.resend_api_key == ""
     assert settings.app_base_url == DEFAULT_APP_BASE_URL
     assert settings.scraper_mode == DEFAULT_SCRAPER_MODE
@@ -72,6 +78,8 @@ def test_env_overrides(settings_env, monkeypatch):
     monkeypatch.setenv("DEV_USER_ID", "11111111-1111-1111-1111-111111111111")
     monkeypatch.setenv("WORKER_TOKEN", "secret-worker")
     monkeypatch.setenv("GEMINI_API_KEY", "gemini-key")
+    monkeypatch.setenv("GEMINI_MODEL", "gemini-test-model")
+    monkeypatch.setenv("GEMINI_CATEGORIZE_TIMEOUT_S", "2.5")
     monkeypatch.setenv("RESEND_API_KEY", "resend-key")
     monkeypatch.setenv("APP_BASE_URL", "http://app.example")
     monkeypatch.setenv("SCRAPER_MODE", "live")
@@ -87,6 +95,8 @@ def test_env_overrides(settings_env, monkeypatch):
     assert settings.dev_user_id == UUID("11111111-1111-1111-1111-111111111111")
     assert settings.worker_token == "secret-worker"
     assert settings.gemini_api_key == "gemini-key"
+    assert settings.gemini_model == "gemini-test-model"
+    assert settings.gemini_categorize_timeout_s == 2.5
     assert settings.resend_api_key == "resend-key"
     assert settings.app_base_url == "http://app.example"
     assert settings.scraper_mode == "live"

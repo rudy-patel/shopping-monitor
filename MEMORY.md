@@ -4,6 +4,20 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-13] T2.4 Gemini live-call guardrails
+
+**What:** Blocked live Gemini in pytest/CI: autouse `conftest` fixture clears `GEMINI_API_KEY` and mocks `genai.Client`; CI asserts empty key; smoke script defaults to dry-run heuristic path and requires `--live` for real API calls; regression test proves pytest passes with a key in the shell env.
+
+**Files:** `backend/test/conftest.py`, `backend/test/test_conftest_gemini_guard.py`, `backend/scripts/smoke_gemini_categorize.py`, `.github/workflows/ci.yml`, `backend/services/README.md`, `AGENTS.md`, `MEMORY.md`.
+
+## [2026-06-13] T2.4 categorization service
+
+**What:** Implemented `GeminiFlashLlmProvider` with structured JSON categorization, 1.5s thread-pool timeout, quota/error mapping, and `get_categorizer()`/`get_llm_provider()` factory wiring. Reordered heuristic precedence to retailer default → breadcrumbs → title/brand (PRD §7.7). Added `google-genai==2.8.0`, Gemini settings (`GEMINI_MODEL`, `GEMINI_CATEGORIZE_TIMEOUT_S`), human smoke script `scripts/smoke_gemini_categorize.py`, and mocked unit tests.
+
+**Files:** `backend/services/gemini.py`, `backend/services/factory.py`, `backend/services/categorizer.py`, `backend/services/__init__.py`, `backend/core/settings.py`, `backend/scripts/smoke_gemini_categorize.py`, `backend/test/test_services_gemini.py`, `backend/test/test_services_categorizer.py`, `backend/test/test_settings.py`, `backend/requirements.txt`, `backend/services/README.md`, `AGENTS.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Deferred:** Product API wiring + `category_source` persistence → T2.5; frontend Add modal category dropdown → T2.6; `LlmProvider.discover()` Gemini implementation → T3.1.
+
 ## [2026-06-13] T2.3 bestbuy_ca fixture-backed scraper
 
 **What:** Added the `bestbuy_ca` retailer scraper with real recorded HTML fixtures (`in_stock`, `out_of_stock`, `multi_variant`), JSON-LD/OG extraction enriched by Best Buy embedded state (`window.__INITIAL_STATE__`) for stock and colour variants, `curl_cffi` primary transport with `httpx` fallback in `scraper_fetch()`, bootstrap registration, and fixture-only pytest coverage.

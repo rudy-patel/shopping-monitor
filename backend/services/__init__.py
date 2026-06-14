@@ -8,6 +8,7 @@ from services.categorizer import (
     DefaultCategorizer,
     heuristic_category,
 )
+from services.factory import get_categorizer, get_llm_provider
 from services.fx import (
     CANONICAL_CURRENCY,
     SUPPORTED_DISPLAY_CURRENCIES,
@@ -18,6 +19,7 @@ from services.fx import (
     FxServiceError,
     StaticFxService,
 )
+from services.gemini import GeminiFlashLlmProvider
 from services.llm import (
     FakeLlmProvider,
     LlmCategorizationResult,
@@ -92,6 +94,7 @@ __all__ = [
     "FxRates",
     "FxService",
     "FxServiceError",
+    "GeminiFlashLlmProvider",
     "ListingDailyObservation",
     "LlmCategorizationResult",
     "LlmCategory",
@@ -128,6 +131,8 @@ __all__ = [
     "TrendDirection",
     "TrendResult",
     "compute_trend",
+    "get_categorizer",
+    "get_llm_provider",
     "heuristic_category",
     "is_eligible_for_pricing",
     "is_revisit_on_sale_eligible",

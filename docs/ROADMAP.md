@@ -309,7 +309,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.4 Categorization service
 
-**Status:** pending
+**Status:** done
 
 - **Owner:** agent.
 - **Human setup:** H3 only for live Gemini smoke; tests use fakes.
@@ -318,7 +318,7 @@ The tasks in this phase converge on the one-retailer MVP.
   - Manual category override path.
   - Gemini Flash `LlmProvider.categorize(...)` with 1.5s timeout and strict JSON slug response.
   - Heuristic fallback: retailer default, breadcrumbs, title/brand keywords, then `other`.
-  - Record `category_source`.
+  - Return `category` + `category_source` on `CategorizationResult` (DB persistence → T2.5).
 - **Verification:**
   - Unit tests for manual override, valid LLM, timeout, invalid slug, quota/error fallback, final `other`.
 
