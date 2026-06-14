@@ -123,3 +123,24 @@ ProductSnapshot(
 ```
 
 Callers of `scrape(url)` (the product API in T2.5) reject non-CAD listings per PRD §7.2; the snapshot itself reports `currency_seen` honestly.
+
+## Benchmark harness (T5.1)
+
+Compare extraction strategies per retailer before committing registry defaults. Catalog lives in `scrapers/benchmark/catalog.yaml` (fixture URLs only in T5.1).
+
+```bash
+# Fixture-mode report (CI-safe)
+make benchmark-retailers
+
+# Filter one retailer
+cd backend && source venv/bin/activate
+SCRAPER_MODE=fixtures python ../scripts/run_scraper_benchmark.py --slug bestbuy_ca
+
+# Live run (human-triggered; not in CI)
+SCRAPER_MODE=live python ../scripts/run_scraper_benchmark.py --live \
+  --out ../docs/benchmarks/live-$(date +%Y-%m-%d).json
+```
+
+**Strategies measured:** `structured_data` (JSON-LD/OG + retailer parsers), `http_parse` (`scraper_fetch` + parser, with retailer API sub-probes such as Best Buy JSON API), and optional `playwright` (`--with-playwright`, requires `requirements-benchmark.txt`).
+
+Reports are committed under `docs/benchmarks/`. Recommendations are advisory until a human confirms before T5.2+ scraper PRs copy `registry_snippet` values.

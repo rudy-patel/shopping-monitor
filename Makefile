@@ -1,7 +1,7 @@
 # Shopping Monitor — Development Makefile
 # Run `make help` to see available commands
 
-.PHONY: help start stop restart status logs health test test-backend test-frontend test-integration test-e2e test-all clean install-deps setup
+.PHONY: help start stop restart status logs health test test-backend test-frontend test-integration test-e2e test-all clean install-deps setup benchmark-retailers
 
 help:
 	@echo "🛒 Shopping Monitor — development commands"
@@ -23,6 +23,7 @@ help:
 	@echo "  make test-integration - Run integration tests (requires Supabase)"
 	@echo "  make test-e2e       - Run Playwright e2e tests (auto-starts servers)"
 	@echo "  make test-all       - Run all tests including integration"
+	@echo "  make benchmark-retailers - Regenerate fixture benchmark report (T5.1)"
 	@echo ""
 	@echo "Development:"
 	@echo "  make clean     - Clean up logs and cache files"
@@ -94,6 +95,11 @@ test-e2e:
 
 test-all: test test-integration
 	@echo "✅ All tests completed!"
+
+benchmark-retailers:
+	@echo "📊 Running fixture-mode retailer benchmark..."
+	@cd backend && . venv/bin/activate && SCRAPER_MODE=fixtures python ../scripts/run_scraper_benchmark.py \
+		--out ../docs/benchmarks/fixtures-$$(date +%Y-%m-%d).json
 
 install: install-deps
 

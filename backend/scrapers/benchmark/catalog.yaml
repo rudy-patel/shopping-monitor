@@ -1,0 +1,75 @@
+# Fixture-only benchmark catalog (T5.1). URLs use fixtures.local convention.
+catalog_version: "1"
+
+entries:
+  - slug: generic
+    scenario: jsonld_friendly
+    url: https://fixtures.local/generic/jsonld_friendly
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: false
+    notes: JSON-LD-friendly baseline
+
+  - slug: generic
+    scenario: og_only
+    url: https://fixtures.local/generic/og_only
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: false
+    notes: OpenGraph fallback path
+
+  - slug: bestbuy_ca
+    scenario: in_stock
+    url: https://fixtures.local/bestbuy_ca/in_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: false
+    notes: Core fields plus embedded state
+
+  - slug: bestbuy_ca
+    scenario: multi_variant
+    url: https://fixtures.local/bestbuy_ca/multi_variant
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: true
+      variants: true
+    notes: Variant extraction coverage
+
+  - slug: dimemtl
+    scenario: in_stock
+    url: https://fixtures.local/dimemtl/in_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: false
+      variants: false
+    notes: Shopify JSON-LD easy retailer (single-SKU fixture; no image in capture)
+
+  - slug: dimemtl
+    scenario: multi_variant
+    url: https://fixtures.local/dimemtl/multi_variant
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: false
+      variants: false
+    notes: Core field coverage (fixture has no variant matrix or image yet)

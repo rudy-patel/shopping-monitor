@@ -57,6 +57,7 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 | Scheduled scrape workflow | `.github/workflows/scrape.yml` (`workflow_dispatch` only; cron deferred T6.3) | Requires GitHub secrets `BACKEND_BASE_URL` + `WORKER_TOKEN` matching Render backend. Prod `workflow_dispatch` verified — `docs/DEPLOYMENT.md`. |
 | Daily digest workflow | `.github/workflows/digest.yml` (`workflow_dispatch` only; cron deferred T6.3) | Same secrets as scrape; requires `RESEND_API_KEY` on Render for live sends. Local smoke: `python scripts/smoke_resend_digest.py` (dry-run default). |
 | Frontend build | `cd frontend && npm run build` | `tsc && vite build` |
+| Retailer benchmark | `make benchmark-retailers` | Fixture-mode harness (T5.1); writes `docs/benchmarks/fixtures-YYYY-MM-DD.json` |
 | All unit tests | `make test` | Backend pytest (`-m "not integration"`) + frontend vitest |
 | Integration tests | `make test-integration` | Requires Supabase credentials; writes `backend/.env` via `make setup-integration-env` |
 

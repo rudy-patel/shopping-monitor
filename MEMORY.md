@@ -4,6 +4,24 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T5.1 Scraper benchmark harness
+
+**What:** Added fixture-mode benchmark harness (PRD §7.9): `scrapers/benchmark/` module with YAML catalog (`generic`, `bestbuy_ca`, `dimemtl`), three strategy runners (`structured_data`, `http_parse` with Best Buy JSON API sub-probe, optional `playwright`), recommendation engine, CLI `scripts/run_scraper_benchmark.py`, `make benchmark-retailers`, and committed `docs/benchmarks/fixtures-2026-06-14.json`. Added `PyYAML` to backend requirements; optional Playwright in `requirements-benchmark.txt`.
+
+**Locked behavior:** No `--url` override; no production `scrape()` or registry default changes. `http_parse` skipped in fixture CI; live runs use `scraper_fetch` + retailer API probes. Recommendations advisory until human confirms `registry_snippet` before T5.2+.
+
+**Fixture catalog notes:** `dimemtl` fixtures lack image URL and variant matrix — catalog `expect.image`/`variants` set false accordingly.
+
+**Files:** `backend/scrapers/benchmark/*`, `scripts/run_scraper_benchmark.py`, `backend/requirements-benchmark.txt`, `backend/requirements.txt`, `backend/test/test_benchmark_harness.py`, `docs/benchmarks/`, `backend/scrapers/README.md`, `AGENTS.md`, `Makefile`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `ruff check .`, `pytest -m "not integration"` (448 passed), `make benchmark-retailers` with `SCRAPER_MODE=fixtures`.
+
+**Second-pass cleanup:** Simplified catalog API (`slugs` filter only), cleaner skipped-strategy field output, fixed `_status_from_fields` to use `failed` not `blocked` for parse misses, accurate dimemtl catalog `expect` flags, docs sync (PRD §7.9, README, ROADMAP M5/T5.1/§15).
+
+**Human follow-up:** Review `docs/benchmarks/fixtures-2026-06-14.json` `summaries` before T5.2 scrapers copy `registry_snippet` values.
+
+---
+
 ## [2026-06-14] T3.6 Digest email service and job
 
 **What:** Implemented Resend-backed digest delivery: `ResendMailService`, `digest_templates.py` (copy mirrors `NotificationRow.tsx`), `digest_job_service.run_send_digests()`, `POST /internal/jobs/send-digests`, `backend/workers/send_digests.py`, `.github/workflows/digest.yml` (`workflow_dispatch` only), and `scripts/smoke_resend_digest.py` (dry-run default). Added pytest Resend guard in `conftest.py` (mirrors Gemini). `DigestEmail.to_email` now uses `EmailStr`.

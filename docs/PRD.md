@@ -347,6 +347,8 @@ The generic scraper never participates in cross-retailer discovery (it can't rel
 
 ### 7.9 Scraper benchmark pipeline
 
+**Status (2026-06-14):** Harness implemented (ROADMAP T5.1). Fixture catalog covers `generic`, `bestbuy_ca`, and `dimemtl`; reports live in `docs/benchmarks/`. Regenerate with `make benchmark-retailers`. Live catalog expansion for remaining §11 retailers is deferred to T5.2+.
+
 Before implementing the full supported-retailer list, engineering must add a small benchmark harness that can run a candidate URL through multiple extraction strategies and record comparable results. The goal is to learn which approach works for each retailer before committing to a brittle scraper implementation.
 
 **Benchmark inputs:**
