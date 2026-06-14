@@ -24,15 +24,15 @@ if (!root) {
 
 ReactDOM.createRoot(root).render(
   <React.StrictMode>
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ThemeProvider>
           <CurrencyProvider>
             <App />
             <Toaster position="bottom-right" richColors />
           </CurrencyProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   </React.StrictMode>,
 )

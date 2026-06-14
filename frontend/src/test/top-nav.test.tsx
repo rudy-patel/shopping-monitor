@@ -37,35 +37,15 @@ describe('TopNav', () => {
     vi.restoreAllMocks()
   })
 
-  it('renders logo, Add Product, currency switcher, bell, and avatar menu', () => {
+  it('renders logo, Add Product, bell, and avatar menu without currency control', () => {
     renderWithProviders(<TopNav />, { authenticated: true })
 
     expect(screen.getByRole('link', { name: /shopping monitor/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /add product/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /display currency/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /display currency/i })).not.toBeInTheDocument()
+    expect(screen.queryByText(/^display currency$/i)).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /notifications/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /account menu/i })).toBeInTheDocument()
-  })
-
-  it('updates currency context and localStorage when currency is changed', async () => {
-    const user = userEvent.setup()
-    renderWithProviders(<TopNav />, { authenticated: true })
-
-    await waitFor(() => {
-      expect(apiModule.apiFetch).toHaveBeenCalledWith('/api/profile')
-    })
-
-    await user.click(screen.getByRole('button', { name: /display currency/i }))
-    await user.click(await screen.findByRole('menuitemradio', { name: /usd/i }))
-
-    expect(screen.getByRole('button', { name: /display currency/i })).toHaveTextContent('USD')
-    expect(localStorage.getItem('display-currency')).toBe('USD')
-    await waitFor(() => {
-      expect(apiModule.apiFetch).toHaveBeenCalledWith('/api/profile', {
-        method: 'PATCH',
-        body: JSON.stringify({ display_currency: 'USD' }),
-      })
-    })
   })
 
   it('shows unread badge when count is greater than zero', () => {

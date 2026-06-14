@@ -34,13 +34,13 @@ export function ProviderStack({
   queryClient?: QueryClient
 }) {
   return (
-    <ThemeProvider>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <AuthProvider>
+        <ThemeProvider>
           <CurrencyProvider>{children}</CurrencyProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </ThemeProvider>
+        </ThemeProvider>
+      </AuthProvider>
+    </QueryClientProvider>
   )
 }
 

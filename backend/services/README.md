@@ -253,4 +253,4 @@ trend = compute_trend(observations, today=date(2026, 6, 14))
 ## Deferred to later tasks
 
 - **T6.3** — Enable cron schedules on scrape/digest workflows after production validation.
-- **T4.2** — Settings page UI for currency, theme, digest, thresholds, delete account.
+- **T4.3** — Delete account backend + enable gated settings UI.
