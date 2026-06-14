@@ -92,7 +92,11 @@ def heuristic_category(
     breadcrumbs: list[str],
     retailer_defaults: Mapping[str, str],
 ) -> LlmCategory | None:
-    """Return a category from breadcrumbs, title/brand keywords, or retailer default."""
+    """Return a category from retailer default, breadcrumbs, or title/brand keywords."""
+    default = retailer_defaults.get(retailer_slug)
+    if default in _VALID_LLM_CATEGORIES:
+        return cast(LlmCategory, default)
+
     breadcrumb_text = " ".join(breadcrumbs).lower()
     for category, keywords in _BREADCRUMB_KEYWORDS.items():
         if any(_breadcrumb_matches(breadcrumb_text, keyword) for keyword in keywords):
@@ -102,10 +106,6 @@ def heuristic_category(
     for category, keywords in _TITLE_BRAND_KEYWORDS.items():
         if any(keyword in title_brand_text for keyword in keywords):
             return cast(LlmCategory, category)
-
-    default = retailer_defaults.get(retailer_slug)
-    if default in _VALID_LLM_CATEGORIES:
-        return cast(LlmCategory, default)
 
     return None
 
@@ -118,9 +118,11 @@ class DefaultCategorizer:
         llm: LlmProvider,
         *,
         retailer_defaults: Mapping[str, str] | None = None,
+        categorize_timeout_s: float = 1.5,
     ) -> None:
         self._llm = llm
         self._retailer_defaults = retailer_defaults or {}
+        self._categorize_timeout_s = categorize_timeout_s
 
     def categorize(self, ctx: CategorizationContext) -> CategorizationResult:
         if ctx.manual_override is not None:
@@ -135,6 +137,7 @@ class DefaultCategorizer:
                 brand=ctx.brand,
                 retailer_slug=ctx.retailer_slug,
                 breadcrumbs=ctx.breadcrumbs,
+                timeout_s=self._categorize_timeout_s,
             )
             return CategorizationResult(
                 category=llm_result.category,

@@ -100,18 +100,29 @@ def test_heuristic_no_match_defaults_to_other():
     assert result.source == "default_other"
 
 
-def test_heuristic_precedence_breadcrumb_beats_title():
+def test_heuristic_precedence_retailer_default_beats_breadcrumb():
     category = heuristic_category(
         title="sneaker boots runner",
         brand=None,
         retailer_slug="bestbuy_ca",
-        breadcrumbs=["Electronics", "Laptops"],
+        breadcrumbs=["Home", "Kitchen"],
         retailer_defaults={"bestbuy_ca": "tech"},
     )
     assert category == "tech"
 
 
-def test_heuristic_precedence_title_beats_retailer_default():
+def test_heuristic_precedence_breadcrumb_beats_title_without_retailer_default():
+    category = heuristic_category(
+        title="Running sneaker",
+        brand=None,
+        retailer_slug="unknown_retailer",
+        breadcrumbs=["Electronics", "Laptops"],
+        retailer_defaults={},
+    )
+    assert category == "tech"
+
+
+def test_heuristic_precedence_retailer_default_beats_title():
     category = heuristic_category(
         title="Running sneaker",
         brand=None,
@@ -119,7 +130,7 @@ def test_heuristic_precedence_title_beats_retailer_default():
         breadcrumbs=[],
         retailer_defaults={"bestbuy_ca": "tech"},
     )
-    assert category == "shoes"
+    assert category == "tech"
 
 
 def test_heuristic_precedence_retailer_default_beats_none():

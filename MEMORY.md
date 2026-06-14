@@ -4,6 +4,14 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-13] T2.4 categorization service
+
+**What:** Implemented `GeminiFlashLlmProvider` with structured JSON categorization, 1.5s thread-pool timeout, quota/error mapping, and `get_categorizer()`/`get_llm_provider()` factory wiring. Reordered heuristic precedence to retailer default → breadcrumbs → title/brand (PRD §7.7). Added `google-genai==2.8.0`, Gemini settings (`GEMINI_MODEL`, `GEMINI_CATEGORIZE_TIMEOUT_S`), human smoke script `scripts/smoke_gemini_categorize.py`, and mocked unit tests.
+
+**Files:** `backend/services/gemini.py`, `backend/services/factory.py`, `backend/services/categorizer.py`, `backend/services/__init__.py`, `backend/core/settings.py`, `backend/scripts/smoke_gemini_categorize.py`, `backend/test/test_services_gemini.py`, `backend/test/test_services_categorizer.py`, `backend/test/test_settings.py`, `backend/requirements.txt`, `backend/services/README.md`, `AGENTS.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Deferred:** Product API wiring + `category_source` persistence → T2.5; frontend Add modal category dropdown → T2.6; `LlmProvider.discover()` Gemini implementation → T3.1.
+
 ## [2026-06-13] T2.2 generic JSON-LD/OG scraper
 
 **What:** Implemented the `generic` retailer fallback: JSON-LD Product extraction first, OpenGraph/product meta fallback, CAD-only guard (`NotCanadianListingError`), no-price → `ScrapeBlockedError`, no-title → `ScrapeParseError`, fixture URL resolver (`fixtures.local/<slug>/<scenario>`), and fixture-only pytest coverage. Added `beautifulsoup4` for HTML parsing. Production registration via `scrapers.bootstrap` with idempotent `register_generic()` for test registry resets.

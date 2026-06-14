@@ -6,8 +6,8 @@ This package defines the service-interface boundary for Shopping Monitor V1: LLM
 
 | Surface | T1.5 ships | Concrete impl lands in |
 | --- | --- | --- |
-| `LlmProvider` (discover, categorize) | Protocol + Pydantic I/O types + exceptions + `NoOpLlmProvider` + `FakeLlmProvider` | T2.4 categorize, T3.1 discover |
-| `Categorizer` | Protocol + `DefaultCategorizer` orchestrator + `heuristic_category()` | T2.4 tunes heuristic + wires real Gemini |
+| `LlmProvider` (discover, categorize) | Protocol + Pydantic I/O types + exceptions + `NoOpLlmProvider` + `FakeLlmProvider` + `GeminiFlashLlmProvider` categorize | T3.1 discover |
+| `Categorizer` | Protocol + `DefaultCategorizer` orchestrator + `heuristic_category()` + `get_categorizer()` factory | T2.5 wires into product API |
 | `FxService` | Protocol + `StaticFxService` + `FxRate`/`FxRates` types + `convert_cad_cents()` | T4.1 (Frankfurter primary + exchangerate.host fallback + 24h cache) |
 | `MailService` | Protocol + `NoOpMailService` + `DigestEmail`/`DigestNotificationEntry` models | T3.6 (Resend client + template rendering) |
 | Notification evaluators | `NotificationEvaluator` Protocol + per-kind stub classes (return `[]`) + `Null`/`Recording`/`Composite` evaluators + `NotificationProposal`/`NotificationEvaluationContext` types | T3.4 fills evaluator bodies |
@@ -16,9 +16,9 @@ This package defines the service-interface boundary for Shopping Monitor V1: LLM
 ## Categorizer
 
 ```python
-from services import CategorizationContext, DefaultCategorizer, NoOpLlmProvider
+from services import CategorizationContext, get_categorizer
 
-result = DefaultCategorizer(NoOpLlmProvider()).categorize(
+result = get_categorizer().categorize(
     CategorizationContext(
         title="Example Laptop",
         retailer_slug="bestbuy_ca",
@@ -28,15 +28,31 @@ result = DefaultCategorizer(NoOpLlmProvider()).categorize(
 # result.category, result.source
 ```
 
+`get_categorizer()` wires `GeminiFlashLlmProvider` when `GEMINI_API_KEY` is set; otherwise it falls back to `NoOpLlmProvider` and the heuristic waterfall. Heuristic precedence (PRD §7.7): retailer default → breadcrumb keywords → title/brand keywords → `other`.
+
+### Human smoke (H3)
+
+Requires Python 3.12 and a configured `GEMINI_API_KEY` in `backend/.env`:
+
+```bash
+cd backend && source venv/bin/activate
+python scripts/smoke_gemini_categorize.py
+GEMINI_API_KEY= python scripts/smoke_gemini_categorize.py --expect-heuristic
+```
+
 ## LlmProvider
 
 ```python
-from services import FakeLlmProvider, LlmCategorizationResult
+from services import FakeLlmProvider, GeminiFlashLlmProvider, get_llm_provider, LlmCategorizationResult
 
+llm = get_llm_provider()
+# or for tests:
 llm = FakeLlmProvider(
     categorize_result=LlmCategorizationResult(category="tech"),
 )
 ```
+
+`GeminiFlashLlmProvider` uses Gemini structured JSON output with a 1.5s categorize timeout (override via `GEMINI_CATEGORIZE_TIMEOUT_S`). `discover()` is a no-op stub until T3.1.
 
 ## FxService
 
@@ -125,12 +141,13 @@ trend = compute_trend(observations, today=date(2026, 6, 14))
 
 ## Heuristic notes
 
+- Heuristic order: retailer default, then breadcrumb keywords, then title/brand keywords.
 - Breadcrumb keywords match whole tokens (e.g. `"laptops"` matches, but `"tops"` does not false-match inside `"laptops"`).
-- Title/brand keywords use substring matching; T2.4 may tighten this if mislabels show up in live adds.
+- Title/brand keywords use substring matching; future tasks may tighten this if mislabels show up in live adds.
 
 ## Deferred to later tasks
 
-- **T2.4** — Gemini Flash `LlmProvider` categorize implementation; heuristic keyword expansion.
+- **T2.5** — Wire `get_categorizer()` into `POST /api/products` and persist `category_source`.
 - **T3.1** — Gemini Flash `LlmProvider` discover implementation.
 - **T3.4** — Evaluator bodies; tightening `NotificationEvaluationContext` placeholder `dict[str, Any]` fields into typed snapshots.
 - **T3.6** — Resend `MailService` + HTML/text digest templates; swap `DigestEmail.to_email` to `EmailStr` once `email-validator` is added.

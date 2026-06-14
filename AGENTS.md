@@ -71,6 +71,7 @@ Integration tests are excluded from `make test` / CI unit jobs. They require a l
 ### Gotchas
 
 - **Python venv is mandatory.** Always `source backend/venv/bin/activate` before running any backend Python command. The venv is at `backend/venv/`.
+- **Local backend requires Python 3.12.** A 3.9 venv causes Pydantic import errors on `str | None` annotations. Recreate: `python3.12 -m venv venv`.
 - **`python3.12-venv`** system package is required to create the venv on Ubuntu 24.04 (not installed by default).
 - **Integration tests** use `@pytest.mark.integration` and are excluded from `make test` / `make test-backend`. Run `make test-integration` or `pytest -m integration` with Supabase env and migrations applied.
 - **No local database.** All persistence is via remote Supabase.
