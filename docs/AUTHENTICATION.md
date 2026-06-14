@@ -37,7 +37,7 @@ VITE_API_URL=http://localhost:8000
 ## Local auth bypass (development)
 
 1. Set `AUTH_BYPASS_ENABLED=true` in `backend/.env`.
-2. Implement a dev-only path that sends requests as a fixed test user UUID (never enable in production).
+2. `get_current_user` (in `backend/core/auth.py`) returns a fixed dev user UUID without a bearer token. Never enable in production.
 
 ## OAuth providers
 

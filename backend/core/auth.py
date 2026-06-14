@@ -53,7 +53,7 @@ def _decode_jwt(token: str, settings: Settings) -> dict[str, Any]:
             audience="authenticated",
             leeway=30,
         )
-    except (jwt.PyJWTError, jwt.PyJWKClientError, Exception) as exc:
+    except (jwt.PyJWTError, jwt.PyJWKClientError) as exc:
         raise _InvalidToken from exc
 
 
@@ -102,8 +102,17 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    try:
+        user_id = UUID(sub)
+    except ValueError:
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid token",
+            headers={"WWW-Authenticate": "Bearer"},
+        ) from None
+
     return CurrentUser(
-        user_id=UUID(sub),
+        user_id=user_id,
         email=claims.get("email"),
         role=claims.get("role"),
         raw_claims=claims,

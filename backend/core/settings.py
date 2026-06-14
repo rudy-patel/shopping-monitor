@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 from uuid import UUID
 
 from pydantic import Field, field_validator
@@ -12,8 +12,11 @@ from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 _BACKEND_DIR = Path(__file__).resolve().parents[1]
 _ENV_FILE = _BACKEND_DIR / ".env"
-_DEFAULT_APP_BASE_URL = "http://" + "localhost" + ":3000"
-_DEFAULT_SCRAPER_MODE = "fix" + "tures"
+
+DEFAULT_APP_BASE_URL = "http://localhost:3000"  # pragma: allowlist secret
+DEFAULT_SCRAPER_MODE = "fixtures"  # pragma: allowlist secret
+DEFAULT_CORS_ORIGINS = [DEFAULT_APP_BASE_URL, "http://127.0.0.1:3000"]
+ScraperMode = Literal["fixtures", "live", "record"]  # pragma: allowlist secret
 
 
 def _env_file_path() -> str | None:
@@ -31,18 +34,13 @@ class Settings(BaseSettings):
     worker_token: str = ""
     gemini_api_key: str = ""
     resend_api_key: str = ""
-    app_base_url: str = _DEFAULT_APP_BASE_URL
-    scraper_mode: str = _DEFAULT_SCRAPER_MODE
+    app_base_url: str = DEFAULT_APP_BASE_URL
+    scraper_mode: ScraperMode = DEFAULT_SCRAPER_MODE
     log_level: str = "INFO"
     cors_allowed_origins: Annotated[
         list[str],
         NoDecode,
-        Field(
-            default_factory=lambda: [
-                _DEFAULT_APP_BASE_URL,
-                "http://127.0.0.1:3000",
-            ]
-        ),
+        Field(default_factory=lambda: list(DEFAULT_CORS_ORIGINS)),
     ]
 
     model_config = SettingsConfigDict(
@@ -50,14 +48,6 @@ class Settings(BaseSettings):
         case_sensitive=False,
         extra="ignore",
     )
-
-    @field_validator("scraper_mode")
-    @classmethod
-    def validate_scraper_mode(cls, value: str) -> str:
-        allowed = {_DEFAULT_SCRAPER_MODE, "live", "record"}
-        if value not in allowed:
-            raise ValueError(f"scraper_mode must be one of {sorted(allowed)}")
-        return value
 
     @field_validator("cors_allowed_origins", mode="before")
     @classmethod

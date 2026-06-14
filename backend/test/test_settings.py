@@ -8,7 +8,14 @@ from uuid import UUID
 import pytest
 from pydantic import ValidationError
 
-from core.settings import Settings, clear_settings_cache, get_settings
+from core.settings import (
+    DEFAULT_APP_BASE_URL,
+    DEFAULT_CORS_ORIGINS,
+    DEFAULT_SCRAPER_MODE,
+    Settings,
+    clear_settings_cache,
+    get_settings,
+)
 
 SETTINGS_ENV_KEYS = [
     "SUPABASE_URL",
@@ -51,13 +58,10 @@ def test_defaults_when_env_unset(settings_env, monkeypatch):
     assert settings.worker_token == ""
     assert settings.gemini_api_key == ""
     assert settings.resend_api_key == ""
-    assert settings.app_base_url == "http://" + "localhost" + ":3000"
-    assert settings.scraper_mode == "fix" + "tures"
+    assert settings.app_base_url == DEFAULT_APP_BASE_URL
+    assert settings.scraper_mode == DEFAULT_SCRAPER_MODE
     assert settings.log_level == "INFO"
-    assert settings.cors_allowed_origins == [
-        "http://" + "localhost" + ":3000",
-        "http://127.0.0.1:3000",
-    ]
+    assert settings.cors_allowed_origins == DEFAULT_CORS_ORIGINS
 
 
 def test_env_overrides(settings_env, monkeypatch):

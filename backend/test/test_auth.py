@@ -114,3 +114,19 @@ def test_auth_token_missing_sub(auth_env, monkeypatch):
 
     response = client.get("/whoami", headers={"Authorization": "Bearer fake"})
     assert response.status_code == 401
+
+
+def test_auth_token_invalid_sub_uuid(auth_env, monkeypatch):
+    monkeypatch.setenv("AUTH_BYPASS_ENABLED", "false")
+    clear_settings_cache()
+
+    def return_claims(_token, _settings):
+        return {"sub": "not-a-uuid", "aud": "authenticated"}
+
+    monkeypatch.setattr("core.auth._decode_jwt", return_claims)
+    client = TestClient(make_app())
+
+    response = client.get("/whoami", headers={"Authorization": "Bearer fake"})
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Invalid token"
+    assert response.headers.get("www-authenticate") == "Bearer"
