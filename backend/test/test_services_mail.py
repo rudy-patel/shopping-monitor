@@ -77,6 +77,18 @@ def test_digest_email_rejects_empty_entries():
         )
 
 
+@pytest.mark.parametrize("to_email", ["not-an-email", "@example.com", "user@"])
+def test_digest_email_rejects_invalid_to_email(to_email: str):
+    with pytest.raises(ValidationError, match="to_email"):
+        DigestEmail(
+            to_email=to_email,
+            subject="Digest",
+            text_body="text",
+            html_body="html",
+            entries=[_sample_entry()],
+        )
+
+
 def test_digest_notification_entry_round_trip():
     entry = _sample_entry()
     restored = DigestNotificationEntry.model_validate(entry.model_dump())

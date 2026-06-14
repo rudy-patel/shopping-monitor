@@ -100,6 +100,17 @@ def test_notification_kind_matches_migration_constraint():
     assert actual == expected
 
 
+def test_notification_evaluation_context_rejects_naive_evaluated_at():
+    with pytest.raises(ValidationError, match="evaluated_at"):
+        NotificationEvaluationContext(
+            user_id=uuid4(),
+            product_id=uuid4(),
+            evaluated_at=datetime(2026, 6, 14, 12, 0, 0),
+            profile={},
+            product={},
+        )
+
+
 def test_notification_proposal_rejects_over_cap_payload():
     oversized = {"data": "x" * (8 * 1024)}
     serialized = json.dumps(oversized, separators=(",", ":"))

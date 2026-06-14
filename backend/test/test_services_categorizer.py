@@ -43,8 +43,16 @@ def test_llm_happy_path():
     assert (result.category, result.source) == ("tech", "llm")
 
 
-def test_llm_timeout_falls_through_to_heuristic():
-    llm = FakeLlmProvider(raise_on_categorize=LlmTimeoutError("timeout"))
+@pytest.mark.parametrize(
+    "llm_error",
+    [
+        LlmTimeoutError("timeout"),
+        LlmInvalidResponseError("bad"),
+        LlmQuotaExhaustedError("quota"),
+    ],
+)
+def test_llm_provider_errors_fall_through_to_heuristic(llm_error: Exception):
+    llm = FakeLlmProvider(raise_on_categorize=llm_error)
     result = DefaultCategorizer(llm).categorize(
         CategorizationContext(
             title="Generic item",
@@ -56,30 +64,28 @@ def test_llm_timeout_falls_through_to_heuristic():
     assert result.source == "heuristic"
 
 
-def test_llm_invalid_response_falls_through_to_heuristic():
-    llm = FakeLlmProvider(raise_on_categorize=LlmInvalidResponseError("bad"))
-    result = DefaultCategorizer(llm).categorize(
-        CategorizationContext(
-            title="Generic item",
-            retailer_slug="unknown",
-            breadcrumbs=["Electronics", "Laptops"],
-        )
-    )
-    assert result.category == "tech"
-    assert result.source == "heuristic"
-
-
-def test_llm_quota_exhausted_falls_through_to_heuristic():
+def test_default_categorizer_uses_retailer_default_via_heuristic():
     llm = FakeLlmProvider(raise_on_categorize=LlmQuotaExhaustedError("quota"))
-    result = DefaultCategorizer(llm).categorize(
-        CategorizationContext(
-            title="Generic item",
-            retailer_slug="unknown",
-            breadcrumbs=["Electronics", "Laptops"],
-        )
+    categorizer = DefaultCategorizer(
+        llm,
+        retailer_defaults={"bestbuy_ca": "tech"},
+    )
+    result = categorizer.categorize(
+        CategorizationContext(title="Mystery widget", retailer_slug="bestbuy_ca")
     )
     assert result.category == "tech"
     assert result.source == "heuristic"
+
+
+def test_heuristic_ignores_invalid_retailer_default():
+    category = heuristic_category(
+        title="Mystery widget",
+        brand=None,
+        retailer_slug="bestbuy_ca",
+        breadcrumbs=[],
+        retailer_defaults={"bestbuy_ca": "not_a_real_category"},
+    )
+    assert category is None
 
 
 def test_heuristic_no_match_defaults_to_other():

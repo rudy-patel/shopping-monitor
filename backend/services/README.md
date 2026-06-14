@@ -123,6 +123,11 @@ trend = compute_trend(observations, today=date(2026, 6, 14))
 - `RevisitOnSaleEvaluator`
 - `RevisitStaleEvaluator`
 
+## Heuristic notes
+
+- Breadcrumb keywords match whole tokens (e.g. `"laptops"` matches, but `"tops"` does not false-match inside `"laptops"`).
+- Title/brand keywords use substring matching; T2.4 may tighten this if mislabels show up in live adds.
+
 ## Deferred to later tasks
 
 - **T2.4** — Gemini Flash `LlmProvider` categorize implementation; heuristic keyword expansion.

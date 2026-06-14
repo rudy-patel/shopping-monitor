@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 import re
-from typing import Literal, Protocol
+from collections.abc import Mapping
+from typing import Literal, Protocol, cast
 
 from pydantic import BaseModel
 
@@ -13,6 +13,8 @@ from services.llm import (
     LlmProvider,
     LlmProviderError,
 )
+
+_VALID_LLM_CATEGORIES = frozenset({"clothing", "shoes", "home", "tech", "other"})
 
 CategorySource = Literal["manual", "llm", "heuristic", "default_other"]
 
@@ -94,16 +96,16 @@ def heuristic_category(
     breadcrumb_text = " ".join(breadcrumbs).lower()
     for category, keywords in _BREADCRUMB_KEYWORDS.items():
         if any(_breadcrumb_matches(breadcrumb_text, keyword) for keyword in keywords):
-            return category  # type: ignore[return-value]
+            return cast(LlmCategory, category)
 
     title_brand_text = f"{title} {brand or ''}".lower()
     for category, keywords in _TITLE_BRAND_KEYWORDS.items():
         if any(keyword in title_brand_text for keyword in keywords):
-            return category  # type: ignore[return-value]
+            return cast(LlmCategory, category)
 
     default = retailer_defaults.get(retailer_slug)
-    if default is not None:
-        return default  # type: ignore[return-value]
+    if default in _VALID_LLM_CATEGORIES:
+        return cast(LlmCategory, default)
 
     return None
 

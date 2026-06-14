@@ -57,6 +57,13 @@ class NotificationEvaluationContext(BaseModel):
     recent_observations: list[Any] = []
     recent_notifications: list[dict[str, Any]] = []
 
+    @field_validator("evaluated_at")
+    @classmethod
+    def validate_evaluated_at_tz_aware(cls, value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValueError("evaluated_at must be timezone-aware")
+        return value
+
 
 class NotificationEvaluator(Protocol):
     kind: NotificationKind

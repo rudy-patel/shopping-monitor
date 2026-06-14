@@ -4,6 +4,12 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T1.5 review pass
+
+**What:** Second-pass cleanup: fixed categorizer import order, replaced `type: ignore` with `cast`, guarded invalid retailer-default slugs in `heuristic_category`, added tz-aware validation on `NotificationEvaluationContext.evaluated_at`, parametrized LLM-fallback categorizer tests, and added coverage for `StaticFxService.get_rates`, invalid digest `to_email`, public `services` re-exports, orchestrator retailer-default path, and invalid retailer-default rejection.
+
+**Files:** `backend/services/categorizer.py`, `backend/services/notifications.py`, `backend/services/README.md`, `backend/test/test_services_categorizer.py`, `backend/test/test_services_fx.py`, `backend/test/test_services_mail.py`, `backend/test/test_services_notifications.py`, `backend/test/test_services_init.py`, `MEMORY.md`.
+
 ## [2026-06-14] T1.5 service interfaces
 
 **What:** Added the `backend/services/` package: `LlmProvider`/`Categorizer`/`FxService`/`MailService`/`NotificationEvaluator` Protocols, per-kind notification evaluator stubs (`PriceDropEvaluator`, `BackInStockEvaluator`, `ScrapeFailingEvaluator`, `RevisitOnSaleEvaluator`, `RevisitStaleEvaluator`) returning `[]`, no-op/fake providers (`NoOpLlmProvider`, `FakeLlmProvider`, `StaticFxService`, `NoOpMailService`, `NullNotificationEvaluator`, `RecordingNotificationEvaluator`, `CompositeNotificationEvaluator`), `DefaultCategorizer` orchestrator with manual→LLM→heuristic→`default_other` waterfall, and a `pricing` module with §7.4/§7.5/§7.10 constants, eligibility filter, daily-minimum, trend (±3% deadband, 7-day floor), price-drop, and revisit-on-sale helpers. All providers are pure in-memory; no new runtime deps. Unit tests cover heuristic categorizer fallbacks across all `LlmProviderError` subclasses, trend boundary cases (incl. ±3% inclusive), eligibility filter (`needs_review`/`rejected`/out-of-stock excluded), FX identity/conversion/unknown-quote, composite evaluator concatenation, and exact `NotificationKind` parity with the migration check constraint.

@@ -37,6 +37,19 @@ def test_static_fx_unknown_quote_raises():
         fx.get_rate(base="CAD", quote="JPY")
 
 
+def test_static_fx_get_rates_returns_configured_quotes():
+    fetched_at = datetime(2026, 6, 14, 12, 0, 0, tzinfo=timezone.utc)
+    fx = StaticFxService(
+        rates={"USD": Decimal("0.74"), "EUR": Decimal("0.68")},
+        fetched_at=fetched_at,
+    )
+    rates = fx.get_rates()
+    assert rates.base == "CAD"
+    assert rates.fetched_at == fetched_at
+    assert set(rates.rates) == {"USD", "EUR"}
+    assert rates.rates["USD"].rate == Decimal("0.74")
+
+
 def test_convert_cad_cents_same_currency():
     fx = StaticFxService(rates={"USD": Decimal("0.74")})
     assert fx.convert_cad_cents(12345, quote="CAD") == Decimal("123.45")
