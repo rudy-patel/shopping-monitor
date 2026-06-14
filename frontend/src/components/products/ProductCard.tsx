@@ -12,9 +12,9 @@ import {
 import { DiscoveryIndicator } from '@/components/products/DiscoveryIndicator'
 import { TrendChip } from '@/components/products/TrendChip'
 import { useArchiveProduct, useRefreshProduct } from '@/hooks/useProducts'
+import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
 import {
   extraRetailerCount,
-  formatPriceCents,
   formatRelativeTime,
   retailerLabel,
 } from '@/lib/format'
@@ -72,6 +72,7 @@ interface ProductCardProps {
 
 export function ProductCard({ product, compact = false }: ProductCardProps) {
   const refresh = useRefreshProduct(product.id)
+  const formatPriceCents = useFormatPriceCents()
   const detailPath =
     product.status === 'needs_input'
       ? `/products/${product.id}/variants`

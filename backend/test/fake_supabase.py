@@ -29,6 +29,7 @@ class FakeQuery:
         self._order: tuple[str, bool] | None = None
         self._insert_payload: dict | list | None = None
         self._update_payload: dict | None = None
+        self._upsert_payload: dict | list | None = None
         self._delete_mode = False
         self._mode: str | None = None
         self._force_duplicate_on_insert = False
@@ -77,11 +78,17 @@ class FakeQuery:
         self._update_payload = payload
         return self
 
+    def upsert(self, payload: dict | list):
+        self._upsert_payload = payload
+        return self
+
     def delete(self):
         self._delete_mode = True
         return self
 
     def execute(self) -> FakeResponse:
+        if self._upsert_payload is not None:
+            return self._execute_upsert()
         if self._insert_payload is not None:
             return self._execute_insert()
         if self._delete_mode:
@@ -172,6 +179,9 @@ class FakeQuery:
                 row.setdefault("payload", {})
                 row.setdefault("is_read", False)
                 self._store.notifications[notification_id] = row
+            elif self._table == "fx_rates_cache":
+                pair = row["pair"]
+                self._store.fx_rates_cache[pair] = row
             else:
                 raise ValueError(f"insert not supported for table: {self._table}")
 
@@ -202,6 +212,23 @@ class FakeQuery:
             return FakeResponse(self._project(updated_rows[0]))
         return FakeResponse([self._project(row) for row in updated_rows])
 
+    def _execute_upsert(self) -> FakeResponse:
+        assert self._upsert_payload is not None
+        payload = self._upsert_payload
+        rows_payload = payload if isinstance(payload, list) else [payload]
+        upserted: list[dict] = []
+        for item in rows_payload:
+            assert isinstance(item, dict)
+            row = deepcopy(item)
+            if self._table != "fx_rates_cache":
+                raise ValueError(f"upsert not supported for table: {self._table}")
+            pair = row["pair"]
+            self._store.fx_rates_cache[pair] = row
+            upserted.append(row)
+        if isinstance(payload, list):
+            return FakeResponse([self._project(row) for row in upserted])
+        return FakeResponse(self._project(upserted[0]))
+
     def _execute_delete(self) -> FakeResponse:
         rows = self._table_rows()
         matches = self._filter_rows(list(rows.values()))
@@ -225,6 +252,7 @@ class FakeSupabaseClient:
         self.product_listings: dict[str, dict] = {}
         self.price_history: dict[int, dict] = {}
         self.notifications: dict[str, dict] = {}
+        self.fx_rates_cache: dict[str, dict] = {}
         self.force_duplicate_on_insert = False
         self._price_history_counter = 1
 
@@ -244,6 +272,8 @@ class FakeSupabaseClient:
             return self.price_history
         if table == "notifications":
             return self.notifications
+        if table == "fx_rates_cache":
+            return self.fx_rates_cache
         raise ValueError(f"unexpected table: {table}")
 
     def _cascade_delete_product(self, product_id: str) -> None:

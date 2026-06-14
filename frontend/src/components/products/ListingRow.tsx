@@ -1,7 +1,8 @@
 import { ExternalLink } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { formatPriceCents, formatRelativeTime, retailerLabel } from '@/lib/format'
+import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
+import { formatRelativeTime, retailerLabel } from '@/lib/format'
 import type { Listing } from '@/lib/products'
 
 interface ListingRowProps {
@@ -24,6 +25,7 @@ function canRemove(listing: Listing): boolean {
 }
 
 export function ListingRow({ listing, onRemove, isRemoving = false }: ListingRowProps) {
+  const formatPriceCents = useFormatPriceCents()
   const isGeneric = listing.retailer_slug === 'generic'
   const matchPct =
     !listing.is_primary && listing.match_confidence != null

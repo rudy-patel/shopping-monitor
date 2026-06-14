@@ -8,7 +8,7 @@ const RETAILER_LABELS: Record<string, string> = {
   generic: 'Generic scraper — may be unreliable',
 }
 
-export function formatPriceCents(cents: number | null | undefined): string {
+export function formatCadCents(cents: number | null | undefined): string {
   if (cents == null) return '—'
   return CAD_FORMATTER.format(cents / 100)
 }

@@ -4,6 +4,18 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T4.1 FX rates and display currency
+
+**What:** Implemented live FX with Frankfurter primary + ExchangeRate-API Open Access fallback, 24h `fx_rates_cache` via `CachedFxService`, authenticated `GET /api/fx/rates`, header currency switcher synced to `profiles.display_currency` (hydrate on login, PATCH on change with rollback toast), and display-only conversion via `useFormatPriceCents` with silent CAD fallback when rates fail.
+
+**Locked behavior:** Stored prices/thresholds/trends remain CAD; provider failure serves stale cache (200 + `stale: true`) or 503 when empty; frontend never surfaces FX errors; profile wins over localStorage after login.
+
+**Files:** `backend/services/fx_providers.py`, `backend/services/fx_cache_service.py`, `backend/services/factory.py`, `backend/routers/fx.py`, `backend/main.py`, `backend/core/settings.py`, `backend/test/test_fx_cache_service.py`, `backend/test/test_fx_router.py`, `backend/test/fake_supabase.py`, `frontend/src/lib/fx.ts`, `frontend/src/hooks/useFxRates.ts`, `frontend/src/hooks/useFormatPriceCents.ts`, `frontend/src/contexts/CurrencyContext.tsx`, `frontend/src/lib/format.ts`, product/notification display components, `frontend/src/test/format-price.test.tsx`, `frontend/src/test/top-nav.test.tsx`, `docs/PRD.md`, `docs/ROADMAP.md`, `backend/services/README.md`, `MEMORY.md`.
+
+**Verification:** `ruff check .`, `pytest -m "not integration"` (369 passed), `npm run lint`, `npm run test:run` (80 passed), `npm run build` with `SCRAPER_MODE=fixtures`.
+
+**Deferred:** Settings page currency control → T4.2.
+
 ## [2026-06-14] T3.4 Notification evaluators and post-scrape orchestration
 
 **What:** Implemented all five notification evaluator bodies with typed `NotificationEvaluationContext`, pricing helpers (`baseline_max_daily_minimum`, `current_daily_minimum`), shared `pricing_data.load_price_observations`, orchestrator (`notification_evaluation.py`), and wiring into `refresh_product()` (listing snapshots, failure-count reset on success, post-scrape evaluation). Exported `run_post_scrape_evaluation` and `run_revisit_evaluation_for_active_products` for T3.5.

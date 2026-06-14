@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button'
 import { TrendChip } from '@/components/products/TrendChip'
 import { DeleteProductDialog } from '@/components/products/DeleteProductDialog'
 import { useRestoreProduct } from '@/hooks/useProducts'
-import { formatPriceCents, formatRelativeTime, retailerLabel } from '@/lib/format'
+import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
+import { formatRelativeTime, retailerLabel } from '@/lib/format'
 import type { ProductSummary } from '@/lib/products'
 import { categoryLabel } from '@/lib/categories'
 
@@ -14,6 +15,7 @@ interface ArchivedProductRowProps {
 }
 
 export function ArchivedProductRow({ product }: ArchivedProductRowProps) {
+  const formatPriceCents = useFormatPriceCents()
   const restore = useRestoreProduct(product.id)
   const [deleteOpen, setDeleteOpen] = useState(false)
 

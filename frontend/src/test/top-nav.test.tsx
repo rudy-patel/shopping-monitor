@@ -1,6 +1,8 @@
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { TopNav } from '@/components/layout/TopNav'
+import * as apiModule from '@/lib/api'
+import { defaultProfileResponse } from './setup'
 import { renderWithProviders, clearAuthStorage } from './test-utils'
 
 vi.mock('@/hooks/useNotifications', () => ({
@@ -15,11 +17,24 @@ import { useUnreadNotificationCount } from '@/hooks/useNotifications'
 describe('TopNav', () => {
   beforeEach(() => {
     clearAuthStorage()
+    vi.spyOn(apiModule, 'apiFetch').mockImplementation(async (path, init) => {
+      if (path === '/api/profile' && (!init?.method || init.method === 'GET')) {
+        return defaultProfileResponse
+      }
+      if (path === '/api/profile' && init?.method === 'PATCH') {
+        return { ...defaultProfileResponse, display_currency: 'USD' }
+      }
+      throw new Error(`Unexpected apiFetch: ${path}`)
+    })
     vi.mocked(useUnreadNotificationCount).mockReturnValue({
       data: 0,
       isLoading: false,
       isError: false,
     } as ReturnType<typeof useUnreadNotificationCount>)
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it('renders logo, Add Product, currency switcher, bell, and avatar menu', () => {
@@ -36,11 +51,21 @@ describe('TopNav', () => {
     const user = userEvent.setup()
     renderWithProviders(<TopNav />, { authenticated: true })
 
+    await waitFor(() => {
+      expect(apiModule.apiFetch).toHaveBeenCalledWith('/api/profile')
+    })
+
     await user.click(screen.getByRole('button', { name: /display currency/i }))
     await user.click(await screen.findByRole('menuitemradio', { name: /usd/i }))
 
     expect(screen.getByRole('button', { name: /display currency/i })).toHaveTextContent('USD')
     expect(localStorage.getItem('display-currency')).toBe('USD')
+    await waitFor(() => {
+      expect(apiModule.apiFetch).toHaveBeenCalledWith('/api/profile', {
+        method: 'PATCH',
+        body: JSON.stringify({ display_currency: 'USD' }),
+      })
+    })
   })
 
   it('shows unread badge when count is greater than zero', () => {
