@@ -68,20 +68,26 @@ Use `resolve_fixture_scenario(url, retailer_slug)` from `scrapers.fixture_url` t
 
 Rules: host must be `fixtures.local`; path must be `/<retailer_slug>/<scenario>` where scenario matches `^[a-z][a-z0-9_]*$`. Unknown or missing scenarios raise `FixtureNotFoundError`.
 
-Production retailer modules are registered via `scrapers.bootstrap` (import for side effects). The `generic` slug is the fallback for unknown domains.
+Production retailer modules are registered via `scrapers.bootstrap` (import for side effects in `main.py`). That module registers `generic` (unknown-domain fallback) and `bestbuy_ca`.
 
 ## HTTP requests — use `scraper_fetch` only
 
 Retailer scrapers **must** call `scrapers.http.scraper_fetch()` for outbound requests. Do **not** import `httpx`, `curl_cffi`, or `requests` directly in scraper modules — `test_scraper_http_guard.py` enforces this.
 
 - **Fixture mode** (default): `scraper_fetch` raises the fixture-mode network guard — no socket is opened.
-- **Live or record mode**: delegates to `httpx`.
+- **Live or record mode**: uses `curl_cffi` browser impersonation first, with `httpx` fallback.
 
 `get_scraper_mode()` reads `core.settings.get_settings().scraper_mode` (backed by the `SCRAPER_MODE` env var).
 
 ## Recording fixture files
 
 `FixtureLoader.record(...)` is the canonical writer for manual fixture capture (T2.8) and the future drift-detection workflow (T5.5). Nothing auto-records in record mode; callers invoke `record` explicitly after a live fetch.
+
+```bash
+cd backend && source venv/bin/activate
+SCRAPER_MODE=record python ../scripts/record_bestbuy_fixtures.py \
+  --scenario in_stock --url "https://www.bestbuy.ca/en-ca/product/..."
+```
 
 ```python
 from scrapers.fixtures import FixtureLoader  # pragma: allowlist secret

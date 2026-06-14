@@ -15,8 +15,11 @@ _IN_STOCK_MARKERS = frozenset(
     {
         "https://schema.org/instock",
         "http://schema.org/instock",
+        "https://schema.org/onlineonly",
+        "http://schema.org/onlineonly",
         "instock",
         "in stock",
+        "onlineonly",
     }
 )
 _OUT_OF_STOCK_MARKERS = frozenset(
@@ -184,6 +187,18 @@ def _extract_variants(product: dict[str, Any]) -> list[VariantCombination]:
     return variants
 
 
+def _flatten_breadcrumb_items(items: Any) -> list[dict[str, Any]]:
+    if not isinstance(items, list):
+        return []
+    flat: list[dict[str, Any]] = []
+    for item in items:
+        if isinstance(item, list):
+            flat.extend(_flatten_breadcrumb_items(item))
+        elif isinstance(item, dict):
+            flat.append(item)
+    return flat
+
+
 def _extract_breadcrumbs(soup: BeautifulSoup) -> list[str]:
     for script in soup.find_all("script", type="application/ld+json"):
         raw = script.string
@@ -208,15 +223,51 @@ def _extract_breadcrumbs(soup: BeautifulSoup) -> list[str]:
             if not isinstance(items, list):
                 continue
             crumbs: list[str] = []
-            for item in items:
-                if not isinstance(item, dict):
-                    continue
+            for item in _flatten_breadcrumb_items(items):
                 name = item.get("name")
+                if not isinstance(name, str) or not name.strip():
+                    nested = item.get("item")
+                    if isinstance(nested, dict):
+                        nested_name = nested.get("name")
+                        if isinstance(nested_name, str):
+                            name = nested_name
                 if isinstance(name, str) and name.strip():
                     crumbs.append(name.strip())
             if crumbs:
                 return crumbs
     return []
+
+
+def collect_schema_types(html: str) -> list[str]:
+    """Collect unique schema.org @type values from JSON-LD blocks."""
+    soup = BeautifulSoup(html, "html.parser")
+    types: list[str] = []
+    seen: set[str] = set()
+    for script in soup.find_all("script", type="application/ld+json"):
+        raw = script.string
+        if not raw:
+            continue
+        try:
+            data = json.loads(raw)
+        except json.JSONDecodeError:
+            continue
+        for node in _iter_jsonld_nodes(data):
+            node_type = node.get("@type")
+            candidates = (
+                [node_type]
+                if isinstance(node_type, str)
+                else node_type
+                if isinstance(node_type, list)
+                else []
+            )
+            for candidate in candidates:
+                if not isinstance(candidate, str):
+                    continue
+                name = candidate.rsplit("/", 1)[-1]
+                if name and name not in seen:
+                    seen.add(name)
+                    types.append(name)
+    return types
 
 
 def _product_from_node(node: dict[str, Any]) -> ExtractedFields | None:
@@ -231,6 +282,9 @@ def _product_from_node(node: dict[str, Any]) -> ExtractedFields | None:
     is_in_stock = _offer_availability(node.get("offers"))
     available_variants = _extract_variants(node)
 
+    sku_raw = node.get("sku")
+    sku = sku_raw.strip() if isinstance(sku_raw, str) and sku_raw.strip() else None
+
     return ExtractedFields(
         title=title_str,
         brand=brand,
@@ -239,7 +293,7 @@ def _product_from_node(node: dict[str, Any]) -> ExtractedFields | None:
         currency=currency,
         is_in_stock=is_in_stock,
         available_variants=available_variants,
-        raw_snapshot={"extraction": "jsonld"},
+        raw_snapshot={"extraction": "jsonld", "sku": sku},
     )
 
 

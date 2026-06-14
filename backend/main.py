@@ -9,6 +9,7 @@ from core.logging import configure_logging
 from core.settings import get_settings
 from routers.health import router as health_router
 from routers.profile import router as profile_router
+import scrapers.bootstrap  # noqa: F401
 
 settings = get_settings()
 configure_logging(settings)

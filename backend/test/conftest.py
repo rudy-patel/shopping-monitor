@@ -22,6 +22,7 @@ EXAMPLE_RETAILER_SLUG = "_example_retailer"
 
 _SCRAPER_TEST_FILES = frozenset(
     {
+        "test_bestbuy_ca_scraper.py",
         "test_fixture_convention.py",
         "test_fixture_loader.py",
         "test_generic_scraper.py",
@@ -70,9 +71,11 @@ def _scraper_test_registry(request):
     reset_registry()
     _register_example_retailer()
     if request.node.get_closest_marker("no_generic_registry") is None:
+        from scrapers.bestbuy_ca import register_bestbuy_ca
         from scrapers.generic import register_generic
 
         register_generic()
+        register_bestbuy_ca()
     yield
     reset_registry()
 

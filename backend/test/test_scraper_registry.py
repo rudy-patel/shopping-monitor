@@ -60,6 +60,16 @@ def test_lookup_falls_back_to_generic():
     assert entry.slug == "generic"
 
 
+def test_lookup_bestbuy_ca_beats_generic():
+    entry = lookup_by_url("https://www.bestbuy.ca/en-ca/product/foo/12345")
+    assert entry.slug == "bestbuy_ca"
+
+
+def test_lookup_shop_subdomain_bestbuy_ca():
+    entry = lookup_by_url("https://shop.bestbuy.ca/en-ca/product/foo/12345")
+    assert entry.slug == "bestbuy_ca"
+
+
 def test_scraper_error_carries_context():
     err = RetailerNotSupportedError(
         "no match",
