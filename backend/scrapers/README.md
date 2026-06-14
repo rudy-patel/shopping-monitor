@@ -70,7 +70,22 @@ Rules: host must be `fixtures.local`; path must be `/<retailer_slug>/<scenario>`
 
 `lookup_by_url()` also resolves `fixtures.local/<retailer_slug>/...` URLs to the matching registry entry (used by the Product API in fixture mode).
 
-Production retailer modules are registered via `scrapers.bootstrap` (import for side effects in `main.py`). That module registers `generic` (unknown-domain fallback), `bestbuy_ca`, `palmisleskate`, and `tikiroomskate` (shared Shopify JSON-LD + theme meta parser; T5.2).
+Production retailer modules are registered via `scrapers.bootstrap` (import for side effects in `main.py`). That module registers `generic` (unknown-domain fallback), `bestbuy_ca`, `palmisleskate`, `tikiroomskate` (T5.2), `indigo`, `apple_ca`, and `abercrombie` (T5.3 structured-data retailers).
+
+## Structured-data retailers (T5.3)
+
+Shared factory in `scrapers/structured_retailer.py` with retailer-specific parsers under `scrapers/extraction/`. Record live fixtures:
+
+```bash
+cd backend && source venv/bin/activate
+SCRAPER_MODE=record python ../scripts/record_retailer_fixtures.py \
+  --slug indigo --scenario in_stock \
+  --url "https://www.indigo.ca/products/..."
+```
+
+Supported slugs: `indigo` (Shopify + ProductGroup stock), `apple_ca` (buy-flow JSON-LD + config grid), `abercrombie` (embedded `productPrices` + scoped SKU inventory).
+
+**Live caveats:** `apple_ca` config pages use JSON-LD `Offer.availability` for stock (buy-grid variants are skipped on config URLs). `abercrombie` stock reads the primary product `skus` block only — not sitewide recommendation widgets. `indigo` treats physical book formats separately from Kobo eBook availability.
 
 ## Shopify retailers (T5.2)
 

@@ -38,12 +38,20 @@ def _entry(slug: str, scenario: str, **expect_kwargs) -> CatalogEntry:
     )
 
 
-def test_catalog_loads_ten_entries():
+def test_catalog_loads_nineteen_entries():
     version, entries = load_catalog()
     assert version == "1"
-    assert len(entries) == 10
+    assert len(entries) == 19
     slugs = {entry.slug for entry in entries}
-    assert slugs == {"generic", "bestbuy_ca", "palmisleskate", "tikiroomskate"}
+    assert slugs == {
+        "generic",
+        "bestbuy_ca",
+        "palmisleskate",
+        "tikiroomskate",
+        "indigo",
+        "apple_ca",
+        "abercrombie",
+    }
     for entry in entries:
         assert entry.url.startswith("https://fixtures.local/")
 
@@ -78,6 +86,18 @@ def test_structured_data_shopify_scenarios():
         assert result.fields.title.ok
         assert result.fields.price.ok
         assert result.fields.stock.ok
+
+
+def test_structured_data_t53_retailers():
+    _, entries = load_catalog(slugs=["indigo", "apple_ca", "abercrombie"])
+    for entry in entries:
+        result = run_structured_data(entry, live=False, retries=0)
+        assert result.status == "success", f"{entry.slug}/{entry.scenario} failed"
+        assert result.fields.title.ok
+        assert result.fields.price.ok
+        assert result.fields.stock.ok
+        if entry.expect.variants:
+            assert result.fields.variants.ok
 
 
 def test_structured_data_generic_jsonld_and_og():
@@ -166,12 +186,15 @@ def test_bestbuy_advisory_http_parse_fallback():
 
 def test_report_summaries_cover_catalog_slugs():
     report = run_benchmark()
-    assert len(report.summaries) == 4
+    assert len(report.summaries) == 7
     assert {summary.slug for summary in report.summaries} == {
         "generic",
         "bestbuy_ca",
         "palmisleskate",
         "tikiroomskate",
+        "indigo",
+        "apple_ca",
+        "abercrombie",
     }
 
 

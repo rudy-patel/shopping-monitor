@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-14T21:22:31.073812Z",
+  "generated_at": "2026-06-14T21:53:38.421276Z",
   "scraper_mode": "fixtures",
   "playwright_available": false,
   "catalog_version": "1",
@@ -46,7 +46,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 0.93,
+          "runtime_ms": 0.76,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -174,7 +174,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 0.84,
+          "runtime_ms": 0.7,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -302,7 +302,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 134.53,
+          "runtime_ms": 131.7,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -430,7 +430,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 128.74,
+          "runtime_ms": 117.07,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -558,7 +558,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 70.46,
+          "runtime_ms": 64.67,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -686,7 +686,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 39.86,
+          "runtime_ms": 36.53,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -814,7 +814,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 38.29,
+          "runtime_ms": 40.03,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -942,7 +942,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 27.71,
+          "runtime_ms": 27.98,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -1070,7 +1070,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 31.45,
+          "runtime_ms": 30.24,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -1198,7 +1198,1159 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 28.45,
+          "runtime_ms": 27.68,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "indigo",
+      "scenario": "in_stock",
+      "url": "https://fixtures.local/indigo/in_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": false
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "The Will of the Many",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 3200,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://www.indigo.ca/cdn/shop/files/1_0fda7796-7910-45da-8f49-27bf2861fc30.jpg?v=1763716735&width=480",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 4,
+              "reason": "not_required"
+            }
+          },
+          "runtime_ms": 44.84,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "indigo",
+      "scenario": "multi_variant",
+      "url": "https://fixtures.local/indigo/multi_variant",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Here One Moment: A Novel",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 2595,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://www.indigo.ca/cdn/shop/files/1_50faec5f-5fda-4150-8773-8f55aa86742c.jpg?v=1763719197&width=480",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 6,
+              "reason": null
+            }
+          },
+          "runtime_ms": 70.71,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "indigo",
+      "scenario": "out_of_stock",
+      "url": "https://fixtures.local/indigo/out_of_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Dune: chroniques d'Arrakeen",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 3195,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": false,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "http://www.indigo.ca/cdn/shop/files/1_dceab7b8-b3a2-4228-8df3-5158675acca7.jpg?v=1763713677",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 2,
+              "reason": null
+            }
+          },
+          "runtime_ms": 75.13,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "apple_ca",
+      "scenario": "in_stock",
+      "url": "https://fixtures.local/apple_ca/in_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "iPhone 16",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 99900,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-model-unselect-gallery-1-202409?wid=5120&hei=2880&fmt=jpeg&qlt=90&.v=1723991997435",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 15,
+              "reason": null
+            }
+          },
+          "runtime_ms": 46.83,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "apple_ca",
+      "scenario": "multi_variant",
+      "url": "https://fixtures.local/apple_ca/multi_variant",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "iPhone 16",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 99900,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-model-unselect-gallery-1-202409?wid=5120&hei=2880&fmt=jpeg&qlt=90&.v=1723991997435",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 15,
+              "reason": null
+            }
+          },
+          "runtime_ms": 47.88,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "apple_ca",
+      "scenario": "out_of_stock",
+      "url": "https://fixtures.local/apple_ca/out_of_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": false
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "iPhone 16 128GB Black",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 99900,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": false,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://store.storeimages.cdn-apple.com/1/as-images.apple.com/is/iphone-16-finish-select-202409-6-1inch-black?wid=5120&hei=2880&fmt=jpeg&qlt=90&.v=1723677130930",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 15,
+              "reason": "not_required"
+            }
+          },
+          "runtime_ms": 67.08,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "abercrombie",
+      "scenario": "in_stock",
+      "url": "https://fixtures.local/abercrombie/in_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Essential Popover Hoodie",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 3497,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://img.abercrombie.com/is/image/anf/KIC_122-5454-00891-100_prod1?policy=product-large",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 12,
+              "reason": null
+            }
+          },
+          "runtime_ms": 77.84,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "abercrombie",
+      "scenario": "multi_variant",
+      "url": "https://fixtures.local/abercrombie/multi_variant",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Essential Popover Hoodie",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 3497,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://img.abercrombie.com/is/image/anf/KIC_122-5454-00891-100_prod1?policy=product-large",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 12,
+              "reason": null
+            }
+          },
+          "runtime_ms": 77.78,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "abercrombie",
+      "scenario": "out_of_stock",
+      "url": "https://fixtures.local/abercrombie/out_of_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Heritage Heavyweight Popover Hoodie",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 6299,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": false,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://img.abercrombie.com/is/image/anf/KIC_122-1100-01406-375_prod1?policy=product-large",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 6,
+              "reason": null
+            }
+          },
+          "runtime_ms": 95.03,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -1287,6 +2439,20 @@
   ],
   "summaries": [
     {
+      "slug": "abercrombie",
+      "default_strategy": "structured_data",
+      "fallback_strategies": [],
+      "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
+      "notes": "JSON-LD title/stock plus embedded productPrices and scoped SKU inventory on fixtures."
+    },
+    {
+      "slug": "apple_ca",
+      "default_strategy": "structured_data",
+      "fallback_strategies": [],
+      "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
+      "notes": "Apple buy-flow JSON-LD plus config grid HTML for variants on fixtures."
+    },
+    {
       "slug": "bestbuy_ca",
       "default_strategy": "structured_data",
       "fallback_strategies": [
@@ -1301,6 +2467,13 @@
       "fallback_strategies": [],
       "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
       "notes": "JSON-LD/OG sufficient on fixtures."
+    },
+    {
+      "slug": "indigo",
+      "default_strategy": "structured_data",
+      "fallback_strategies": [],
+      "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
+      "notes": "Shopify meta plus ProductGroup JSON-LD for format-level stock on fixtures."
     },
     {
       "slug": "palmisleskate",
