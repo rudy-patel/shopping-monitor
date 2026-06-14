@@ -88,6 +88,21 @@ def test_bad_scenario_names_raise(loader, bad_name):
         loader.path(EXAMPLE_SLUG, bad_name)
 
 
+def test_record_writes_bytes(tmp_path):
+    loader = FixtureLoader(root=tmp_path)
+    path = loader.record(EXAMPLE_SLUG, "bytes_scenario", b"<html>bytes</html>")
+    assert path.read_bytes() == b"<html>bytes</html>"
+
+
+def test_invalid_ext_raises(loader):
+    with pytest.raises(ValueError, match="unsupported extension"):
+        loader.path(EXAMPLE_SLUG, "in_stock", ext="xml")
+
+
+def test_iter_scenarios_missing_dir_returns_empty(loader):
+    assert list(loader.iter_scenarios("missing_retailer")) == []
+
+
 def test_iter_scenarios(loader):
     scenarios = set(loader.iter_scenarios(EXAMPLE_SLUG))
     assert ("in_stock", "html") in scenarios

@@ -68,6 +68,21 @@ def test_lookup_falls_back_to_generic():
     assert entry.slug == "generic"
 
 
+def test_scraper_error_carries_context():
+    err = RetailerNotSupportedError(
+        "no match",
+        retailer_slug="bestbuy_ca",
+        url="https://example.test/p",
+    )
+    assert err.retailer_slug == "bestbuy_ca"
+    assert err.url == "https://example.test/p"
+
+
+def test_get_unknown_slug_raises():
+    with pytest.raises(RetailerNotSupportedError, match="not registered"):
+        get("no_such_retailer")
+
+
 def test_duplicate_registration_raises():
     with pytest.raises(RetailerAlreadyRegisteredError):
         register(

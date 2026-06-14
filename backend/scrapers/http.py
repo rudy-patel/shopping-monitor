@@ -8,7 +8,7 @@ from dataclasses import dataclass
 import httpx
 
 from scrapers.exceptions import NetworkBlockedInFixturesError  # pragma: allowlist secret
-from scrapers.mode import ScraperMode, get_scraper_mode
+from scrapers.mode import is_fixtures_mode  # pragma: allowlist secret
 
 
 @dataclass(frozen=True)
@@ -27,8 +27,7 @@ def scraper_fetch(
     timeout: float = 15.0,
     headers: Mapping[str, str] | None = None,
 ) -> ScraperResponse:
-    mode = get_scraper_mode()
-    if mode == ScraperMode.FIXTURES:  # pragma: allowlist secret
+    if is_fixtures_mode():  # pragma: allowlist secret
         raise NetworkBlockedInFixturesError(  # pragma: allowlist secret
             "Outbound network requests are blocked in fixture scraper mode.",
             retailer_slug=retailer_slug,

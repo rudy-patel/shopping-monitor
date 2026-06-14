@@ -114,7 +114,7 @@ class FixtureLoader:
     def iter_scenarios(self, retailer_slug: str) -> Iterator[tuple[str, str]]:
         retailer_dir = self._root / retailer_slug
         if not retailer_dir.is_dir():
-            return
+            return iter(())
         for path in sorted(retailer_dir.iterdir()):
             if not path.is_file():
                 continue

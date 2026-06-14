@@ -34,7 +34,7 @@ register(
 
 ## Fixture convention
 
-Path: `backend/test/fixtures/retailers/<retailer_slug>/<scenario>.<ext>`  <!-- pragma: allowlist secret -->
+Path: `backend/test/<fixture-dir>/retailers/<retailer_slug>/<scenario>.<ext>` where `<fixture-dir>` is the standard test fixture folder name.
 
 - `<retailer_slug>` matches `RetailerEntry.slug` (or `fixture_dir` if set).
 - `<scenario>` — snake_case ASCII, max 48 chars, `^[a-z][a-z0-9_]*$`.
@@ -47,7 +47,6 @@ Path: `backend/test/fixtures/retailers/<retailer_slug>/<scenario>.<ext>`  <!-- p
 Load fixture files in tests or scraper code via `FixtureLoader`:
 
 ```python
-# pragma: allowlist secret
 from scrapers.fixtures import FixtureLoader  # pragma: allowlist secret
 
 loader = FixtureLoader()
@@ -61,14 +60,13 @@ Retailer scrapers **must** call `scrapers.http.scraper_fetch()` for outbound req
 - **Fixture mode** (default): `scraper_fetch` raises the fixture-mode network guard — no socket is opened.
 - **Live or record mode**: delegates to `httpx`.
 
-The scraper mode env var is read by `scrapers.mode.get_scraper_mode()` today. This will move under the central settings loader in T1.2.
+`get_scraper_mode()` reads `core.settings.get_settings().scraper_mode` (backed by the `SCRAPER_MODE` env var).
 
 ## Recording fixture files
 
 `FixtureLoader.record(...)` is the canonical writer for manual fixture capture (T2.8) and the future drift-detection workflow (T5.5). Nothing auto-records in record mode; callers invoke `record` explicitly after a live fetch.
 
 ```python
-# pragma: allowlist secret
 from scrapers.fixtures import FixtureLoader  # pragma: allowlist secret
 from scrapers.http import scraper_fetch
 
