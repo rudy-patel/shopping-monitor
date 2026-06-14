@@ -95,21 +95,23 @@ make test-integration
 
 **Service-role keys are not enough** — PostgREST cannot run `CREATE FUNCTION` / DDL. Use one of:
 
-1. **Supabase MCP (preferred in Cursor):** Enable **Supabase** under **Settings → Tools & MCP** and complete OAuth once per machine. Project wiring lives in `.cursor/mcp.json` (scoped to this repo’s Supabase project). Then call MCP `apply_migration` or `execute_sql`. If tools are missing, restart Cursor after auth — the `supabase` server must appear alongside `cursor-app-control`.
+1. **Supabase MCP in Cursor (local):** Project config is `.cursor/mcp.json` → `scripts/run_supabase_mcp.sh` (stdio server, reads `SUPABASE_ACCESS_TOKEN` from `backend/.env`). **Disable duplicate Supabase entries** in **Settings → Tools & MCP** — if both the Supabase plugin and `.cursor/mcp.json` are enabled, the server often shows **Error**. Keep one: prefer the project `mcp.json` setup below. After adding the token, toggle the server off/on or restart Cursor, then call MCP `apply_migration`.
 
-2. **Management API script (CI / Cloud Agents fallback):** Add `SUPABASE_ACCESS_TOKEN` to Cursor Cloud secrets (or `backend/.env` locally), then:
+2. **Management API script (fallback):** Same token in `backend/.env`:
    ```bash
    python scripts/apply_supabase_migration.py 002_scrape_job_advisory_lock.sql
    ```
-   Uses `SUPABASE_URL` to derive the project ref. Verifiable afterward via `client.rpc('try_acquire_scrape_all_lock')`.
+
+**Setup once:** Add `SUPABASE_ACCESS_TOKEN=sbp_...` to `backend/.env` from [Supabase Access Tokens](https://supabase.com/dashboard/account/tokens) (not the service-role key).
 
 **Troubleshooting**
 
 | Symptom | Fix |
 | --- | --- |
-| MCP `server does not exist: supabase` | Authenticate Supabase MCP in Cursor; confirm `.cursor/mcp.json` exists; start a **new** agent turn after enabling |
-| `Migration API failed (401/403)` | Regenerate `SUPABASE_ACCESS_TOKEN`; do not use service-role key for the script |
-| `PGRST202` on lock RPC after deploy | Migration not applied yet — run MCP or `apply_supabase_migration.py` |
+| MCP shows **Error** / red status | Disable duplicate Supabase MCP in Settings (plugin vs project `mcp.json`); ensure `SUPABASE_ACCESS_TOKEN` is in `backend/.env`; restart Cursor |
+| MCP `server does not exist: supabase` | Start a **new agent turn** after MCP connects; confirm green status under Tools & MCP |
+| `Migration API failed (401/403)` | Regenerate PAT; do not use service-role key |
+| `PGRST202` on lock RPC after deploy | Migration not applied — run MCP `apply_migration` or `apply_supabase_migration.py` |
 
 ### Gotchas
 
