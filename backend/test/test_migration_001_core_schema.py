@@ -124,7 +124,7 @@ def test_handle_updated_at_trigger():
             f"CREATE TRIGGER {table}_set_updated_at BEFORE UPDATE ON public.{table}"
             in sql
         )
-        assert f"EXECUTE FUNCTION public.handle_updated_at()" in sql
+        assert "EXECUTE FUNCTION public.handle_updated_at()" in sql
 
 
 def test_pgcrypto_extension():

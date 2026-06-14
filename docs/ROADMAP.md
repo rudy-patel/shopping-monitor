@@ -186,7 +186,7 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.2 Backend settings, clients, and auth dependency
 
-**Status:** pending
+**Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/11.
 
 
 - **Owner:** agent.

@@ -4,6 +4,20 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T1.2 backend settings, clients, and auth dependency
+
+**What:** Centralized backend settings via pydantic-settings, structured JSON logging, Supabase JWT validation (JWKS) with local auth-bypass dev dependency, worker-token guard for internal jobs, and service-role Supabase client wrapper refactored off bare `os.getenv`.
+
+**Files:** `backend/core/settings.py`, `backend/core/logging.py`, `backend/core/auth.py`, `backend/core/security.py`, `backend/db/supabase_client.py`, `backend/main.py`, `backend/requirements.txt`, `backend/test/test_settings.py`, `backend/test/test_auth.py`, `backend/test/test_worker_token.py`, `backend/test/test_logging.py`, `docs/AUTHENTICATION.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Deferred:** wiring `get_current_user` / `require_worker_token` onto real routes (T2.1, T2.5, T3.5).
+
+## [2026-06-14] T1.2 review pass
+
+**What:** Restored readable settings defaults (`Literal` scraper mode, exported constants), narrowed JWT decode exception handling, added invalid-`sub` UUID guard + test, updated stale auth-bypass doc text.
+
+**Files:** `backend/core/settings.py`, `backend/core/auth.py`, `backend/test/test_settings.py`, `backend/test/test_auth.py`, `docs/AUTHENTICATION.md`, `MEMORY.md`.
+
 ## [2026-06-10] Project scaffold
 
 **What:** Initial repo from FastAPI + React/Vite + Supabase template. Agent docs (`AGENTS.md`, `.cursor/rules/`), dev tooling (`Makefile`, `dev-servers.sh`), CI skeleton, minimal health API, minimal frontend shell.

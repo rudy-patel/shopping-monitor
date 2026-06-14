@@ -3,28 +3,38 @@
 from __future__ import annotations
 
 import logging
-import os
 import time
+from functools import lru_cache
 from typing import Any
 
-from dotenv import load_dotenv
+from supabase import Client, create_client
 
-load_dotenv()
+from core.settings import clear_settings_cache, get_settings
 
 _logger = logging.getLogger(__name__)
 
 
-def _strip_env(name: str) -> str:
-    return (os.getenv(name) or "").strip()
+@lru_cache(maxsize=1)
+def get_service_role_client() -> Client:
+    settings = get_settings()
+    if not settings.supabase_url or not settings.supabase_service_role_key:
+        raise RuntimeError(
+            "Supabase service-role client requires SUPABASE_URL and "
+            "SUPABASE_SERVICE_ROLE_KEY"
+        )
+    return create_client(settings.supabase_url, settings.supabase_service_role_key)
 
 
-SUPABASE_URL = _strip_env("SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = _strip_env("SUPABASE_SERVICE_ROLE_KEY")
+def reset_service_role_client_cache() -> None:
+    get_service_role_client.cache_clear()
+    clear_settings_cache()
 
 
 def get_supabase_health() -> dict[str, Any]:
     """Return connectivity status. Graceful when env vars are unset."""
-    if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
+    try:
+        client = get_service_role_client()
+    except RuntimeError:
         return {
             "healthy": False,
             "latency_ms": None,
@@ -32,10 +42,8 @@ def get_supabase_health() -> dict[str, Any]:
             "details": None,
         }
 
+    settings = get_settings()
     try:
-        from supabase import create_client
-
-        client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
         started = time.perf_counter()
         # Lightweight round-trip; works even before app tables exist.
         client.table("_nonexistent_health_probe").select("*").limit(1).execute()
@@ -44,7 +52,7 @@ def get_supabase_health() -> dict[str, Any]:
             "healthy": True,
             "latency_ms": latency_ms,
             "error": None,
-            "details": {"url": SUPABASE_URL},
+            "details": {"url": settings.supabase_url},
         }
     except Exception as exc:  # noqa: BLE001 — surface any connectivity failure
         _logger.debug("Supabase health check failed: %s", exc)
@@ -55,7 +63,10 @@ def get_supabase_health() -> dict[str, Any]:
                 "healthy": True,
                 "latency_ms": None,
                 "error": None,
-                "details": {"url": SUPABASE_URL, "note": "connected (no probe table)"},
+                "details": {
+                    "url": settings.supabase_url,
+                    "note": "connected (no probe table)",
+                },
             }
         return {
             "healthy": False,
