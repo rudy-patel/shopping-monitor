@@ -12,6 +12,20 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T3.5 Internal scrape job endpoint
+
+**What:** Implemented scheduled scrape-all: migration advisory-lock RPC helpers, `scrape_job_service.run_scrape_all()` with listing retry/backoff, `persist_listing_scrape_result()` extraction, evaluator mode split (`scrape_triggered` / `revisit_only` / `full`), `POST /internal/jobs/scrape-all` worker-token route, `backend/workers/scrape_all.py`, and `.github/workflows/scrape.yml` (`workflow_dispatch` only).
+
+**Locked behavior:** Listing scope = all listings on products with `status IN ('active','needs_input')` including rejected rows. Lock contention → HTTP 200 `status=skipped`, `reason=lock_not_acquired`. Retry 3 attempts with sleep `2**attempt` (1s, 2s). Step 6 evaluators only for products touched this run; step 7 revisit-only per distinct user with active products. Scrape-all writes `price_history.source='scheduled'` and does **not** touch `last_refresh_at` / `last_user_interaction_at`. Manual refresh unchanged (`mode=full`, `source=manual`).
+
+**Files:** `backend/db/migrations/002_scrape_job_advisory_lock.sql`, `backend/services/scrape_job_service.py`, `backend/services/product_service.py`, `backend/services/notification_evaluation.py`, `backend/routers/internal_jobs.py`, `backend/workers/scrape_all.py`, `.github/workflows/scrape.yml`, `backend/test/test_scrape_job_service.py`, `backend/test/test_internal_jobs_router.py`, `backend/test/test_workers_scrape_all.py`, `backend/test/test_migration_002_scrape_job_advisory_lock.py`, `backend/test/test_notification_evaluation_service.py`, `backend/test/fake_supabase.py`, `docs/DATABASE.md`, `docs/DEPLOYMENT.md`, `docs/ROADMAP.md`, `backend/services/README.md`, `AGENTS.md`, `MEMORY.md`.
+
+**Verification:** `ruff check .`, `python scripts/check_migrations.py`, `pytest -m "not integration"` (395 passed) with `SCRAPER_MODE=fixtures`. PR https://github.com/rudy-patel/shopping-monitor/pull/31. Post-merge: apply migration `002_*` on Supabase, then one production `workflow_dispatch` of `scrape.yml`.
+
+**Deferred:** Cron schedule → T6.3; digest job → T3.6.
+
+---
+
 ## [2026-06-14] T4.1 FX rates and display currency
 
 **What:** Implemented live FX with Frankfurter primary + ExchangeRate-API Open Access fallback, 24h `fx_rates_cache` via `CachedFxService`, authenticated `GET /api/fx/rates`, header currency switcher synced to `profiles.display_currency` (hydrate on login, PATCH on change with rollback toast), and display-only conversion via `useFormatPriceCents` with silent CAD fallback when rates fail.

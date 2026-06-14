@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from copy import deepcopy
 from datetime import UTC, datetime
+from typing import Any
 from uuid import uuid4
 
 from postgrest.exceptions import APIError
@@ -14,6 +15,17 @@ from services.profile_service import PROFILE_COLUMNS, PROFILE_DEFAULTS
 class FakeResponse:
     def __init__(self, data):
         self.data = data
+
+
+class FakeRpc:
+    def __init__(self, store: "FakeSupabaseClient", name: str):
+        self._store = store
+        self._name = name
+
+    def execute(self) -> FakeResponse:
+        if self._name in self._store.rpc_returns:
+            return FakeResponse(self._store.rpc_returns[self._name])
+        return FakeResponse(True)
 
 
 class FakeQuery:
@@ -254,6 +266,7 @@ class FakeSupabaseClient:
         self.notifications: dict[str, dict] = {}
         self.fx_rates_cache: dict[str, dict] = {}
         self.force_duplicate_on_insert = False
+        self.rpc_returns: dict[str, Any] = {}
         self._price_history_counter = 1
 
     def _next_price_history_id(self) -> int:
@@ -300,3 +313,6 @@ class FakeSupabaseClient:
         query = FakeQuery(self, name)
         query._force_duplicate_on_insert = self.force_duplicate_on_insert
         return query
+
+    def rpc(self, name: str) -> FakeRpc:
+        return FakeRpc(self, name)

@@ -7,7 +7,11 @@ from uuid import UUID, uuid4
 
 import pytest
 
-from services.notification_evaluation import run_post_scrape_evaluation
+from services.notification_evaluation import (
+    evaluator_for_mode,
+    run_post_scrape_evaluation,
+    run_revisit_evaluation_for_active_products,
+)
 from services.notifications import NotificationKind
 from services.profile_service import PROFILE_DEFAULTS
 from test.fake_supabase import FakeSupabaseClient
@@ -210,3 +214,78 @@ def test_debounce_uses_evaluated_at_not_wall_clock(fake_client, monkeypatch):
         },
     )
     assert any(p.type == NotificationKind.PRICE_DROP for p in proposals_later)
+
+
+def test_scrape_triggered_mode_excludes_revisit_evaluators(fake_client):
+    product = _seed_product(
+        fake_client,
+        created_at=(datetime.now(UTC) - timedelta(days=90)).isoformat(),
+        last_user_interaction_at=(datetime.now(UTC) - timedelta(days=60)).isoformat(),
+    )
+    _seed_listing(fake_client, product["id"], is_in_stock=True)
+
+    evaluator = evaluator_for_mode("scrape_triggered")
+    kinds = {child.kind for child in evaluator._evaluators}
+
+    assert NotificationKind.PRICE_DROP in kinds
+    assert NotificationKind.REVISIT_ON_SALE not in kinds
+    assert NotificationKind.REVISIT_STALE not in kinds
+
+
+def test_revisit_only_mode_excludes_price_drop(fake_client, monkeypatch):
+    product = _seed_product(
+        fake_client,
+        notification_threshold_pct=20,
+        created_at=(datetime.now(UTC) - timedelta(days=10)).isoformat(),
+    )
+    listing = _seed_listing(fake_client, product["id"])
+    today = datetime.now(UTC)
+    _seed_history(fake_client, listing["id"], price_cents=10000, observed_at=today - timedelta(days=10))
+    _seed_history(fake_client, listing["id"], price_cents=7500, observed_at=today)
+    listings_before = {
+        listing["id"]: {"is_in_stock": True, "scrape_failure_count": 0}
+    }
+
+    proposals = run_post_scrape_evaluation(
+        fake_client,
+        user_id=UUID(DEV_USER_ID),
+        product_id=UUID(product["id"]),
+        evaluated_at=today,
+        scrape_source="scheduled",
+        listings_before=listings_before,
+        mode="revisit_only",
+    )
+
+    assert not any(p.type == NotificationKind.PRICE_DROP for p in proposals)
+
+
+def test_run_revisit_evaluation_for_active_products_uses_revisit_only(fake_client, monkeypatch):
+    product = _seed_product(
+        fake_client,
+        notification_threshold_pct=20,
+        created_at=(datetime.now(UTC) - timedelta(days=10)).isoformat(),
+    )
+    listing = _seed_listing(fake_client, product["id"])
+    today = datetime.now(UTC)
+    _seed_history(fake_client, listing["id"], price_cents=10000, observed_at=today - timedelta(days=10))
+    _seed_history(fake_client, listing["id"], price_cents=7500, observed_at=today)
+
+    modes: list[str] = []
+    original = run_post_scrape_evaluation
+
+    def tracking_eval(*args, **kwargs):
+        modes.append(kwargs.get("mode", "full"))
+        return original(*args, **kwargs)
+
+    monkeypatch.setattr(
+        "services.notification_evaluation.run_post_scrape_evaluation",
+        tracking_eval,
+    )
+
+    run_revisit_evaluation_for_active_products(
+        fake_client,
+        UUID(DEV_USER_ID),
+        today,
+    )
+
+    assert modes == ["revisit_only"]

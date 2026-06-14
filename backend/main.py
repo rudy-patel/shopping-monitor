@@ -9,6 +9,7 @@ from core.logging import configure_logging
 from core.settings import get_settings
 from routers.fx import router as fx_router
 from routers.health import router as health_router
+from routers.internal_jobs import router as internal_jobs_router
 from routers.notifications import router as notifications_router
 from routers.products import router as products_router
 from routers.profile import router as profile_router
@@ -32,3 +33,4 @@ app.include_router(profile_router)
 app.include_router(fx_router)
 app.include_router(products_router)
 app.include_router(notifications_router)
+app.include_router(internal_jobs_router)

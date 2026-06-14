@@ -51,7 +51,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M1: Foundation | done | Schema, auth primitives, app shell, service interfaces, and fixture harness contracts exist. | Product flows and scraper work can proceed in parallel. |
 | M2: First local vertical slice | done | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
 | M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
-| M4: MVP product workflows | in progress | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1). **Remaining:** scheduled scrape job (T3.5), digest email (T3.6), settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
+| M4: MVP product workflows | in progress | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5). **Remaining:** digest email (T3.6), settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
 | M5: V1 retailer coverage | pending | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. | V1 success criteria can be tested end-to-end. |
 | M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. | Invite early friends for feedback. |
 
@@ -489,22 +489,23 @@ These can proceed after the local vertical slice lands.
 
 ### T3.5 Internal scrape job endpoint
 
-**Status:** pending — **ready to start** (H5 complete)
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/31.
 
 - **Owner:** agent.
 - **Human setup:** H5 done for deployed `workflow_dispatch` smoke; defer cron `schedule` to T6.3.
 - **PR size:** backend PR plus thin workflow/scripts if ready.
 - **Build:**
-  - `POST /internal/jobs/scrape-all`.
-  - Postgres advisory lock.
-  - Retry each listing up to 2 times with exponential backoff.
-  - Write `price_history`, update listing status, invoke notification/revisit evaluators.
+  - `POST /internal/jobs/scrape-all` (worker-token protected).
+  - Postgres advisory lock (`002_scrape_job_advisory_lock.sql`).
+  - Retry each listing up to 2 times with exponential backoff (`1s`, `2s`).
+  - Write `price_history` (`source='scheduled'`), update listing status, invoke scrape-triggered evaluators for touched products only, then revisit-only evaluators per user active products.
   - Thin `backend/workers/scrape_all.py` script.
-  - `.github/workflows/scrape.yml` with `workflow_dispatch`; add `schedule` only when production is ready.
+  - `.github/workflows/scrape.yml` with `workflow_dispatch` only.
 - **Verification:**
-  - Unit tests with fake registry.
+  - `ruff check .`, `pytest -m "not integration"` with `SCRAPER_MODE=fixtures`.
   - Worker script test/mocked HTTP call.
-  - Manual `workflow_dispatch` after deployment.
+  - Apply migration `002_scrape_job_advisory_lock.sql` on Supabase before prod smoke.
+  - Manual `workflow_dispatch` after deployment (one controlled prod pass).
 
 ### T3.6 Digest email service and job
 
@@ -783,12 +784,12 @@ Constraints:
 
 ## 15. Near-term recommended execution order
 
-**Milestones M0–M3 and Phase 2 (T2.x) are complete.** Phase 3 notification/discovery work through T3.4 and Phase 4 currency (T4.1) are complete. Pick next from:
+**Phase 3 notification/discovery work through T3.5 and Phase 4 currency (T4.1) are complete.** Pick next from:
 
-1. **T3.5** Internal scrape job endpoint — **ready now** (H5 done); unblocks scheduled price history and `scrape_failing` on cron. Use `workflow_dispatch` before enabling schedules (T6.3).
-2. **T3.6** Digest email service and job — **blocked on H4 (Resend)** for live send smoke; unit tests with `NoOpMailService` can proceed in parallel.
-3. **T4.2** Settings page — profile-backed theme, digest toggle, thresholds, revisit prefs (currency switcher already in header from T4.1).
-4. **T4.3** Delete account — can ship with T4.2 or as a follow-up PR.
+1. **T3.6** Digest email service and job — **blocked on H4 (Resend)** for live send smoke; unit tests with `NoOpMailService` can proceed in parallel.
+2. **T4.2** Settings page — profile-backed theme, digest toggle, thresholds, revisit prefs (currency switcher already in header from T4.1).
+3. **T4.3** Delete account — can ship with T4.2 or as a follow-up PR.
+4. ~~**T3.5** Internal scrape job endpoint~~ — **done**; enable cron in T6.3 after production `workflow_dispatch` validation.
 
 Do not prioritize broad retailer expansion (Phase 5) until M4 is done. T5.2 `dimemtl` has a partial fixture scraper from T3.1; the other easy retailers still need dedicated T5.2 PRs.
 

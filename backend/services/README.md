@@ -194,27 +194,21 @@ run_post_scrape_evaluation(
 )
 ```
 
-**T3.5 handoff:** `run_revisit_evaluation_for_active_products(client, user_id, evaluated_at)` batch wrapper; scheduled scrape-all should call `run_post_scrape_evaluation(..., scrape_source="scheduled")` per product after listings are scraped.
+**T3.5 scheduled scrape-all:** `POST /internal/jobs/scrape-all` (worker token) runs `scrape_job_service.run_scrape_all()`. Step 6 uses `mode="scrape_triggered"` (price drop, back-in-stock, scrape failing) for products touched in the run; step 7 uses `mode="revisit_only"` per user with active products. Manual refresh keeps `mode="full"`. Scrape-all does **not** update `products.last_refresh_at` or `last_user_interaction_at`.
 
 ```python
-from services import (
-    BackInStockEvaluator,
-    CompositeNotificationEvaluator,
-    PriceDropEvaluator,
-    RevisitOnSaleEvaluator,
-    RevisitStaleEvaluator,
-    ScrapeFailingEvaluator,
+from services.notification_evaluation import (
+    EvaluatorMode,
+    evaluator_for_mode,
+    run_post_scrape_evaluation,
+    run_revisit_evaluation_for_active_products,
 )
 
-evaluator = CompositeNotificationEvaluator([
-    PriceDropEvaluator(),
-    BackInStockEvaluator(),
-    ScrapeFailingEvaluator(),
-    RevisitOnSaleEvaluator(),
-    RevisitStaleEvaluator(),
-])
-proposals = evaluator.evaluate(ctx)
+run_post_scrape_evaluation(..., scrape_source="scheduled", mode="scrape_triggered")
+run_revisit_evaluation_for_active_products(client, user_id, evaluated_at, mode="revisit_only")
 ```
+
+**Worker boundary:** GitHub Actions `.github/workflows/scrape.yml` (`workflow_dispatch` only; cron deferred T6.3) runs `backend/workers/scrape_all.py`, which POSTs to the deployed backend with `X-Worker-Token`.
 
 ## Pricing helpers
 
@@ -245,6 +239,6 @@ trend = compute_trend(observations, today=date(2026, 6, 14))
 
 ## Deferred to later tasks
 
-- **T3.5** — Scheduled scrape-all job calls `run_post_scrape_evaluation(..., scrape_source="scheduled")`.
 - **T3.6** — Resend `MailService` + HTML/text digest templates; swap `DigestEmail.to_email` to `EmailStr` once `email-validator` is added.
+- **T6.3** — Enable cron schedule on `.github/workflows/scrape.yml` after production validation.
 - **T4.2** — Settings page UI for currency, theme, digest, thresholds, delete account.

@@ -18,6 +18,7 @@ Two `.env` files are needed (not committed). Backend secrets (`SUPABASE_URL`, `S
   - `WORKER_TOKEN` — shared secret required by `/internal/jobs/*` endpoints.
   - `APP_BASE_URL` — deployed frontend origin used in email links.
   - `SCRAPER_MODE=fixtures` — local/CI default; valid values: `fixtures`, `live`, `record`.
+  - `SUPABASE_ACCESS_TOKEN` — optional; Supabase dashboard **Account → Access Tokens**. Required for agents to apply SQL migrations when MCP is unavailable. (`SUPABASE_SERVICE_ROLE_KEY` alone cannot run DDL.)
 - `frontend/.env` — `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_API_URL=http://localhost:8000`.
 
 See `backend/.env.example` and `frontend/.env.example` for placeholders.
@@ -44,6 +45,7 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 | Frontend unit tests | `cd frontend && npm run test:run` | Vitest (`frontend/src/test/`). |
 | Frontend live API integration | `cd frontend && VITE_INTEGRATION=1 npm run test:run -- src/test/integration/` | Requires backend on :8000 with `AUTH_BYPASS_ENABLED=true`, `SCRAPER_MODE=fixtures`, Supabase creds. Skipped in default CI. |
 | Playwright e2e | `make test-e2e` or `cd frontend && npm run test:e2e` | Auto-starts backend :8000 + frontend :3000 via Playwright `webServer`. Requires Supabase creds in `backend/.env` (`make setup-integration-env`). CI: `playwright-e2e` job runs when GitHub Actions Supabase secrets are set; otherwise skips with a warning. |
+| Scheduled scrape workflow | `.github/workflows/scrape.yml` (`workflow_dispatch` only; cron deferred T6.3) | Requires GitHub secrets `BACKEND_BASE_URL` + `WORKER_TOKEN` matching Render backend. |
 | Frontend build | `cd frontend && npm run build` | `tsc && vite build` |
 | All unit tests | `make test` | Backend pytest (`-m "not integration"`) + frontend vitest |
 | Integration tests | `make test-integration` | Requires Supabase credentials; writes `backend/.env` via `make setup-integration-env` |
@@ -62,6 +64,7 @@ Integration tests are excluded from `make test` / CI unit jobs. They require a l
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
+   - `SUPABASE_ACCESS_TOKEN` — enables agents to apply migrations via `scripts/apply_supabase_migration.py` when MCP is unavailable
 2. Alternative: set `SUPABASE_ACCESS_TOKEN` (or `SUPABASE_PAT`) + `SUPABASE_PROJECT_REF`; the setup script fetches keys via the Supabase Management API.
 3. Sync env and run:
    ```bash
@@ -87,6 +90,28 @@ Quick validation after configuring credentials:
 make setup-integration-env   # should print "Wrote backend/.env..."
 make test-integration
 ```
+
+### Applying Supabase migrations (agents)
+
+**Service-role keys are not enough** — PostgREST cannot run `CREATE FUNCTION` / DDL. Use one of:
+
+1. **Supabase MCP in Cursor (local):** Project config is `.cursor/mcp.json` → `scripts/run_supabase_mcp.sh` (stdio server, reads `SUPABASE_ACCESS_TOKEN` from `backend/.env`). **Disable duplicate Supabase entries** in **Settings → Tools & MCP** — if both the Supabase plugin and `.cursor/mcp.json` are enabled, the server often shows **Error**. Keep one: prefer the project `mcp.json` setup below. After adding the token, toggle the server off/on or restart Cursor, then call MCP `apply_migration`.
+
+2. **Management API script (fallback):** Same token in `backend/.env`:
+   ```bash
+   python scripts/apply_supabase_migration.py 002_scrape_job_advisory_lock.sql
+   ```
+
+**Setup once:** Add `SUPABASE_ACCESS_TOKEN=sbp_...` to `backend/.env` from [Supabase Access Tokens](https://supabase.com/dashboard/account/tokens) (not the service-role key).
+
+**Troubleshooting**
+
+| Symptom | Fix |
+| --- | --- |
+| MCP shows **Error** / red status | Disable duplicate Supabase MCP in Settings (plugin vs project `mcp.json`); ensure `SUPABASE_ACCESS_TOKEN` is in `backend/.env`; restart Cursor |
+| MCP `server does not exist: supabase` | Start a **new agent turn** after MCP connects; confirm green status under Tools & MCP |
+| `Migration API failed (401/403)` | Regenerate PAT; do not use service-role key |
+| `PGRST202` on lock RPC after deploy | Migration not applied — run MCP `apply_migration` or `apply_supabase_migration.py` |
 
 ### Gotchas
 

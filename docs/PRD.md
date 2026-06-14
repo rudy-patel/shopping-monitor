@@ -262,14 +262,16 @@ Runs once, asynchronously, after a product is added.
 
 **Daily scrape job (GitHub Actions cron, `0 8 * * *` UTC, ~04:00 America/Toronto):**
 
-1. Fetch every active `product_listings` row.
+1. Fetch every `product_listings` row for products in `active` or `needs_input` status (includes rejected listings; excludes archived products).
 2. For each, invoke the appropriate retailer scraper (or the generic scraper).
-3. Persist a `price_history` row with the observed price, stock state, and timestamp.
+3. Persist a `price_history` row with the observed price, stock state, and timestamp (`source = scheduled`).
 4. Update the listing's `last_known_price_cents`, `is_in_stock`, `last_scraped_at`, and `scrape_status` columns.
 5. Increment `scrape_failure_count` on failure; reset to 0 on success.
-6. After all scrapes finish, evaluate notification triggers (§7.5) and write in-app notification rows.
-7. Evaluate revisit-prompt triggers (§7.10) for every active product whose owner has revisit prompts enabled, writing in-app notification rows.
+6. After all scrapes finish, evaluate scrape-triggered notification types (`price_drop`, `back_in_stock`, `scrape_failing`) for products touched in this run only.
+7. Evaluate revisit-prompt triggers (§7.10) for every active product per user whose owner has revisit prompts enabled, writing in-app notification rows.
 8. Stop. Email sending is handled by the separate digest job below so users receive messages at a predictable morning time rather than immediately after the scrape.
+
+**Implementation notes (T3.5):** Entry point is `POST /internal/jobs/scrape-all` (worker token). A Postgres advisory lock prevents duplicate concurrent runs. GitHub Actions workflow `.github/workflows/scrape.yml` ships with `workflow_dispatch` only; cron schedule (`0 8 * * *` UTC) is enabled in T6.3 after production validation. Scheduled scrape-all does not update `products.last_refresh_at` or `last_user_interaction_at` (those remain manual-refresh / user-interaction timestamps).
 
 **Manual refresh:**
 Endpoint `POST /api/products/:id/refresh`. Cooldown = `products.last_refresh_at` must be ≥ 1 hour ago. Runs the same scrape logic synchronously across the product's listings, returns updated state, evaluates notification triggers for that product only.
@@ -602,7 +604,7 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 
 ### 10.3 Background jobs
 
-- **Daily scrape runner:** GitHub Actions cron workflow under `.github/workflows/scrape.yml`, scheduled at `0 8 * * *` UTC (≈ 04:00 America/Toronto).
+- **Daily scrape runner:** GitHub Actions workflow under `.github/workflows/scrape.yml`, scheduled at `0 8 * * *` UTC (≈ 04:00 America/Toronto). **T3.5 ships `workflow_dispatch` only;** enable the cron trigger in T6.3 after one successful production run.
 - **Daily digest runner:** GitHub Actions cron workflow under `.github/workflows/digest.yml`, scheduled at `0 14 * * *` UTC. This is a fixed UTC time chosen to land in the Pacific morning and keeps V1 simple by avoiding timezone/daylight-saving scheduling.
 - **Action entrypoints:** small Python scripts in `backend/workers/` call the deployed backend's internal endpoints (`POST /internal/jobs/scrape-all`, `POST /internal/jobs/send-digests`) with `X-Worker-Token` from `WORKER_TOKEN`.
 - **Business logic location:** the real scrape, notification, revisit, and digest logic lives in importable backend service modules used by the FastAPI internal endpoints. Worker scripts stay thin wrappers around HTTP calls so deployed jobs exercise the same path as production, while unit tests can call service modules directly with fixtures.

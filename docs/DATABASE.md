@@ -202,3 +202,17 @@ When integration tests need DB access:
 | File | Description |
 |------|-------------|
 | `001_core_schema.sql` | Initial core schema (profiles, products, product_listings, price_history, notifications, fx_rates_cache) with RLS, indexes, and updated_at trigger |
+| `002_scrape_job_advisory_lock.sql` | Pattern B advisory-lock helpers (`try_acquire_scrape_all_lock`, `release_scrape_all_lock`) for T3.5 scheduled scrape-all job deduplication |
+
+**Apply on the linked Supabase project:** Supabase MCP `apply_migration`, or `python scripts/apply_supabase_migration.py <filename>` (see `AGENTS.md` § Applying Supabase migrations). CI only validates migration files exist and are documented here.
+
+### Advisory lock helpers (Pattern B)
+
+**RLS:** No table — `SECURITY DEFINER` functions callable only via service role (`client.rpc(...)`).
+
+| Function | Returns | Notes |
+| -------- | ------- | ----- |
+| `try_acquire_scrape_all_lock()` | `boolean` | `pg_try_advisory_lock(8675309)`; false when another scrape-all run holds the lock |
+| `release_scrape_all_lock()` | `boolean` | `pg_advisory_unlock(8675309)`; called in `finally` after scrape-all completes |
+
+Python constant `SCRAPE_ALL_ADVISORY_LOCK_KEY = 8675309` in `backend/services/scrape_job_service.py` must stay in sync with the SQL key.

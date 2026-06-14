@@ -10,25 +10,35 @@ from uuid import UUID
 from supabase import Client
 
 from services.notifications import (
+    BackInStockEvaluator,
+    CompositeNotificationEvaluator,
     ListingNotificationSnapshot,
     NotificationEvaluationContext,
     NotificationProposal,
+    PriceDropEvaluator,
     ProductNotificationSnapshot,
     ProfileNotificationFlags,
     RecentNotificationRow,
+    RevisitOnSaleEvaluator,
+    RevisitStaleEvaluator,
+    ScrapeFailingEvaluator,
     default_composite_evaluator,
 )
 from services.pricing_data import load_price_observations
 from services.profile_service import get_or_create_profile
 
 __all__ = [
+    "EvaluatorMode",
     "build_evaluation_context",
     "evaluate_product_notifications",
+    "evaluator_for_mode",
     "load_recent_notifications",
     "persist_proposals",
     "run_post_scrape_evaluation",
     "run_revisit_evaluation_for_active_products",
 ]
+
+EvaluatorMode = Literal["full", "scrape_triggered", "revisit_only"]
 
 
 def _parse_ts(value: str | datetime | None) -> datetime | None:
@@ -144,10 +154,33 @@ def build_evaluation_context(
     )
 
 
+def evaluator_for_mode(mode: EvaluatorMode) -> CompositeNotificationEvaluator:
+    if mode == "full":
+        return default_composite_evaluator()
+    if mode == "scrape_triggered":
+        return CompositeNotificationEvaluator(
+            [
+                PriceDropEvaluator(),
+                BackInStockEvaluator(),
+                ScrapeFailingEvaluator(),
+            ]
+        )
+    if mode == "revisit_only":
+        return CompositeNotificationEvaluator(
+            [
+                RevisitOnSaleEvaluator(),
+                RevisitStaleEvaluator(),
+            ]
+        )
+    raise ValueError(f"Unknown evaluator mode: {mode}")
+
+
 def evaluate_product_notifications(
     ctx: NotificationEvaluationContext,
+    *,
+    mode: EvaluatorMode = "full",
 ) -> list[NotificationProposal]:
-    return list(default_composite_evaluator().evaluate(ctx))
+    return list(evaluator_for_mode(mode).evaluate(ctx))
 
 
 def persist_proposals(
@@ -174,6 +207,7 @@ def run_post_scrape_evaluation(
     evaluated_at: datetime,
     scrape_source: Literal["scheduled", "manual"],
     listings_before: dict[str, dict[str, Any]],
+    mode: EvaluatorMode = "full",
 ) -> list[NotificationProposal]:
     product_result = (
         client.table("products")
@@ -206,7 +240,7 @@ def run_post_scrape_evaluation(
         evaluated_at=evaluated_at,
         scrape_source=scrape_source,
     )
-    proposals = evaluate_product_notifications(ctx)
+    proposals = evaluate_product_notifications(ctx, mode=mode)
     persist_proposals(client, proposals)
     return proposals
 
@@ -215,12 +249,10 @@ def run_revisit_evaluation_for_active_products(
     client: Client,
     user_id: UUID,
     evaluated_at: datetime,
+    *,
+    mode: EvaluatorMode = "revisit_only",
 ) -> list[NotificationProposal]:
-    """Daily batch revisit step (T3.5 handoff): evaluate all active products.
-
-    Reuses the full post-scrape evaluator; T3.5 step 7 may later split revisit-only
-    evaluators if scheduled scrape-all already ran step 6 for the same pass.
-    """
+    """Daily batch revisit step (T3.5): evaluate all active products for one user."""
     products_result = (
         client.table("products")
         .select("id")
@@ -251,6 +283,7 @@ def run_revisit_evaluation_for_active_products(
             evaluated_at=evaluated_at,
             scrape_source="scheduled",
             listings_before=listings_before,
+            mode=mode,
         )
         all_proposals.extend(proposals)
     return all_proposals

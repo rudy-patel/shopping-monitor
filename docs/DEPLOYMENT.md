@@ -56,8 +56,27 @@ Both platforms support zero-downtime deploys: traffic stays on the current relea
    | `SUPABASE_ANON_KEY` | Anon/publishable key |
    | `SUPABASE_SERVICE_ROLE_KEY` | Secret key (never expose to frontend) |
    | `AUTH_BYPASS_ENABLED` | `false` in production |
+   | `WORKER_TOKEN` | Shared secret for `POST /internal/jobs/*` (must match GitHub Actions) |
+   | `APP_BASE_URL` | Deployed frontend origin (email links; T3.6 digest) |
+   | `SCRAPER_MODE` | `live` in production; `fixtures` for local/CI |
+   | `GEMINI_API_KEY` | LLM categorization/discovery (optional until those paths run) |
+   | `RESEND_API_KEY` | Digest email provider (T3.6; optional until digest job) |
 
 6. Use the service URL for `VITE_API_URL` on Vercel.
+
+### GitHub Actions worker secrets
+
+Scheduled jobs call the deployed backend over HTTP. Add these repository secrets:
+
+| Secret | Value |
+|--------|-------|
+| `BACKEND_BASE_URL` | Render backend URL (no trailing slash) |
+| `WORKER_TOKEN` | Same value as Render `WORKER_TOKEN` |
+
+**Scrape job (T3.5):** `.github/workflows/scrape.yml` supports manual `workflow_dispatch` only. Do not enable the cron schedule until T6.3 production validation is complete.
+
+1. GitHub → Actions → **Daily scrape** → **Run workflow**
+2. Confirm Render logs show `scrape_all_completed` JSON and response `status: completed` (or `skipped` if a concurrent run holds the advisory lock)
 
 ---
 
