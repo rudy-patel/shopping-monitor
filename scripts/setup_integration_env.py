@@ -29,6 +29,13 @@ def _strip(name: str) -> str:
     return (os.getenv(name) or "").strip()
 
 
+def _strip_env_value(value: str) -> str:
+    value = value.strip()
+    if len(value) >= 2 and value[0] == value[-1] == '"':
+        return value[1:-1].replace('\\"', '"').replace("\\\\", "\\")
+    return value
+
+
 def _load_example_defaults() -> dict[str, str]:
     if not EXAMPLE_PATH.exists():
         return {}
@@ -37,7 +44,7 @@ def _load_example_defaults() -> dict[str, str]:
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
-        values[key.strip()] = value.strip()
+        values[key.strip()] = _strip_env_value(value)
     return values
 
 
@@ -103,12 +110,19 @@ def resolve_supabase_env() -> dict[str, str]:
     return values
 
 
+def _format_env_value(value: str) -> str:
+    if value == "" or all(ch not in value for ch in ' \t<>"\\$`'):
+        return value
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
 def write_backend_env(values: dict[str, str]) -> None:
     base = _load_example_defaults()
     for key, value in values.items():
         if key in REQUIRED and not is_placeholder_value(key, value):
             base[key] = value
-    lines = [f"{key}={base[key]}" for key in sorted(base)]
+    lines = [f"{key}={_format_env_value(base[key])}" for key in sorted(base)]
     ENV_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 

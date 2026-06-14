@@ -8,6 +8,8 @@ from services.categorizer import DefaultCategorizer
 from services.fx_cache_service import CachedFxService
 from services.gemini import GeminiFlashLlmProvider
 from services.llm import LlmProvider, NoOpLlmProvider
+from services.mail import MailService, NoOpMailService
+from services.resend_mail import ResendMailService
 
 
 def build_retailer_default_categories() -> dict[str, str]:
@@ -46,3 +48,10 @@ def get_categorizer(settings: Settings | None = None) -> DefaultCategorizer:
 def get_fx_service(settings: Settings | None = None) -> CachedFxService:
     settings = settings or get_settings()
     return CachedFxService(get_service_role_client(), settings=settings)
+
+
+def get_mail_service(settings: Settings | None = None) -> MailService:
+    settings = settings or get_settings()
+    if settings.resend_api_key.strip():
+        return ResendMailService(settings)
+    return NoOpMailService()

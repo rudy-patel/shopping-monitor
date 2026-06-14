@@ -1,8 +1,4 @@
-"""MailService interface tests.
-
-DigestEmail.to_email is str (not pydantic EmailStr) because email-validator is not
-a runtime dependency in T1.5. T3.6 will swap to EmailStr when Resend lands.
-"""
+"""MailService interface tests."""
 
 from __future__ import annotations
 
@@ -79,7 +75,7 @@ def test_digest_email_rejects_empty_entries():
 
 @pytest.mark.parametrize("to_email", ["not-an-email", "@example.com", "user@"])
 def test_digest_email_rejects_invalid_to_email(to_email: str):
-    with pytest.raises(ValidationError, match="to_email"):
+    with pytest.raises(ValidationError):
         DigestEmail(
             to_email=to_email,
             subject="Digest",

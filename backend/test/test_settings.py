@@ -16,8 +16,10 @@ from core.settings import (
     DEFAULT_GEMINI_DISCOVER_TIMEOUT_S,
     DEFAULT_GEMINI_MODEL,
     DEFAULT_SCRAPER_MODE,
+    PRODUCTION_APP_BASE_URL,
     Settings,
     clear_settings_cache,
+    effective_app_base_url,
     get_settings,
 )
 
@@ -36,6 +38,7 @@ SETTINGS_ENV_KEYS = [
     "GEMINI_CATEGORIZE_TIMEOUT_S",
     "GEMINI_DISCOVER_TIMEOUT_S",
     "RESEND_API_KEY",
+    "RESEND_FROM_EMAIL",
     "APP_BASE_URL",
     "SCRAPER_MODE",
     "LOG_LEVEL",
@@ -141,3 +144,21 @@ def test_env_example_documents_settings_keys():
     expected = {key for key in SETTINGS_ENV_KEYS if key != "DEV_USER_ID"}
     missing = expected - documented
     assert not missing, f"backend/.env.example missing keys: {sorted(missing)}"
+
+
+def test_effective_app_base_url_local_dev():
+    settings = Settings(auth_bypass_enabled=True, app_base_url=DEFAULT_APP_BASE_URL)
+    assert effective_app_base_url(settings) == DEFAULT_APP_BASE_URL.rstrip("/")
+
+
+def test_effective_app_base_url_production_fallback():
+    settings = Settings(auth_bypass_enabled=False, app_base_url=DEFAULT_APP_BASE_URL)
+    assert effective_app_base_url(settings) == PRODUCTION_APP_BASE_URL
+
+
+def test_effective_app_base_url_explicit_production_override():
+    settings = Settings(
+        auth_bypass_enabled=False,
+        app_base_url="https://custom.example",
+    )
+    assert effective_app_base_url(settings) == "https://custom.example"

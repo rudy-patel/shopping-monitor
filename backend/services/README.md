@@ -118,19 +118,27 @@ fx = StaticFxService(rates={"USD": Decimal("0.74")})
 display = fx.convert_cad_cents(12345, quote="USD")
 ```
 
-## MailService
+## MailService (T3.6)
+
+Production wiring uses `services.factory.get_mail_service()`:
+
+- **`RESEND_API_KEY` set** → `ResendMailService` (`services/resend_mail.py`)
+- **Unset** → `NoOpMailService` (safe default; digest job does not send or mark `email_sent_at`)
+
+Digest copy and deep links live in `services/digest_templates.py` (mirrors `NotificationRow.tsx`; CAD display only). Subject: `Your Shopping Monitor digest`.
 
 ```python
 from datetime import datetime, timezone
 from uuid import uuid4
 
 from services import DigestEmail, DigestNotificationEntry, NoOpMailService, NotificationKind
+from services.factory import get_mail_service
 
-mail = NoOpMailService()
+mail = get_mail_service()  # NoOp when RESEND_API_KEY unset
 mail.send_digest(
     DigestEmail(
         to_email="user@example.com",
-        subject="Your daily digest",
+        subject="Your Shopping Monitor digest",
         text_body="...",
         html_body="...",
         entries=[
@@ -139,15 +147,20 @@ mail.send_digest(
                 type=NotificationKind.PRICE_DROP,
                 product_id=uuid4(),
                 product_title="Example",
-                summary="Price dropped 20%",
+                summary="Example dropped from $100.00 to $80.00.",
                 deep_link="https://app.example.com/products/abc",
                 created_at=datetime.now(timezone.utc),
             )
         ],
     )
 )
-assert len(mail.sent) == 1
 ```
+
+**Digest job:** `POST /internal/jobs/send-digests` (worker token) runs `digest_job_service.run_send_digests()`. Selects unread notifications with `email_sent_at IS NULL` within the 90-day window. Skips users with `email_digest_enabled=false` or zero qualifying rows. Resolves recipient via Supabase Auth admin API (`auth.admin.get_user_by_id`), not `profiles`. Marks `email_sent_at` only after a successful Resend send. `profiles.notifications_enabled` does **not** gate digest delivery (PRD §7.6).
+
+**Worker boundary:** GitHub Actions `.github/workflows/digest.yml` (`workflow_dispatch` only; cron deferred T6.3) runs `backend/workers/send_digests.py`.
+
+**Manual smoke:** `python scripts/smoke_resend_digest.py` (dry-run default); `--live --to <email>` for one sandbox send (never in CI).
 
 ## NotificationEvaluator (T3.4)
 
@@ -239,6 +252,5 @@ trend = compute_trend(observations, today=date(2026, 6, 14))
 
 ## Deferred to later tasks
 
-- **T3.6** — Resend `MailService` + HTML/text digest templates; swap `DigestEmail.to_email` to `EmailStr` once `email-validator` is added.
-- **T6.3** — Enable cron schedule on `.github/workflows/scrape.yml` after production validation.
+- **T6.3** — Enable cron schedules on scrape/digest workflows after production validation.
 - **T4.2** — Settings page UI for currency, theme, digest, thresholds, delete account.

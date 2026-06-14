@@ -14,6 +14,7 @@ _BACKEND_DIR = Path(__file__).resolve().parents[1]
 _ENV_FILE = _BACKEND_DIR / ".env"
 
 DEFAULT_APP_BASE_URL = "http://localhost:3000"  # pragma: allowlist secret
+PRODUCTION_APP_BASE_URL = "https://shopping-monitor-nine.vercel.app"
 DEFAULT_SCRAPER_MODE = "fixtures"  # pragma: allowlist secret
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S = 1.5
@@ -21,6 +22,7 @@ DEFAULT_GEMINI_DISCOVER_TIMEOUT_S = 30.0
 DEFAULT_FX_CACHE_TTL_HOURS = 24
 DEFAULT_FRANKFURTER_BASE_URL = "https://api.frankfurter.dev"
 DEFAULT_EXCHANGERATE_API_OPEN_URL = "https://open.er-api.com/v6/latest"
+DEFAULT_RESEND_FROM_EMAIL = "Shopping Monitor <onboarding@resend.dev>"
 DEFAULT_CORS_ORIGINS = [DEFAULT_APP_BASE_URL, "http://127.0.0.1:3000"]
 ScraperMode = Literal["fixtures", "live", "record"]  # pragma: allowlist secret
 
@@ -46,6 +48,7 @@ class Settings(BaseSettings):
     frankfurter_base_url: str = DEFAULT_FRANKFURTER_BASE_URL
     exchangerate_api_open_url: str = DEFAULT_EXCHANGERATE_API_OPEN_URL
     resend_api_key: str = ""
+    resend_from_email: str = DEFAULT_RESEND_FROM_EMAIL
     app_base_url: str = DEFAULT_APP_BASE_URL
     scraper_mode: ScraperMode = DEFAULT_SCRAPER_MODE
     log_level: str = "INFO"
@@ -79,3 +82,27 @@ def get_settings() -> Settings:
 
 def clear_settings_cache() -> None:
     get_settings.cache_clear()
+
+
+def _is_local_app_base_url(url: str) -> bool:
+    normalized = url.strip().rstrip("/")
+    if not normalized:
+        return True
+    if normalized in {DEFAULT_APP_BASE_URL.rstrip("/"), "http://127.0.0.1:3000"}:
+        return True
+    return "localhost" in normalized or "127.0.0.1" in normalized
+
+
+def effective_app_base_url(settings: Settings | None = None) -> str:
+    """Frontend origin for outbound email deep links.
+
+    Local dev keeps localhost. Production falls back to the deployed Vercel URL when
+    APP_BASE_URL is unset or still points at localhost (common Render misconfig).
+    """
+    settings = settings or get_settings()
+    configured = settings.app_base_url.strip().rstrip("/")
+    if configured and not _is_local_app_base_url(configured):
+        return configured
+    if not settings.auth_bypass_enabled:
+        return PRODUCTION_APP_BASE_URL
+    return configured or DEFAULT_APP_BASE_URL.rstrip("/")

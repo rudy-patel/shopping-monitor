@@ -124,7 +124,7 @@ The free tier sleeps after ~15 minutes idle with a ~30s cold start on wake (PRD 
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role — never expose to frontend |
 | `AUTH_BYPASS_ENABLED` | `false` |
 | `WORKER_TOKEN` | Strong secret; must match GitHub Actions |
-| `APP_BASE_URL` | `https://shopping-monitor-nine.vercel.app` |
+| `APP_BASE_URL` | `https://shopping-monitor-nine.vercel.app` (required for correct digest deep links; backend falls back to this production URL when unset/localhost and `AUTH_BYPASS_ENABLED=false`) |
 | `SCRAPER_MODE` | `live` |
 | `CORS_ALLOWED_ORIGINS` | `https://shopping-monitor-nine.vercel.app,http://localhost:3000` (comma-separated; include localhost for local frontend → prod API debugging) |
 | `GEMINI_API_KEY` | Required for LLM categorization/discovery; heuristics fallback if unset |
@@ -140,14 +140,18 @@ The free tier sleeps after ~15 minutes idle with a ~30s cold start on wake (PRD 
 | `FX_CACHE_TTL_HOURS` | `24` |
 | `FRANKFURTER_BASE_URL` | `https://api.frankfurter.dev` |
 | `EXCHANGERATE_API_OPEN_URL` | `https://open.er-api.com/v6/latest` |
+| `RESEND_FROM_EMAIL` | `Shopping Monitor <onboarding@resend.dev>` (Resend sandbox sender) |
 
 Source of truth: `backend/core/settings.py`.
 
-### Intentionally unset (H4 deferred)
+### Resend (digest email)
 
-| Variable | Status |
+| Variable | Notes |
 | --- | --- |
-| `RESEND_API_KEY` | **Empty until H4 + T3.6.** Digest job not shipped; tests use `NoOpMailService`. Add when T3.6 lands. |
+| `RESEND_API_KEY` | Required on Render for production digest sends. Local/CI tests mock Resend; unset key → `NoOpMailService`. |
+| `RESEND_FROM_EMAIL` | Default sandbox sender above; swap for verified domain in production when ready. |
+
+Sandbox deliverability: Resend `onboarding@resend.dev` only delivers to the Resend account owner email.
 
 ---
 
@@ -184,7 +188,24 @@ Prior failures ([run #27507830386](https://github.com/rudy-patel/shopping-monito
 
 ### Digest workflow
 
-Not yet implemented (T3.6). Do not add `digest.yml` or enable digest cron until T3.6 + H4 (Resend).
+`.github/workflows/digest.yml`:
+
+- **Trigger:** `workflow_dispatch` only (cron `0 14 * * *` commented — enable in T6.3 after human confirmation)
+- **Worker:** `backend/workers/send_digests.py`
+- **Deploy-wait:** Same 600s OpenAPI poll pattern as scrape worker (waits for `/internal/jobs/send-digests`)
+
+Manual run: GitHub → Actions → **Daily digest** → **Run workflow**.
+
+**Post-merge:** Set `RESEND_API_KEY` on Render (same value as local sandbox key). Confirm `APP_BASE_URL=https://shopping-monitor-nine.vercel.app`. Dispatch once and verify inbox delivery before enabling cron (T6.3).
+
+**Troubleshooting:**
+
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| `users_skipped_no_email` | Auth user has no email | Set email on Supabase Auth user (digest resolves via admin API, not `profiles`) |
+| `mail_provider: "noop"` | `RESEND_API_KEY` unset on Render | Set env var and redeploy |
+| Second dispatch sends nothing | Idempotency (`email_sent_at` set) | Expected — only unread unsent rows qualify |
+| HTTP 401 on POST | `WORKER_TOKEN` mismatch | Sync Render + GitHub secret |
 
 ---
 
@@ -194,9 +215,11 @@ Not yet implemented (T3.6). Do not add `digest.yml` or enable digest cron until 
 # Backend reachable
 curl -sS https://shopping-monitor-api.onrender.com/health | jq .
 
-# OpenAPI includes scrape job (confirms deploy complete)
+# OpenAPI includes worker job routes (confirms deploy complete)
 curl -sS https://shopping-monitor-api.onrender.com/openapi.json \
   | jq '.paths | has("/internal/jobs/scrape-all")'
+curl -sS https://shopping-monitor-api.onrender.com/openapi.json \
+  | jq '.paths | has("/internal/jobs/send-digests")'
 
 # Worker token guard (expect 401)
 curl -sS -o /dev/null -w "%{http_code}\n" \
@@ -229,5 +252,4 @@ Playwright e2e runs in the `playwright-e2e` job when Supabase secrets are config
 | --- | --- |
 | T6.2 | Full production smoke (Google sign-in, add live Best Buy URL, manual refresh) |
 | T6.3 | Enable scrape/digest cron schedules — requires explicit human OK |
-| T3.6 + H4 | Resend digest when ready |
 | T6.4 | 7-day reliability check |

@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Protocol
 from uuid import UUID
 
-from pydantic import BaseModel, HttpUrl, field_validator, model_validator
+from pydantic import BaseModel, EmailStr, HttpUrl, field_validator, model_validator
 
 from services.notifications import NotificationKind
 
@@ -29,21 +29,11 @@ class DigestNotificationEntry(BaseModel):
 
 
 class DigestEmail(BaseModel):
-    to_email: str
+    to_email: EmailStr
     subject: str
     text_body: str
     html_body: str
     entries: list[DigestNotificationEntry]
-
-    @field_validator("to_email")
-    @classmethod
-    def validate_to_email(cls, value: str) -> str:
-        if "@" not in value:
-            raise ValueError("to_email must contain @")
-        local, _, domain = value.partition("@")
-        if not local or not domain:
-            raise ValueError("to_email must have non-empty local and domain parts")
-        return value
 
     @model_validator(mode="after")
     def validate_non_empty_entries(self) -> DigestEmail:

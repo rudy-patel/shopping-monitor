@@ -4,6 +4,20 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T3.6 Digest email service and job
+
+**What:** Implemented Resend-backed digest delivery: `ResendMailService`, `digest_templates.py` (copy mirrors `NotificationRow.tsx`), `digest_job_service.run_send_digests()`, `POST /internal/jobs/send-digests`, `backend/workers/send_digests.py`, `.github/workflows/digest.yml` (`workflow_dispatch` only), and `scripts/smoke_resend_digest.py` (dry-run default). Added pytest Resend guard in `conftest.py` (mirrors Gemini). `DigestEmail.to_email` now uses `EmailStr`.
+
+**Locked behavior:** Select unread notifications with `email_sent_at IS NULL` within 90-day window. Skip when `email_digest_enabled=false` or zero qualifying rows. `notifications_enabled` does not gate digest. Mark `email_sent_at` only after successful Resend send; `RESEND_API_KEY` unset → `mail_provider: noop` with no sends or marks. Recipient resolved via Supabase Auth admin API. Revisit types deep-link to `/notifications`; `needs_input` → `/products/:id/variants`.
+
+**Files:** `backend/services/resend_mail.py`, `backend/services/digest_templates.py`, `backend/services/digest_job_service.py`, `backend/services/mail.py`, `backend/services/factory.py`, `backend/core/settings.py`, `backend/routers/internal_jobs.py`, `backend/workers/send_digests.py`, `.github/workflows/digest.yml`, `backend/scripts/smoke_resend_digest.py`, `backend/test/test_digest_templates.py`, `backend/test/test_digest_job_service.py`, `backend/test/test_resend_mail.py`, `backend/test/test_workers_send_digests.py`, `backend/test/test_conftest_resend_guard.py`, `backend/test/conftest.py`, `backend/test/fake_supabase.py`, `backend/test/test_internal_jobs_router.py`, `backend/requirements.txt`, `backend/.env.example`, `backend/services/README.md`, `docs/DEPLOYMENT.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `ruff check .`, `pytest -m "not integration"` (428 passed) with `SCRAPER_MODE=fixtures`. PR https://github.com/rudy-patel/shopping-monitor/pull/35. H4 done; sandbox live smoke recipient `rutvik@ualberta.ca` (human inbox check after one `--live` send).
+
+**Deferred:** Digest cron schedule → T6.3; production `RESEND_API_KEY` on Render → post-merge (T6.2).
+
+---
+
 ## [2026-06-14] T6.1 Deployment docs and config hardening
 
 **What:** Rewrote `docs/DEPLOYMENT.md` with confirmed production URLs, env-var matrix, Supabase redirects, scrape workflow + deploy-wait docs, and verification checklist. Synced `backend/.env.example`; added `test_env_example_documents_settings_keys` to keep example aligned with `Settings`. Updated `docs/ROADMAP.md`, `docs/PRD.md` (§10.3/§10.8 — defer to DEPLOYMENT.md, scrape dispatch verified), `AGENTS.md`, and `README.md`.

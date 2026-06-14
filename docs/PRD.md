@@ -651,7 +651,7 @@ V1 should optimize for a free, maintainable, Python-native scraping stack rather
 
 Copy `backend/.env.example` → `backend/.env` and `frontend/.env.example` → `frontend/.env` for local development. Variable names and production guidance live in `backend/.env.example`, `backend/core/settings.py`, and `docs/DEPLOYMENT.md` (production URLs, required vs optional vars, GitHub Actions secrets).
 
-Local defaults: `AUTH_BYPASS_ENABLED=true`, `SCRAPER_MODE=fixtures`. Production: `AUTH_BYPASS_ENABLED=false`, `SCRAPER_MODE=live`, plus `WORKER_TOKEN`, `CORS_ALLOWED_ORIGINS`, and provider keys per `docs/DEPLOYMENT.md`. `RESEND_API_KEY` is intentionally unset until H4/T3.6.
+Local defaults: `AUTH_BYPASS_ENABLED=true`, `SCRAPER_MODE=fixtures`. Production: `AUTH_BYPASS_ENABLED=false`, `SCRAPER_MODE=live`, plus `WORKER_TOKEN`, `CORS_ALLOWED_ORIGINS`, and provider keys per `docs/DEPLOYMENT.md`. `RESEND_API_KEY` is required on Render for digest sends (H4/T3.6); local/CI tests mock Resend when unset.
 
 GitHub Actions secrets: `WORKER_TOKEN`, `BACKEND_BASE_URL`. CI sets `SCRAPER_MODE=fixtures` and must not require retailer network access.
 

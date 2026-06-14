@@ -36,6 +36,7 @@ class FakeQuery:
         self._eq_filters: list[tuple[str, str]] = []
         self._in_filter: tuple[str, list[str]] | None = None
         self._gte_filters: list[tuple[str, str]] = []
+        self._is_filters: list[tuple[str, str | None]] = []
         self._limit: int | None = None
         self._range: tuple[int, int] | None = None
         self._order: tuple[str, bool] | None = None
@@ -64,6 +65,10 @@ class FakeQuery:
 
     def gte(self, column: str, value: str):
         self._gte_filters.append((column, value))
+        return self
+
+    def is_(self, column: str, value: str | None):
+        self._is_filters.append((column, value))
         return self
 
     def order(self, column: str, *, desc: bool = False):
@@ -127,6 +132,11 @@ class FakeQuery:
             filtered = [row for row in filtered if row.get(col) in value_set]
         for col, val in self._gte_filters:
             filtered = [row for row in filtered if row.get(col) is not None and row.get(col) >= val]
+        for col, val in self._is_filters:
+            if val == "null":
+                filtered = [row for row in filtered if row.get(col) is None]
+            else:
+                filtered = [row for row in filtered if row.get(col) == val]
         if self._order is not None:
             col, desc = self._order
             filtered = sorted(filtered, key=lambda row: row.get(col, ""), reverse=desc)
@@ -257,6 +267,28 @@ class FakeQuery:
         return FakeResponse(deleted)
 
 
+class FakeAuthUser:
+    def __init__(self, email: str | None):
+        self.email = email
+
+
+class FakeAuthAdmin:
+    def __init__(self, store: "FakeSupabaseClient"):
+        self._store = store
+
+    def get_user_by_id(self, user_id: str):
+        raw = self._store.auth_users.get(str(user_id))
+        if raw is None:
+            raise APIError({"message": "User not found", "code": "user_not_found"})
+        email = raw if isinstance(raw, str) else raw.get("email")
+        return type("AuthUserResponse", (), {"user": FakeAuthUser(email)})()
+
+
+class FakeAuth:
+    def __init__(self, store: "FakeSupabaseClient"):
+        self.admin = FakeAuthAdmin(store)
+
+
 class FakeSupabaseClient:
     def __init__(self):
         self.profiles: dict[str, dict] = {}
@@ -265,9 +297,14 @@ class FakeSupabaseClient:
         self.price_history: dict[int, dict] = {}
         self.notifications: dict[str, dict] = {}
         self.fx_rates_cache: dict[str, dict] = {}
+        self.auth_users: dict[str, object] = {}
         self.force_duplicate_on_insert = False
         self.rpc_returns: dict[str, Any] = {}
         self._price_history_counter = 1
+
+    @property
+    def auth(self) -> FakeAuth:
+        return FakeAuth(self)
 
     def _next_price_history_id(self) -> int:
         value = self._price_history_counter
