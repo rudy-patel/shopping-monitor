@@ -10,10 +10,121 @@ The app uses **Supabase PostgreSQL** with Supabase Auth. Document every table he
 ┌─────────────────┐
 │   auth.users    │  (Supabase managed)
 │  (Supabase)     │
-└─────────────────┘
+└────────┬────────┘
+         │
+    ┌────┴────┬──────────────┬─────────────────┐
+    │         │              │                 │
+profiles  products  notifications      fx_rates_cache
+              │
+         product_listings
+              │
+         price_history
 ```
 
-No application tables yet. Add migrations starting at `001_*.sql`.
+---
+
+## Tables
+
+### `profiles`
+
+**RLS:** Pattern A — users select/insert/update/delete their own row.
+
+| Column                     | Type          | Notes                                                                                               |
+| -------------------------- | ------------- | --------------------------------------------------------------------------------------------------- |
+| `user_id`                  | `uuid` PK     | References `auth.users(id)` ON DELETE CASCADE                                                       |
+| `display_currency`         | `text`        | Default `'CAD'`. Allowed: CAD, USD, EUR, GBP.                                                       |
+| `default_threshold_pct`    | `int`         | Default `20`. Range 1–95.                                                                           |
+| `notifications_enabled`    | `bool`        | Default `true`. Master switch for in-app notifications and notification-trigger evaluation.         |
+| `email_digest_enabled`     | `bool`        | Default `true`.                                                                                     |
+| `theme`                    | `text`        | `'light'` or `'dark'`. Default `'light'`. Drives the `dark` class on the frontend `<html>` element. |
+| `revisit_prompts_enabled`  | `bool`        | Default `true`. Master switch for §7.10.                                                            |
+| `revisit_on_sale_enabled`  | `bool`        | Default `true`. Disables only the `revisit_on_sale` prompt type.                                    |
+| `revisit_stale_enabled`    | `bool`        | Default `true`. Disables only the `revisit_stale` prompt type.                                      |
+| `revisit_stale_days`       | `int`         | Default `30`. Range 7–365.                                                                          |
+| `created_at`, `updated_at` | `timestamptz` |                                                                                                     |
+
+### `products`
+
+**RLS:** Pattern A — users access only rows where `user_id = auth.uid()`. Index on `(user_id, status)`.
+
+| Column                       | Type          | Notes                                                                                                                                                                                   |
+| ---------------------------- | ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                         | `uuid` PK     |                                                                                                                                                                                         |
+| `user_id`                    | `uuid`        | FK to `auth.users`, indexed                                                                                                                                                             |
+| `title`                      | `text`        |                                                                                                                                                                                         |
+| `brand`                      | `text`        | nullable                                                                                                                                                                                |
+| `image_url`                  | `text`        | nullable                                                                                                                                                                                |
+| `category`                   | `text`        | enum-like; one of `clothing/shoes/home/tech/other`                                                                                                                                      |
+| `status`                     | `text`        | `active`, `needs_input`, `archived`                                                                                                                                                     |
+| `notification_threshold_pct` | `int`         | nullable; falls back to `profiles.default_threshold_pct`                                                                                                                                |
+| `notifications_enabled`      | `bool`        | Default `true`.                                                                                                                                                                         |
+| `discovery_status`           | `text`        | `pending`, `running`, `complete`, `failed`                                                                                                                                              |
+| `category_source`            | `text`        | `manual`, `llm`, `heuristic`, `default_other`. Used to skip future auto-categorization when value is `manual`.                                                                          |
+| `last_refresh_at`            | `timestamptz` | nullable; used to enforce manual refresh cooldown                                                                                                                                       |
+| `last_user_interaction_at`   | `timestamptz` | nullable; updated on manual refresh, threshold/category edits, listing accept/reject, archive/restore, or notification mark-read for this product. Used by §7.10 stale revisit prompts. |
+| `created_at`, `updated_at`   | `timestamptz` |                                                                                                                                                                                         |
+
+### `product_listings`
+
+**RLS:** Pattern A via join on `products.user_id`.
+
+| Column                     | Type           | Notes                                                |
+| -------------------------- | -------------- | ---------------------------------------------------- |
+| `id`                       | `uuid` PK      |                                                      |
+| `product_id`               | `uuid`         | FK products, indexed                                 |
+| `retailer_slug`            | `text`         | e.g. `amazon_ca`, `nike_ca`, `generic`               |
+| `url`                      | `text`         | the canonical product URL                            |
+| `variant_attributes`       | `jsonb`        | e.g. `{"size":"10","color":"white"}`                 |
+| `available_variants`       | `jsonb`        | nullable list of variant combinations from the latest scrape; used by the variant picker when `products.status='needs_input'` |
+| `scrape_snapshot`          | `jsonb`        | nullable normalized raw fields from the latest successful scrape for debugging/fixture parity, excluding full HTML |
+| `is_primary`               | `bool`         | true for the URL the user pasted                     |
+| `match_confidence`         | `numeric(4,3)` | nullable; only set for discovered listings           |
+| `review_status`            | `text`         | `auto_added`, `needs_review`, `accepted`, `rejected`; primary listings use `accepted` |
+| `last_known_price_cents`   | `int`          | nullable; CAD cents                                  |
+| `is_in_stock`              | `bool`         | nullable until first scrape                          |
+| `last_scraped_at`          | `timestamptz`  |                                                      |
+| `scrape_status`            | `text`         | nullable until first scrape; then `ok`, `failing`, `blocked` |
+| `scrape_failure_count`     | `int`          | default 0                                            |
+| `created_at`, `updated_at` | `timestamptz`  |                                                      |
+
+### `price_history`
+
+**RLS:** Pattern A via join through `product_listings` → `products.user_id`.
+
+| Column        | Type           | Notes                        |
+| ------------- | -------------- | ---------------------------- |
+| `id`          | `bigserial` PK |                              |
+| `listing_id`  | `uuid`         | FK product_listings, indexed |
+| `price_cents` | `int`          | CAD cents, NOT NULL          |
+| `is_in_stock` | `bool`         |                              |
+| `observed_at` | `timestamptz`  | indexed                      |
+| `source`      | `text`         | `scheduled`, `manual`        |
+
+### `notifications`
+
+**RLS:** Pattern A — users access only rows where `user_id = auth.uid()`.
+
+| Column          | Type          | Notes                                                                                                                    |
+| --------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `id`            | `uuid` PK     |                                                                                                                          |
+| `user_id`       | `uuid`        | FK auth.users                                                                                                            |
+| `product_id`    | `uuid`        | nullable                                                                                                                 |
+| `listing_id`    | `uuid`        | nullable                                                                                                                 |
+| `type`          | `text`        | `price_drop`, `back_in_stock`, `discovery_complete`, `needs_input`, `scrape_failing`, `revisit_on_sale`, `revisit_stale` |
+| `payload`       | `jsonb`       | type-specific data (old price, new price, retailer, etc.)                                                                |
+| `is_read`       | `bool`        | default false                                                                                                            |
+| `email_sent_at` | `timestamptz` | nullable; populated when included in a digest                                                                            |
+| `created_at`    | `timestamptz` | indexed                                                                                                                  |
+
+### `fx_rates_cache`
+
+**RLS:** Pattern B — service-role only; RLS enabled with no authenticated policies.
+
+| Column       | Type                         |
+| ------------ | ---------------------------- |
+| `pair`       | `text` PK (e.g. `'CAD_USD'`) |
+| `rate`       | `numeric`                    |
+| `fetched_at` | `timestamptz`                |
 
 ---
 
@@ -90,4 +201,4 @@ When integration tests need DB access:
 
 | File | Description |
 |------|-------------|
-| _(none yet)_ | Add `001_*.sql` when schema work begins |
+| `001_core_schema.sql` | Initial core schema (profiles, products, product_listings, price_history, notifications, fx_rates_cache) with RLS, indexes, and updated_at trigger |

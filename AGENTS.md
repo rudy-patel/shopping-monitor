@@ -6,7 +6,7 @@
 
 **Shopping Monitor** — **Python/FastAPI** backend (port 8000) and **React/Vite/TypeScript** frontend (port 3000). Data lives in a remote **Supabase** instance (no local database). See `README.md` and `docs/PRD.md` for full documentation.
 
-Before feature work, read `MEMORY.md`, `docs/PRD.md`, `docs/ROADMAP.md`, and this file. The PRD is the source of truth for V1 scope, non-goals, data model, worker boundaries, and the first integrated vertical slice. The roadmap is the source of truth for milestone/task status, prioritized implementation sequencing, parallel-agent lanes, and just-in-time human-setup checkpoints.
+Before feature work, read `MEMORY.md`, `docs/PRD.md`, and this file. The PRD is the source of truth for V1 scope, non-goals, data model, worker boundaries, and the first integrated vertical slice.
 
 ### Environment variables
 
@@ -44,8 +44,29 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 | Frontend unit tests | `cd frontend && npm run test:run` | Vitest (`frontend/src/test/`). |
 | Frontend build | `cd frontend && npm run build` | `tsc && vite build` |
 | All unit tests | `make test` | Backend pytest (`-m "not integration"`) + frontend vitest |
+| Integration tests | `make test-integration` | Requires Supabase credentials; writes `backend/.env` via `make setup-integration-env` |
 
 CI and local automated tests must run scraper code with `SCRAPER_MODE=fixtures` so no test hits live retailer URLs. Use `live` only for explicit benchmark/drift tasks and `record` only when intentionally capturing fixtures.
+
+### Integration tests (Supabase RLS smoke)
+
+Integration tests are excluded from `make test` / CI unit jobs. They require a live Supabase project with `001_core_schema` applied.
+
+**Cursor Cloud / local setup**
+
+1. Add these as **Environment Variable** secrets (not Build secrets) in the Cloud Agents dashboard:
+   - `SUPABASE_URL`
+   - `SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+2. Alternative: set `SUPABASE_ACCESS_TOKEN` (or `SUPABASE_PAT`) + `SUPABASE_PROJECT_REF`; the setup script fetches keys via the Supabase Management API.
+3. Sync env and run:
+   ```bash
+   make setup-integration-env
+   make test-integration
+   ```
+   `make test-integration` sets `REQUIRE_INTEGRATION_ENV=1`, so missing credentials fail loudly instead of skipping.
+
+`scripts/setup_integration_env.py` writes `backend/.env` (gitignored) from shell env, an existing `.env`, or the Management API fallback.
 
 ### Gotchas
 
@@ -55,5 +76,3 @@ CI and local automated tests must run scraper code with `SCRAPER_MODE=fixtures` 
 - **No local database.** All persistence is via remote Supabase.
 - **Auth bypass:** Set `AUTH_BYPASS_ENABLED=true` in `backend/.env` for local development without real Supabase auth (when auth routes exist).
 - **Supabase security:** Never expose `SUPABASE_SERVICE_ROLE_KEY` to frontend code. Every new `public` table must enable RLS in the same migration and be documented in `docs/DATABASE.md`.
-- **Runs without Supabase creds:** With placeholder/missing Supabase env, the backend still serves `/` and the frontend renders; only `/health` reports `"degraded"` (`database: disconnected`). This is expected for local dev and does not block the frontend↔backend hello-world.
-- **Migration check working dir:** Run `python scripts/check_migrations.py` from the **repo root** (it lives in `scripts/`, not `backend/scripts/`). CI invokes it with `working-directory: ${{ github.workspace }}`.
