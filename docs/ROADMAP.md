@@ -380,7 +380,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.8 Controlled live Best Buy validation
 
-**Status:** done — branch `cursor/t2-8-live-bestbuy-validation-f127`; canonical URL Nintendo Switch 2 Console (`19296507`).
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/23.
 
 - **Owner:** agent with human awareness.
 - **Human setup:** H1/H2; optionally H3 if categorization live path is included.
