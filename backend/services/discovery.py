@@ -13,6 +13,7 @@ from services.factory import get_llm_provider
 from services.matching import classify_match, compute_match_confidence
 from services.product_service import (
     _build_scrape_snapshot,
+    count_cap_listings,
     scrape_listing_url,
     variant_attrs_to_dict,
 )
@@ -22,6 +23,14 @@ logger = get_logger(__name__)
 MAX_NON_PRIMARY_AUTO_ADDED = 4
 MAX_TOTAL_LISTINGS = 5
 MAX_LLM_CANDIDATES = 8
+
+
+def _truncate_justification(text: str, *, max_len: int = 60) -> str:
+    """Tight one-liner for review queue; no score breakdown."""
+    stripped = " ".join(text.split())
+    if len(stripped) <= max_len:
+        return stripped
+    return stripped[: max_len - 1].rstrip() + "…"
 
 
 def _normalize_url(url: str) -> str:
@@ -84,7 +93,10 @@ def _insert_discovered_listing(
     price_cents: int | None,
     review_status: str,
     match_confidence: float,
+    justification: str,
 ) -> dict[str, Any]:
+    snapshot_payload = _build_scrape_snapshot(snapshot)
+    snapshot_payload["discovery_justification"] = _truncate_justification(justification)
     row = (
         client.table("product_listings")
         .insert(
@@ -94,7 +106,7 @@ def _insert_discovered_listing(
                 "url": url,
                 "variant_attributes": variant_attrs_to_dict(snapshot.selected_variant),
                 "available_variants": None,
-                "scrape_snapshot": _build_scrape_snapshot(snapshot),
+                "scrape_snapshot": snapshot_payload,
                 "is_primary": False,
                 "review_status": review_status,
                 "match_confidence": match_confidence,
@@ -194,7 +206,7 @@ def run_discovery_for_product(product_id: UUID) -> None:
         seen_urls = _existing_normalized_urls(listings)
         auto_added_count = 0
         needs_review_count = 0
-        total_listings = len(listings)
+        cap_count = count_cap_listings(listings)
         non_primary_auto = _count_non_primary_auto_added(listings)
 
         for candidate in candidates:
@@ -204,7 +216,7 @@ def run_discovery_for_product(product_id: UUID) -> None:
                     extra={"product_id": str(product_id)},
                 )
                 break
-            if total_listings >= MAX_TOTAL_LISTINGS:
+            if cap_count >= MAX_TOTAL_LISTINGS:
                 logger.info(
                     "discovery_stop_total_cap",
                     extra={"product_id": str(product_id)},
@@ -313,10 +325,11 @@ def run_discovery_for_product(product_id: UUID) -> None:
                 price_cents=outcome.price_cents,
                 review_status=review_status,
                 match_confidence=score,
+                justification=candidate.justification,
             )
             seen_retailers.add(entry.slug)
             seen_urls.add(normalized)
-            total_listings += 1
+            cap_count += 1
 
             if review_status == "auto_added":
                 auto_added_count += 1

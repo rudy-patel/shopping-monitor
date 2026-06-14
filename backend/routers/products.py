@@ -13,11 +13,14 @@ from services.discovery import run_discovery_for_product
 from services.product_service import (
     ProductCategory,
     ProductStatus,
+    accept_listing,
     create_product,
+    delete_listing,
     delete_product,
     get_product,
     list_products,
     refresh_product,
+    reject_listing,
     select_variant,
     update_product,
 )
@@ -48,6 +51,9 @@ class ListingResponse(BaseModel):
     last_scraped_at: str | None
     scrape_status: str | None
     match_confidence: float | None
+    review_title: str | None = None
+    review_image_url: str | None = None
+    review_reason: str | None = None
 
 
 class ProductSummary(BaseModel):
@@ -167,5 +173,56 @@ async def post_select_variant(
         user_id=user.user_id,
         product_id=product_id,
         variant_attributes=body.variant_attributes,
+    )
+    return ProductDetail.model_validate(detail)
+
+
+@router.post(
+    "/products/{product_id}/listings/{listing_id}/accept",
+    response_model=ProductDetail,
+)
+async def post_accept_listing(
+    product_id: UUID,
+    listing_id: UUID,
+    user: CurrentUser = Depends(get_current_user),
+) -> ProductDetail:
+    detail = accept_listing(
+        user_id=user.user_id,
+        product_id=product_id,
+        listing_id=listing_id,
+    )
+    return ProductDetail.model_validate(detail)
+
+
+@router.post(
+    "/products/{product_id}/listings/{listing_id}/reject",
+    response_model=ProductDetail,
+)
+async def post_reject_listing(
+    product_id: UUID,
+    listing_id: UUID,
+    user: CurrentUser = Depends(get_current_user),
+) -> ProductDetail:
+    detail = reject_listing(
+        user_id=user.user_id,
+        product_id=product_id,
+        listing_id=listing_id,
+    )
+    return ProductDetail.model_validate(detail)
+
+
+@router.delete(
+    "/products/{product_id}/listings/{listing_id}",
+    response_model=ProductDetail,
+)
+async def delete_listing_by_id(
+    product_id: UUID,
+    listing_id: UUID,
+    user: CurrentUser = Depends(get_current_user),
+) -> ProductDetail:
+    detail = delete_listing(
+        user_id=user.user_id,
+        product_id=product_id,
+        listing_id=listing_id,
     )
     return ProductDetail.model_validate(detail)

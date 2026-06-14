@@ -7,11 +7,12 @@ import { CategoryField } from '@/components/products/CategoryField'
 import { DeleteProductDialog } from '@/components/products/DeleteProductDialog'
 import { DiscoveryIndicator } from '@/components/products/DiscoveryIndicator'
 import { ListingRow } from '@/components/products/ListingRow'
+import { NeedsReviewQueue } from '@/components/products/NeedsReviewQueue'
 import { ThresholdField } from '@/components/products/ThresholdField'
 import { TrendChip } from '@/components/products/TrendChip'
 import { ProductCardSkeleton } from '@/components/products/ProductCardSkeleton'
-import { useArchiveProduct, useProduct, useRefreshProduct, useRestoreProduct } from '@/hooks/useProducts'
-import type { Listing } from '@/lib/products'
+import { useArchiveProduct, useDeleteListing, useProduct, useRefreshProduct, useRestoreProduct } from '@/hooks/useProducts'
+import { activeListings } from '@/lib/products'
 import { cn } from '@/lib/utils'
 
 export function ProductDetailPage() {
@@ -20,6 +21,7 @@ export function ProductDetailPage() {
   const refresh = useRefreshProduct(id ?? '')
   const archive = useArchiveProduct(id ?? '')
   const restore = useRestoreProduct(id ?? '')
+  const removeListing = useDeleteListing(id ?? '')
   const [deleteOpen, setDeleteOpen] = useState(false)
   const isArchived = product?.status === 'archived'
 
@@ -86,6 +88,8 @@ export function ProductDetailPage() {
           </div>
         </section>
 
+        <NeedsReviewQueue product={product} />
+
         <section className="space-y-4">
           <h2 className="border-b border-border pb-2 text-lg font-semibold tracking-tight">
             Listings
@@ -103,8 +107,15 @@ export function ProductDetailPage() {
                 </tr>
               </thead>
               <tbody>
-                {product.listings.map((listing: Listing) => (
-                  <ListingRow key={listing.id} listing={listing} />
+                {activeListings(product.listings).map((listing) => (
+                  <ListingRow
+                    key={listing.id}
+                    listing={listing}
+                    onRemove={(listingId) => removeListing.mutate(listingId)}
+                    isRemoving={
+                      removeListing.isPending && removeListing.variables === listing.id
+                    }
+                  />
                 ))}
               </tbody>
             </table>

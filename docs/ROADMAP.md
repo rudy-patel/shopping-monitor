@@ -420,7 +420,7 @@ These can proceed after the local vertical slice lands.
 
 ### T3.2 Listing review API and UI
 
-**Status:** pending
+**Status:** done (2026-06-14)
 
 - **Owner:** agent.
 - **PR size:** single full-stack PR if T3.1 is stable.
@@ -429,10 +429,11 @@ These can proceed after the local vertical slice lands.
   - `POST /api/products/:id/listings/:listing_id/reject`
   - `DELETE /api/products/:id/listings/:listing_id`
   - Product detail "Needs review" queue with accept/reject/open-source actions.
-  - Exclude needs-review/rejected rows from best price/trend math.
+  - Rejected and needs-review rows hidden from main listings table; Remove on confirmed matches.
+  - Truncated `discovery_justification` in scrape snapshot for review reason display.
 - **Verification:**
-  - Backend tests for ownership, status transitions, listing cap semantics.
-  - Frontend tests for review queue behavior.
+  - Backend tests for ownership, status transitions, cap semantics, serialized review fields.
+  - Frontend Vitest for review queue, accept/reject, remove, and fallback copy.
 
 ### T3.3 Notification API and in-app bell
 

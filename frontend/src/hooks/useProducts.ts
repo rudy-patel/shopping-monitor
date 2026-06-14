@@ -4,7 +4,9 @@ import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ApiError } from '@/lib/api'
 import {
+  acceptListing,
   createProduct,
+  deleteListing,
   deleteProduct,
   getProduct,
   listProducts,
@@ -12,6 +14,7 @@ import {
   productsQueryKey,
   isProductListQueryKey,
   refreshProduct,
+  rejectListing,
   selectVariant,
   updateProduct,
   type CreateProductInput,
@@ -310,5 +313,139 @@ export function useRestoreProduct(id: string) {
       queryClient.invalidateQueries({ queryKey: productQueryKey(id) })
       queryClient.invalidateQueries({ queryKey: ['products'] })
     },
+  })
+}
+
+function applyDetailToListSummary(
+  item: ProductSummary,
+  detail: ProductDetail,
+): ProductSummary {
+  return {
+    ...item,
+    best_price_cents: detail.best_price_cents,
+    best_retailer_slug: detail.best_retailer_slug,
+    trend: detail.trend,
+    listing_count: detail.listing_count,
+    needs_review_count: detail.needs_review_count,
+    last_scraped_at: detail.last_scraped_at,
+  }
+}
+
+type ListingMutationContext = {
+  previousDetail?: ProductDetail
+  previousLists: [readonly unknown[], ProductSummary[] | undefined][]
+}
+
+function useListingDetailMutation(
+  productId: string,
+  mutationFn: (listingId: string) => Promise<ProductDetail>,
+  {
+    optimisticDetail,
+    optimisticSummary,
+    errorMessage,
+  }: {
+    optimisticDetail: (detail: ProductDetail, listingId: string) => ProductDetail
+    optimisticSummary: (summary: ProductSummary, detail: ProductDetail) => ProductSummary
+    errorMessage: string
+  },
+) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn,
+    onMutate: async (listingId): Promise<ListingMutationContext> => {
+      await queryClient.cancelQueries({ queryKey: productQueryKey(productId) })
+      const previousDetail = queryClient.getQueryData<ProductDetail>(productQueryKey(productId))
+      const previousLists = snapshotListCaches(queryClient)
+
+      if (previousDetail) {
+        const optimistic = optimisticDetail(previousDetail, listingId)
+        queryClient.setQueryData(productQueryKey(productId), optimistic)
+        updateListCache(queryClient, (items) =>
+          items.map((item) =>
+            item.id === productId ? optimisticSummary(item, optimistic) : item,
+          ),
+        )
+      }
+
+      return { previousDetail, previousLists }
+    },
+    onSuccess: (detail) => {
+      queryClient.setQueryData(productQueryKey(productId), detail)
+      updateListCache(queryClient, (items) =>
+        items.map((item) =>
+          item.id === productId ? applyDetailToListSummary(item, detail) : item,
+        ),
+      )
+    },
+    onError: (_error, _listingId, context) => {
+      if (context?.previousDetail) {
+        queryClient.setQueryData(productQueryKey(productId), context.previousDetail)
+      }
+      rollbackListCaches(queryClient, context?.previousLists ?? [])
+      toast.error(errorMessage)
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: productQueryKey(productId) })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+    },
+  })
+}
+
+export function useAcceptListing(productId: string) {
+  return useListingDetailMutation(productId, (listingId) => acceptListing(productId, listingId), {
+    optimisticDetail: (detail, listingId) => {
+      const listings = detail.listings.map((listing) =>
+        listing.id === listingId ? { ...listing, review_status: 'accepted' } : listing,
+      )
+      return {
+        ...detail,
+        listings,
+        needs_review_count: listings.filter((l) => l.review_status === 'needs_review').length,
+      }
+    },
+    optimisticSummary: (item, detail) => ({
+      ...item,
+      needs_review_count: detail.needs_review_count,
+    }),
+    errorMessage: 'Could not accept listing',
+  })
+}
+
+export function useRejectListing(productId: string) {
+  return useListingDetailMutation(productId, (listingId) => rejectListing(productId, listingId), {
+    optimisticDetail: (detail, listingId) => {
+      const listings = detail.listings.map((listing) =>
+        listing.id === listingId ? { ...listing, review_status: 'rejected' } : listing,
+      )
+      return {
+        ...detail,
+        listings,
+        needs_review_count: listings.filter((l) => l.review_status === 'needs_review').length,
+      }
+    },
+    optimisticSummary: (item, detail) => ({
+      ...item,
+      needs_review_count: detail.needs_review_count,
+    }),
+    errorMessage: 'Could not reject listing',
+  })
+}
+
+export function useDeleteListing(productId: string) {
+  return useListingDetailMutation(productId, (listingId) => deleteListing(productId, listingId), {
+    optimisticDetail: (detail, listingId) => {
+      const listings = detail.listings.filter((listing) => listing.id !== listingId)
+      return {
+        ...detail,
+        listings,
+        listing_count: listings.length,
+      }
+    },
+    optimisticSummary: (item, detail) => ({
+      ...item,
+      listing_count: detail.listing_count,
+    }),
+    errorMessage: 'Could not remove listing',
   })
 }

@@ -34,6 +34,9 @@ export interface Listing {
   last_scraped_at: string | null
   scrape_status: string | null
   match_confidence: number | null
+  review_title?: string | null
+  review_image_url?: string | null
+  review_reason?: string | null
 }
 
 export interface ProductSummary {
@@ -141,6 +144,43 @@ export function selectVariant(
     method: 'POST',
     body: JSON.stringify({ variant_attributes: variantAttributes }),
   })
+}
+
+export function acceptListing(productId: string, listingId: string): Promise<ProductDetail> {
+  return apiFetch<ProductDetail>(
+    `/api/products/${productId}/listings/${listingId}/accept`,
+    { method: 'POST' },
+  )
+}
+
+export function rejectListing(productId: string, listingId: string): Promise<ProductDetail> {
+  return apiFetch<ProductDetail>(
+    `/api/products/${productId}/listings/${listingId}/reject`,
+    { method: 'POST' },
+  )
+}
+
+export function deleteListing(productId: string, listingId: string): Promise<ProductDetail> {
+  return apiFetch<ProductDetail>(`/api/products/${productId}/listings/${listingId}`, {
+    method: 'DELETE',
+  })
+}
+
+export function activeListings(listings: Listing[]): Listing[] {
+  return listings
+    .filter(
+      (listing) =>
+        listing.review_status !== 'needs_review' && listing.review_status !== 'rejected',
+    )
+    .sort((a, b) => {
+      const aPrice = a.last_known_price_cents ?? Number.MAX_SAFE_INTEGER
+      const bPrice = b.last_known_price_cents ?? Number.MAX_SAFE_INTEGER
+      return aPrice - bPrice
+    })
+}
+
+export function needsReviewListings(listings: Listing[]): Listing[] {
+  return listings.filter((listing) => listing.review_status === 'needs_review')
 }
 
 export function normalizeVariants(
