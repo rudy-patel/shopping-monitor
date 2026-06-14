@@ -1,15 +1,21 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { vi } from 'vitest'
+import { getSupabaseClient } from '@/lib/supabase'
 import { useAuth } from '@/contexts/AuthContext'
 import { clearAuthStorage, ProviderStack } from './test-utils'
+import { createMockSupabaseClient, mockSignInWithOAuth } from './setup'
 
 function AuthStatus() {
-  const { user, isAuthenticated, signInDev, signOut } = useAuth()
+  const { user, isAuthenticated, signInDev, signInWithGoogle, signOut } = useAuth()
   return (
     <div>
       <span>{isAuthenticated ? `signed-in:${user?.email}` : 'signed-out'}</span>
       <button type="button" onClick={signInDev}>
         Dev login
+      </button>
+      <button type="button" onClick={() => void signInWithGoogle()}>
+        Google login
       </button>
       <button type="button" onClick={() => void signOut()}>
         Sign out
@@ -21,6 +27,9 @@ function AuthStatus() {
 describe('AuthContext', () => {
   beforeEach(() => {
     clearAuthStorage()
+    mockSignInWithOAuth.mockReset()
+    mockSignInWithOAuth.mockResolvedValue({ data: {}, error: null })
+    vi.mocked(getSupabaseClient).mockReturnValue(null)
   })
 
   it('signInDev sets placeholder user and persists across reload', async () => {
@@ -56,5 +65,23 @@ describe('AuthContext', () => {
 
     expect(screen.getByText('signed-out')).toBeInTheDocument()
     expect(localStorage.getItem('shopping-monitor-dev-auth')).toBeNull()
+  })
+
+  it('signInWithGoogle calls Supabase OAuth with redirectTo origin', async () => {
+    vi.mocked(getSupabaseClient).mockReturnValue(createMockSupabaseClient() as never)
+    const user = userEvent.setup()
+
+    render(
+      <ProviderStack>
+        <AuthStatus />
+      </ProviderStack>,
+    )
+
+    await user.click(screen.getByRole('button', { name: /google login/i }))
+
+    expect(mockSignInWithOAuth).toHaveBeenCalledWith({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    })
   })
 })

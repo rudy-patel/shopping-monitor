@@ -260,7 +260,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.1 Auth and profile bootstrap
 
-**Status:** pending
+**Status:** complete — PR pending
 
 - **Owner:** agent.
 - **Human setup:** H1 and H2.

@@ -28,6 +28,6 @@ describe('routes', () => {
 
   it('login page is accessible without auth', async () => {
     renderApp('/login', { authenticated: false })
-    expect(await screen.findByRole('button', { name: /continue with google/i })).toBeDisabled()
+    expect(await screen.findByRole('button', { name: /continue with google/i })).toBeEnabled()
   })
 })

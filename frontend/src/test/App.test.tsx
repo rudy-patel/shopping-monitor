@@ -10,7 +10,7 @@ describe('App', () => {
     renderApp('/', { authenticated: false })
 
     expect(await screen.findByRole('heading', { name: /shopping monitor/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /continue with google/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /continue with google/i })).toBeEnabled()
   })
 
   it('shows top nav and dashboard when authenticated', async () => {

@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom'
+import { vi } from 'vitest'
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
@@ -35,6 +36,53 @@ Object.defineProperty(window, 'IntersectionObserver', {
   writable: true,
   value: IntersectionObserverMock,
 })
+
+export const mockSignInWithOAuth = vi.fn().mockResolvedValue({ data: {}, error: null })
+export const mockSignOut = vi.fn().mockResolvedValue({ error: null })
+
+export function createMockSupabaseClient() {
+  return {
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
+      onAuthStateChange: vi.fn(() => ({
+        data: { subscription: { unsubscribe: vi.fn() } },
+      })),
+      signInWithOAuth: mockSignInWithOAuth,
+      signOut: mockSignOut,
+    },
+  }
+}
+
+const defaultProfileResponse = {
+  user_id: '00000000-0000-0000-0000-000000000001',
+  display_currency: 'CAD',
+  default_threshold_pct: 20,
+  notifications_enabled: true,
+  email_digest_enabled: true,
+  theme: 'light',
+  revisit_prompts_enabled: true,
+  revisit_on_sale_enabled: true,
+  revisit_stale_enabled: true,
+  revisit_stale_days: 30,
+  created_at: '2026-06-14T00:00:00.000Z',
+  updated_at: '2026-06-14T00:00:00.000Z',
+}
+
+const originalFetch = globalThis.fetch.bind(globalThis)
+
+vi.stubGlobal(
+  'fetch',
+  vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input)
+    if (url.includes('/api/profile')) {
+      return new Response(JSON.stringify(defaultProfileResponse), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+    return originalFetch(input, init)
+  }),
+)
 
 vi.mock('../lib/supabase.ts', () => ({
   getSupabaseClient: vi.fn(() => null),
