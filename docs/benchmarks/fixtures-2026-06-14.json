@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-14T20:39:56.230549Z",
+  "generated_at": "2026-06-14T21:22:31.073812Z",
   "scraper_mode": "fixtures",
   "playwright_available": false,
   "catalog_version": "1",
@@ -46,7 +46,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 0.9,
+          "runtime_ms": 0.93,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -174,7 +174,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 1.01,
+          "runtime_ms": 0.84,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -302,7 +302,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 140.16,
+          "runtime_ms": 134.53,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -430,7 +430,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 124.5,
+          "runtime_ms": 128.74,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -517,14 +517,14 @@
       ]
     },
     {
-      "slug": "dimemtl",
+      "slug": "palmisleskate",
       "scenario": "in_stock",
-      "url": "https://fixtures.local/dimemtl/in_stock",
+      "url": "https://fixtures.local/palmisleskate/in_stock",
       "expect": {
         "title": true,
         "price": true,
         "stock": true,
-        "image": false,
+        "image": true,
         "variants": false
       },
       "strategies": [
@@ -534,12 +534,12 @@
           "fields": {
             "title": {
               "ok": true,
-              "value": "Lenovo Yoga Slim 7x 14.5\" Touchscreen Copilot+ PC Laptop - Cosmic Blue (Snapdragon X Elite/16GB RAM/1TB SSD)",
+              "value": "Reds Bearings",
               "reason": null
             },
             "price": {
               "ok": true,
-              "value": 169999,
+              "value": 2800,
               "reason": null
             },
             "stock": {
@@ -549,16 +549,16 @@
             },
             "image": {
               "ok": true,
-              "value": null,
-              "reason": "not_required"
+              "value": "https://palmisleskateshop.com/cdn/shop/files/BSACBR88_cf701df9-091a-44fd-9dc8-8d20145a0955_1500x.jpg?v=1775504905",
+              "reason": null
             },
             "variants": {
               "ok": true,
-              "value": 0,
+              "value": 1,
               "reason": "not_required"
             }
           },
-          "runtime_ms": 0.58,
+          "runtime_ms": 70.46,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -645,15 +645,15 @@
       ]
     },
     {
-      "slug": "dimemtl",
+      "slug": "palmisleskate",
       "scenario": "multi_variant",
-      "url": "https://fixtures.local/dimemtl/multi_variant",
+      "url": "https://fixtures.local/palmisleskate/multi_variant",
       "expect": {
         "title": true,
         "price": true,
         "stock": true,
-        "image": false,
-        "variants": false
+        "image": true,
+        "variants": true
       },
       "strategies": [
         {
@@ -662,12 +662,12 @@
           "fields": {
             "title": {
               "ok": true,
-              "value": "Lenovo Yoga Slim 7x 14.5\" Touchscreen Copilot+ PC Laptop",
+              "value": "\"American Rapture\" Tee - Safety Green",
               "reason": null
             },
             "price": {
               "ok": true,
-              "value": 169999,
+              "value": 4800,
               "reason": null
             },
             "stock": {
@@ -677,16 +677,528 @@
             },
             "image": {
               "ok": true,
-              "value": null,
-              "reason": "not_required"
+              "value": "https://palmisleskateshop.com/cdn/shop/files/VIOLET-AMERICAN-RAPTURE-TEE-NEON-YELLOW-01_1600x.png?v=1733957943",
+              "reason": null
             },
             "variants": {
               "ok": true,
-              "value": 0,
+              "value": 4,
+              "reason": null
+            }
+          },
+          "runtime_ms": 39.86,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "palmisleskate",
+      "scenario": "out_of_stock",
+      "url": "https://fixtures.local/palmisleskate/out_of_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": false
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Team Messenger VX Deck",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 11900,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": false,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://palmisleskateshop.com/cdn/shop/files/11117411_159160_80875_925in_x_3195in_Team_Messenger_VX_Deck_Creature_Skateboard_Deck_size_925inx3195in_1800x_78c2a11d-15a8-4403-8d18-8e84fac8db8e_600x.jpg?v=1780328105",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 1,
               "reason": "not_required"
             }
           },
-          "runtime_ms": 0.46,
+          "runtime_ms": 38.29,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "tikiroomskate",
+      "scenario": "in_stock",
+      "url": "https://fixtures.local/tikiroomskate/in_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": false
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Bones Reds bearings (set of 8)",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 3000,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://tikiroomskateboards.com/cdn/shop/products/bones-reds-bearings-tiki-room-skateboards-385286.jpg?v=1706144807",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 1,
+              "reason": "not_required"
+            }
+          },
+          "runtime_ms": 27.71,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "tikiroomskate",
+      "scenario": "multi_variant",
+      "url": "https://fixtures.local/tikiroomskate/multi_variant",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Stussy Beach Ombre Plaid Shirt, blue",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 20000,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://tikiroomskateboards.com/cdn/shop/files/stussy-beach-ombre-plaid-shirt-blue-tiki-room-skateboards-2135165.webp?v=1781282349",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 5,
+              "reason": null
+            }
+          },
+          "runtime_ms": 31.45,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "tikiroomskate",
+      "scenario": "out_of_stock",
+      "url": "https://fixtures.local/tikiroomskate/out_of_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": true,
+        "variants": false
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Colonialism Medicine Wheel Company Wheels (54mm)",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 5500,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": false,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://tikiroomskateboards.com/cdn/shop/files/colonialism-medicine-wheel-company-wheels-54mm-tiki-room-skateboards-9696033.webp?v=1781195827",
+              "reason": null
+            },
+            "variants": {
+              "ok": true,
+              "value": 1,
+              "reason": "not_required"
+            }
+          },
+          "runtime_ms": 28.45,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -784,18 +1296,25 @@
       "notes": "Fixture HTML succeeds via structured_data; live HTML likely blocked \u2014 http_parse retailer_api sub-probe expected in production."
     },
     {
-      "slug": "dimemtl",
-      "default_strategy": "structured_data",
-      "fallback_strategies": [],
-      "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
-      "notes": "Shopify JSON-LD; structured_data covers title/price/stock on fixtures (image/variants not in capture)."
-    },
-    {
       "slug": "generic",
       "default_strategy": "structured_data",
       "fallback_strategies": [],
       "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
       "notes": "JSON-LD/OG sufficient on fixtures."
+    },
+    {
+      "slug": "palmisleskate",
+      "default_strategy": "structured_data",
+      "fallback_strategies": [],
+      "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
+      "notes": "Shopify JSON-LD + theme meta; structured_data covers title/price/stock/variants on fixtures."
+    },
+    {
+      "slug": "tikiroomskate",
+      "default_strategy": "structured_data",
+      "fallback_strategies": [],
+      "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
+      "notes": "Shopify JSON-LD + theme meta; structured_data covers title/price/stock/variants on fixtures."
     }
   ]
 }

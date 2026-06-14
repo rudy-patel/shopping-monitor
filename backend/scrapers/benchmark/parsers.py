@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Callable
 
 from scrapers.bestbuy_ca import extract_bestbuy_html
+from scrapers.extraction.shopify import merge_shopify_extraction
 from scrapers.extraction.types import ExtractedFields
 from scrapers.structured_data import extract_from_html
 
@@ -19,10 +20,15 @@ def _bestbuy_parser(html: str, url: str) -> ExtractedFields:
     return extract_bestbuy_html(html, url=url)
 
 
+def _shopify_parser(html: str, url: str) -> ExtractedFields:
+    return merge_shopify_extraction(html, url=url)
+
+
 PARSER_BY_SLUG: dict[str, ParserFn] = {
     "generic": _generic_parser,
     "bestbuy_ca": _bestbuy_parser,
-    "dimemtl": _generic_parser,
+    "palmisleskate": _shopify_parser,
+    "tikiroomskate": _shopify_parser,
 }
 
 

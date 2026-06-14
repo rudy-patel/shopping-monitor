@@ -29,7 +29,8 @@ _SOURCE_BY_STRATEGY: dict[StrategyId, ScrapeSource] = {
 
 _DEFAULT_NOTES: dict[str, str] = {
     "generic": "JSON-LD/OG sufficient on fixtures.",
-    "dimemtl": "Shopify JSON-LD; structured_data covers title/price/stock on fixtures (image/variants not in capture).",
+    "palmisleskate": "Shopify JSON-LD + theme meta; structured_data covers title/price/stock/variants on fixtures.",
+    "tikiroomskate": "Shopify JSON-LD + theme meta; structured_data covers title/price/stock/variants on fixtures.",
     "bestbuy_ca": (
         "Fixture HTML succeeds via structured_data; live HTML likely blocked — "
         "http_parse retailer_api sub-probe expected in production."

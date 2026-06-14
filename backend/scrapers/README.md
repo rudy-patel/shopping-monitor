@@ -70,7 +70,18 @@ Rules: host must be `fixtures.local`; path must be `/<retailer_slug>/<scenario>`
 
 `lookup_by_url()` also resolves `fixtures.local/<retailer_slug>/...` URLs to the matching registry entry (used by the Product API in fixture mode).
 
-Production retailer modules are registered via `scrapers.bootstrap` (import for side effects in `main.py`). That module registers `generic` (unknown-domain fallback), `bestbuy_ca`, and `dimemtl` (Shopify JSON-LD; T3.1b enabler for fixture-mode cross-retailer discovery).
+Production retailer modules are registered via `scrapers.bootstrap` (import for side effects in `main.py`). That module registers `generic` (unknown-domain fallback), `bestbuy_ca`, `palmisleskate`, and `tikiroomskate` (shared Shopify JSON-LD + theme meta parser; T5.2).
+
+## Shopify retailers (T5.2)
+
+Shared factory in `scrapers/shopify.py` with variant extraction in `scrapers/extraction/shopify.py` (JSON-LD/OG plus Shopify `var meta` merge). Record live fixtures:
+
+```bash
+cd backend && source venv/bin/activate
+SCRAPER_MODE=record python ../scripts/record_shopify_fixtures.py \
+  --slug palmisleskate --scenario in_stock \
+  --url "https://palmisleskateshop.com/products/..."
+```
 
 ## HTTP requests — use `scraper_fetch` only
 

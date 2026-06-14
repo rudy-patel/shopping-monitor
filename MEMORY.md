@@ -4,6 +4,22 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T5.2 Shopify retailers (palmisleskate, tikiroomskate)
+
+**What:** Shipped T5.2 easy Shopify retailers: shared `scrapers/shopify.py` factory and `scrapers/extraction/shopify.py` meta variant parser (JSON-LD/OG + `var meta` merge). Added `palmisleskate` (`palmisleskateshop.com`) and `tikiroomskate` with live-recorded fixtures, pytest coverage, benchmark catalog entries, retailer labels, and `scripts/record_shopify_fixtures.py`. Removed `dimemtl` (T3.1 enabler); discovery tests now use palmisle/tikiroom fixtures and `discovery_d` for cap tests.
+
+**Locked behavior:** `default_strategy=STRUCTURED_DATA`, no fallbacks. Non-CAD listings rejected. Variant matrix from Shopify theme meta when JSON-LD omits `hasVariant`. `eatyourwater` and `indigo` deferred per product decision.
+
+**Fixture URLs recorded:** palmisle — bones-reds-bearings (in_stock), violet-american-rapture-tee (multi_variant), creature-team-messenger-vx-deck (out_of_stock); tikiroom — bones-reds-bearings (in_stock), stussy-beach-ombre-plaid-shirt (multi_variant), colonialism-medicine-wheel-wheels (out_of_stock).
+
+**Files:** `backend/scrapers/shopify.py`, `backend/scrapers/extraction/shopify.py`, `backend/scrapers/palmisleskate.py`, `backend/scrapers/tikiroomskate.py`, `scripts/record_shopify_fixtures.py`, `backend/test/fixtures/retailers/palmisleskate/*`, `backend/test/fixtures/retailers/tikiroomskate/*`, `backend/test/test_shopify_extraction.py`, `backend/test/test_palmisleskate_scraper.py`, `backend/test/test_tikiroomskate_scraper.py`, `backend/scrapers/benchmark/catalog.yaml`, `docs/benchmarks/fixtures-2026-06-14.json`, removed `dimemtl` module/fixtures/tests.
+
+**Verification:** `ruff check .`, `pytest -m "not integration"` (470 passed), `npm run lint`, `npm run test:run` (94 passed), `make benchmark-retailers` with `SCRAPER_MODE=fixtures`.
+
+**Deferred:** `eatyourwater` post-MVP; `indigo` → T5.3.
+
+---
+
 ## [2026-06-14] T4.3 Delete account
 
 **What:** Shipped `DELETE /api/account` using Supabase Auth admin `delete_user` with DB cascades for app data. Settings delete flow with `DeleteAccountDialog` confirmation. Post-delete: `signOut()` + navigate to `/login`. Returns 403 when `AUTH_BYPASS_ENABLED=true` or identity is on the protected deny list (`backend/core/protected_accounts.py`).

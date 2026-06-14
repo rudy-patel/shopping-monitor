@@ -286,7 +286,8 @@ def test_build_retailer_default_categories_includes_registered_retailers():
     defaults = build_retailer_default_categories()
     assert defaults["generic"] == "other"
     assert defaults["bestbuy_ca"] == "tech"
-    assert defaults["dimemtl"] == "clothing"
+    assert defaults["palmisleskate"] == "other"
+    assert defaults["tikiroomskate"] == "other"
 
 
 def test_get_llm_provider_no_key(monkeypatch):
