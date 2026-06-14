@@ -509,7 +509,7 @@ These can proceed after the local vertical slice lands.
 
 ### T3.6 Digest email service and job
 
-**Status:** done — PR pending
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/35
 
 - **Owner:** agent.
 - **Human setup:** H4 done (Resend sandbox; live smoke recipient `rutvik@ualberta.ca`).
