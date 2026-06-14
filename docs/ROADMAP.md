@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-13.
+> **Last updated:** 2026-06-14.
 
 ---
 
@@ -50,7 +50,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M0: Planning baseline | done | Roadmap exists, linked from agent docs. | Agents can pick scoped tasks safely. |
 | M1: Foundation | done | Schema, auth primitives, app shell, service interfaces, and fixture harness contracts exist. | Product flows and scraper work can proceed in parallel. |
 | M2: First local vertical slice | done | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
-| M3: Real Best Buy validation | pending | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
+| M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
 | M4: MVP product workflows | pending | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. | Deployment hardening and broader retailer expansion. |
 | M5: V1 retailer coverage | pending | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. | V1 success criteria can be tested end-to-end. |
 | M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. | Invite early friends for feedback. |
@@ -150,7 +150,7 @@ All core workflows + H5
 
 ### T0.1 Roadmap documentation
 
-**Status:** done
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/5.
 
 
 - **Owner:** agent.
@@ -166,7 +166,7 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.1 Core database schema and RLS
 
-**Status:** done
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/8.
 
 
 - **Owner:** agent, with Supabase MCP allowed for non-destructive application/checks.
@@ -260,7 +260,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.1 Auth and profile bootstrap
 
-**Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/16
+**Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/16.
 
 - **Owner:** agent.
 - **Human setup:** H1 and H2.
@@ -278,7 +278,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.2 Generic JSON-LD/OG scraper
 
-**Status:** done
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/17.
 
 - **Owner:** agent.
 - **Human setup:** none.
@@ -293,7 +293,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.3 `bestbuy_ca` fixture-backed scraper
 
-**Status:** done
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/18.
 
 - **Owner:** agent.
 - **Human setup:** one-time live fixture recording (3 Best Buy Canada product URLs).
@@ -309,7 +309,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.4 Categorization service
 
-**Status:** done
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/19.
 
 - **Owner:** agent.
 - **Human setup:** H3 only for live Gemini smoke; tests use fakes.
@@ -324,7 +324,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.5 Product API vertical slice
 
-**Status:** done
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/20.
 
 - **Owner:** agent.
 - **Human setup:** H1.
@@ -346,7 +346,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.6 Product frontend vertical slice
 
-**Status:** done
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/21.
 
 - **Owner:** agent.
 - **Human setup:** H1/H2 for live auth; local auth-bypass acceptable.
@@ -366,7 +366,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.7 Local end-to-end one-retailer slice
 
-**Status:** done — full vertical slice e2e + CI Playwright job.
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/22.
 
 - **Owner:** agent.
 - **Human setup:** H1/H2 optional if using local auth bypass; required for full auth test.
@@ -380,7 +380,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.8 Controlled live Best Buy validation
 
-**Status:** pending
+**Status:** done — branch `cursor/t2-8-live-bestbuy-validation-f127`; canonical URL Nintendo Switch 2 Console (`19296507`).
 
 - **Owner:** agent with human awareness.
 - **Human setup:** H1/H2; optionally H3 if categorization live path is included.
@@ -392,6 +392,7 @@ The tasks in this phase converge on the one-retailer MVP.
 - **Verification:**
   - One real Best Buy URL creates a product with current price and stock.
   - Fixture-mode tests remain the default and still pass.
+- **Notes:** HTML PDP requests returned Akamai 403 from the agent VM; live scrape succeeded via Best Buy JSON product API fallback (`ScrapeSource.HTTP_PARSE`). Fixture `switch_2_in_stock` recorded as JSON-LD HTML synthesized from API payload plus raw `.json` snapshot. Tier A/B/C re-verified locally with live Gemini (`category_source=llm`).
 
 ---
 
@@ -772,6 +773,6 @@ If starting from the current scaffold, run the first agents in this order:
 9. T2.5 Product API vertical slice.
 10. T2.6 Product frontend vertical slice.
 11. ~~T2.7 Local e2e one-retailer slice.~~ **Done** (T2.7).
-12. T2.8 Controlled live Best Buy validation.
+12. ~~T2.8 Controlled live Best Buy validation.~~ **Done** (T2.8).
 
-Do not prioritize broad retailer expansion before step 12. A reliable app with one retailer is the intended MVP spine.
+Do not prioritize broad retailer expansion before step 12. A reliable app with one retailer is the intended MVP spine. **Step 12 complete — proceed to Phase 3 (T3.x).**

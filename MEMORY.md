@@ -4,6 +4,22 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T2.8 Controlled live Best Buy validation
+
+**What:** Completed controlled live validation for Nintendo Switch 2 Console (`https://www.bestbuy.ca/en-ca/product/nintendo-switch-2-console/19296507`). Tier A/B/C all pass with live scrape, live Gemini categorization, and full UI add flow. HTML PDP requests returned Akamai **403 Access Denied** from the agent environment (curl_cffi and Playwright); live scrape succeeded via Best Buy JSON product API fallback (`/api/v2/json/product/{sku}` → `ScrapeSource.HTTP_PARSE`). Recorded `switch_2_in_stock` fixture (JSON-LD HTML synthesized from API + raw `.json` snapshot).
+
+**Validation results (2026-06-14, `GEMINI_API_KEY` configured):**
+
+| Tier | Result | Notes |
+| --- | --- | --- |
+| A (scraper) | pass | title *Nintendo Switch 2 Console*, price **62999** CAD cents, in stock, brand Nintendo, source `http_parse` |
+| B (API) | pass | `POST /api/products` 201, listing `scrape_status=ok`, `category=tech`, **`category_source=llm`** |
+| C (UI) | pass | Dev login → Add Product with live URL → detail shows title/$629.99/stock/Best Buy/Tech → dashboard lists product; API confirms `category_source=llm` |
+
+**Files:** `backend/scrapers/bestbuy_ca.py`, `backend/scrapers/extraction/bestbuy_api.py`, `scripts/record_bestbuy_fixtures.py`, `backend/test/fixtures/retailers/bestbuy_ca/switch_2_in_stock.html`, `backend/test/fixtures/retailers/bestbuy_ca/switch_2_in_stock.json`, `backend/test/test_bestbuy_ca_scraper.py`, `backend/test/test_bestbuy_api_extraction.py`, `backend/scrapers/README.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Deferred:** Playwright HTML fallback if JSON API is ever blocked.
+
 ## [2026-06-14] T2.7 Local e2e vertical slice
 
 **What:** Completed the first local vertical slice end-to-end test: expanded Playwright spec to cover add → detail assertions → category/threshold edits → single refresh → dashboard → archive → history → restore → UI delete. Playwright `webServer` auto-starts backend (fixture mode + auth bypass) and frontend; added GitHub Actions `playwright-e2e` job with Supabase secrets. Fixed TanStack Query list-cache helpers that were applying array updaters to detail query caches (blocked PATCH mutations in browser). Dev auth now restores across reload when Supabase is configured. Closed M2 milestone.
@@ -61,11 +77,11 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 **Fixture source URLs (for T5.5 drift checks):**
 - in_stock: https://www.bestbuy.ca/en-ca/product/lenovo-yoga-slim-7x-14-5-touchscreen-copilot-pc-laptop-cosmic-blue-snapdragon-x-elite-16gb-ram-1tb-ssd/19220080
 - out_of_stock: https://www.bestbuy.ca/en-ca/product/nintendo-switch-oled-model-super-mario-bros-wonder-bundle-with-3-month-online-individual-membership/19180065
-- multi_variant: https://www.bestbuy.ca/en-ca/product/logitech-pop-bluetooth-optical-keyboard-mouse-combo-graphite-off-white-english/18530015
+- switch_2_in_stock: https://www.bestbuy.ca/en-ca/product/nintendo-switch-2-console/19296507 (T2.8; JSON-LD HTML synthesized from product API when PDP blocked)
 
 **Files:** `backend/scrapers/bestbuy_ca.py`, `backend/scrapers/extraction/bestbuy.py`, `backend/scrapers/http.py`, `backend/scrapers/bootstrap.py`, `backend/scrapers/extraction/jsonld.py`, `backend/scrapers/mode.py`, `backend/main.py`, `backend/requirements.txt`, `backend/test/fixtures/retailers/bestbuy_ca/*.html`, `backend/test/test_bestbuy_ca_scraper.py`, `backend/test/test_scraper_http_guard.py`, `backend/test/test_scraper_registry.py`, `backend/test/conftest.py`, `scripts/record_bestbuy_fixtures.py`, `backend/scrapers/README.md`, `docs/ROADMAP.md`, `MEMORY.md`.
 
-**Deferred:** Product API wiring → T2.5; live Best Buy validation through product API → T2.8; Playwright fallback if curl_cffi + structured data insufficient at runtime.
+**Deferred:** Product API wiring → T2.5; Playwright HTML fallback if JSON API is blocked → future retailer work; JSON product API fallback shipped in T2.8 when PDP HTML is Akamai-blocked.
 
 ## [2026-06-13] T2.2 generic JSON-LD/OG scraper
 

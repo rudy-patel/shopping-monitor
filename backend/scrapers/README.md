@@ -77,7 +77,7 @@ Production retailer modules are registered via `scrapers.bootstrap` (import for 
 Retailer scrapers **must** call `scrapers.http.scraper_fetch()` for outbound requests. Do **not** import `httpx`, `curl_cffi`, or `requests` directly in scraper modules — `test_scraper_http_guard.py` enforces this.
 
 - **Fixture mode** (default): `scraper_fetch` raises the fixture-mode network guard — no socket is opened.
-- **Live or record mode**: uses `curl_cffi` browser impersonation first, with `httpx` fallback.
+- **Live or record mode**: uses `curl_cffi` browser impersonation first, with `httpx` fallback. The `bestbuy_ca` scraper adds a measured JSON product API fallback when the HTML PDP is blocked (Akamai 403); see `scrapers/extraction/bestbuy_api.py`.
 
 `get_scraper_mode()` reads `core.settings.get_settings().scraper_mode` (backed by the `SCRAPER_MODE` env var).
 
@@ -90,6 +90,8 @@ cd backend && source venv/bin/activate
 SCRAPER_MODE=record python ../scripts/record_bestbuy_fixtures.py \
   --scenario in_stock --url "https://www.bestbuy.ca/en-ca/product/..."
 ```
+
+When the HTML PDP is blocked (Akamai 403), the record script falls back to Best Buy's JSON product API and writes a JSON-LD HTML fixture plus a raw `.json` snapshot.
 
 ```python
 from scrapers.fixtures import FixtureLoader  # pragma: allowlist secret
