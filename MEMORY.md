@@ -4,6 +4,12 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-13] T2.4 Gemini live-call guardrails
+
+**What:** Blocked live Gemini in pytest/CI: autouse `conftest` fixture clears `GEMINI_API_KEY` and mocks `genai.Client`; CI asserts empty key; smoke script defaults to dry-run heuristic path and requires `--live` for real API calls; regression test proves pytest passes with a key in the shell env.
+
+**Files:** `backend/test/conftest.py`, `backend/test/test_conftest_gemini_guard.py`, `backend/scripts/smoke_gemini_categorize.py`, `.github/workflows/ci.yml`, `backend/services/README.md`, `AGENTS.md`, `MEMORY.md`.
+
 ## [2026-06-13] T2.4 categorization service
 
 **What:** Implemented `GeminiFlashLlmProvider` with structured JSON categorization, 1.5s thread-pool timeout, quota/error mapping, and `get_categorizer()`/`get_llm_provider()` factory wiring. Reordered heuristic precedence to retailer default → breadcrumbs → title/brand (PRD §7.7). Added `google-genai==2.8.0`, Gemini settings (`GEMINI_MODEL`, `GEMINI_CATEGORIZE_TIMEOUT_S`), human smoke script `scripts/smoke_gemini_categorize.py`, and mocked unit tests.

@@ -6,6 +6,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 from _pytest.mark.expression import Expression
@@ -60,6 +61,18 @@ def _register_example_retailer() -> None:
             default_strategy=ScrapeSource.FIXTURE,
         )
     )
+
+
+@pytest.fixture(autouse=True)
+def _block_live_gemini(monkeypatch):
+    """Keep pytest/CI off live Gemini; tests mock genai.Client locally when needed."""
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setattr("core.settings._env_file_path", lambda: None)
+    clear_settings_cache()
+    with patch("services.gemini.genai.Client") as mock_client_cls:
+        mock_client_cls.return_value = MagicMock()
+        yield
+    clear_settings_cache()
 
 
 @pytest.fixture(autouse=True)

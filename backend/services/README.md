@@ -32,12 +32,13 @@ result = get_categorizer().categorize(
 
 ### Human smoke (H3)
 
-Requires Python 3.12 and a configured `GEMINI_API_KEY` in `backend/.env`:
+Requires Python 3.12. **Live Gemini calls are opt-in only** — pytest and CI always mock `genai.Client` and clear `GEMINI_API_KEY` (see `backend/test/conftest.py`). Use `--live` for a one-off manual canary after H3 setup:
 
 ```bash
 cd backend && source venv/bin/activate
-python scripts/smoke_gemini_categorize.py
-GEMINI_API_KEY= python scripts/smoke_gemini_categorize.py --expect-heuristic
+python scripts/smoke_gemini_categorize.py                      # dry-run heuristic path
+python scripts/smoke_gemini_categorize.py --expect-heuristic   # assert no LLM path
+python scripts/smoke_gemini_categorize.py --live               # real Gemini (H3 only)
 ```
 
 ## LlmProvider

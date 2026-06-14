@@ -57,6 +57,7 @@ jobs:
       SUPABASE_ANON_KEY: ""
       SUPABASE_SERVICE_ROLE_KEY: ""
       AUTH_BYPASS_ENABLED: "true"
+      GEMINI_API_KEY: ""
 
     steps:
       - uses: actions/checkout@v5
@@ -73,6 +74,9 @@ jobs:
 
       - name: Assert SCRAPER_MODE=fixtures # pragma: allowlist secret
         run: test "$SCRAPER_MODE" = "fixtures" # pragma: allowlist secret
+
+      - name: Assert GEMINI_API_KEY unset in CI
+        run: test -z "$GEMINI_API_KEY"
 
       - name: Run tests
         run: python -m pytest test/ -v --tb=short -m "not integration"

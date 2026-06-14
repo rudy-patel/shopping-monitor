@@ -48,6 +48,8 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 
 CI and local automated tests must run scraper code with `SCRAPER_MODE=fixtures` so no test hits live retailer URLs. Use `live` only for explicit benchmark/drift tasks and `record` only when intentionally capturing fixtures.
 
+**Gemini:** pytest and CI never call the live Gemini API. `backend/test/conftest.py` clears `GEMINI_API_KEY` and mocks `genai.Client` for every test. Manual live verification uses `python scripts/smoke_gemini_categorize.py --live` only (H3); the default smoke script path is dry-run/heuristic.
+
 ### Integration tests (Supabase RLS smoke)
 
 Integration tests are excluded from `make test` / CI unit jobs. They require a live Supabase project with `001_core_schema` applied.
