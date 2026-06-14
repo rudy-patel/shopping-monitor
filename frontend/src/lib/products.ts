@@ -94,6 +94,11 @@ export function productQueryKey(id: string) {
   return ['products', id] as const
 }
 
+/** True for list caches (`['products', filters]`), false for detail caches (`['products', id]`). */
+export function isProductListQueryKey(queryKey: readonly unknown[]): boolean {
+  return queryKey.length > 1 && typeof queryKey[1] === 'object' && queryKey[1] !== null
+}
+
 export function listProducts(filters: ProductFilters = {}): Promise<ProductSummary[]> {
   const params = new URLSearchParams()
   if (filters.status) params.set('status', filters.status)

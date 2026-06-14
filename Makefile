@@ -21,7 +21,7 @@ help:
 	@echo "  make test-frontend  - Run frontend tests"
 	@echo "  make setup-integration-env - Write backend/.env from Supabase secrets"
 	@echo "  make test-integration - Run integration tests (requires Supabase)"
-	@echo "  make test-e2e       - Run Playwright e2e tests (requires running servers)"
+	@echo "  make test-e2e       - Run Playwright e2e tests (auto-starts servers)"
 	@echo "  make test-all       - Run all tests including integration"
 	@echo ""
 	@echo "Development:"
@@ -89,8 +89,8 @@ test-integration: setup-integration-env
 	fi
 
 test-e2e:
-	@echo "🎭 Running Playwright e2e tests (requires backend :8000 and frontend :3000)..."
-	@cd frontend && npx playwright test
+	@echo "🎭 Running Playwright e2e tests (auto-starts backend :8000 and frontend :3000)..."
+	@cd frontend && PLAYWRIGHT_API_URL=http://localhost:8000 npx playwright test
 
 test-all: test test-integration
 	@echo "✅ All tests completed!"

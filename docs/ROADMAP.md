@@ -49,7 +49,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | --- | --- | --- | --- |
 | M0: Planning baseline | done | Roadmap exists, linked from agent docs. | Agents can pick scoped tasks safely. |
 | M1: Foundation | done | Schema, auth primitives, app shell, service interfaces, and fixture harness contracts exist. | Product flows and scraper work can proceed in parallel. |
-| M2: First local vertical slice | pending | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
+| M2: First local vertical slice | done | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
 | M3: Real Best Buy validation | pending | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
 | M4: MVP product workflows | pending | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. | Deployment hardening and broader retailer expansion. |
 | M5: V1 retailer coverage | pending | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. | V1 success criteria can be tested end-to-end. |
@@ -362,18 +362,18 @@ The tasks in this phase converge on the one-retailer MVP.
   - Playwright scaffold + optional live API integration test.
 - **Verification:**
   - Vitest/Testing Library coverage for add modal, grouping, detail mutation controls, archive/delete/restore flows with mocked API.
-  - Playwright happy-path spec (local only; CI wiring in T2.7).
+  - Playwright happy-path spec + CI e2e job (T2.7).
 
 ### T2.7 Local end-to-end one-retailer slice
 
-**Status:** pending
+**Status:** done — full vertical slice e2e + CI Playwright job.
 
 - **Owner:** agent.
 - **Human setup:** H1/H2 optional if using local auth bypass; required for full auth test.
 - **PR size:** test-only/small wiring PR.
 - **Build:**
-  - Expand e2e coverage beyond T2.6 scaffold (add → archive → history → restore → delete).
-  - Wire optional CI job for Playwright; document `make test-e2e`.
+  - Expand e2e coverage beyond T2.6 scaffold (add → detail → refresh → category/threshold → archive → history → restore → UI delete).
+  - Wire CI job for Playwright; document `make test-e2e`.
 - **Verification:**
   - E2E test passes in `SCRAPER_MODE=fixtures`.
   - Backend/frontend unit suites pass.
@@ -771,7 +771,7 @@ If starting from the current scaffold, run the first agents in this order:
 8. T2.4 Categorization service.
 9. T2.5 Product API vertical slice.
 10. T2.6 Product frontend vertical slice.
-11. T2.7 Local e2e one-retailer slice.
+11. ~~T2.7 Local e2e one-retailer slice.~~ **Done** (T2.7).
 12. T2.8 Controlled live Best Buy validation.
 
 Do not prioritize broad retailer expansion before step 12. A reliable app with one retailer is the intended MVP spine.
