@@ -1,7 +1,10 @@
 fastapi==0.128.8
 uvicorn[standard]==0.39.0
 pydantic>=2.5,<3
+pydantic-settings>=2.5,<3
 python-dotenv==1.2.1
+PyJWT==2.13.0
+cryptography==41.0.7
 supabase>=2.27.0,<3
 httpx>=0.25.0,<1
 pytest>=7.0.0,<9
