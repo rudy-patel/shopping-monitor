@@ -4,6 +4,14 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T1.4 scraper contract and fixture harness
+
+**What:** Added the `backend/scrapers/` package: `ProductSnapshot`/`VariantAttribute`/`VariantCombination`/`ScrapeSource` Pydantic contract, `ScraperMode` enum with `get_scraper_mode()` defaulting to fixture mode, a `ScraperError` hierarchy (including `the fixture-mode network guard error`), in-process retailer registry with host-suffix URL lookup, and a `FixtureLoader` covering load/exists/iter plus an explicit atomic `record(...)` writer. Added `scraper_fetch()` as the single canonical HTTP entry point — it raises `the fixture-mode network guard error` under fixture mode and delegates to httpx under live/record. Documented the retailer fixture path convention under `backend/test/` with required scenarios (`in_stock`, `out_of_stock`, `multi_variant`; generic adds `jsonld_friendly`, `og_only`, `no_extractable_data`). Tests cover contract validation, mode parsing including the CI-default assertion, registry lookup semantics, fixture loader read/write/atomicity, the fixture-mode network block, and that no scraper module except `http.py` imports an HTTP client.
+
+**Files:** `backend/scrapers/__init__.py`, `backend/scrapers/contract.py`, `backend/scrapers/mode.py`, `backend/scrapers/exceptions.py`, `backend/scrapers/registry.py`, `backend/scrapers/fixture_loader module`, `backend/scrapers/http.py`, `backend/scrapers/README.md`, `backend/test/conftest.py`, `backend/test/.../retailers/_example_retailer/` HTML and JSON fixture files, `backend/test/test_scraper_contract.py`, `backend/test/test_scraper_mode.py`, `backend/test/test_scraper_registry.py`, `backend/test/test_fixture_loader.py`, `backend/test/test_scraper_http_guard.py`, `backend/test/test_fixture_convention.py`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Deferred:** generic retailer registration and JSON-LD/OG extraction → T2.2; `bestbuy_ca` registration and real retailer fixture files → T2.3; replacing `get_scraper_mode()` with the central settings loader → T1.2; benchmark-recorded `default_strategy` per retailer → T5.1; weekly drift-detection workflow that calls `FixtureLoader.record` → T5.5.
+
 ## [2026-06-14] T1.2 backend settings, clients, and auth dependency
 
 **What:** Centralized backend settings via pydantic-settings, structured JSON logging, Supabase JWT validation (JWKS) with local auth-bypass dev dependency, worker-token guard for internal jobs, and service-role Supabase client wrapper refactored off bare `os.getenv`.

@@ -76,3 +76,4 @@ Integration tests are excluded from `make test` / CI unit jobs. They require a l
 - **No local database.** All persistence is via remote Supabase.
 - **Auth bypass:** Set `AUTH_BYPASS_ENABLED=true` in `backend/.env` for local development without real Supabase auth (when auth routes exist).
 - **Supabase security:** Never expose `SUPABASE_SERVICE_ROLE_KEY` to frontend code. Every new `public` table must enable RLS in the same migration and be documented in `docs/DATABASE.md`.
+- **Scrapers:** Retailer modules must call `scrapers.http.scraper_fetch()` instead of importing `httpx`/`curl_cffi`/`requests`. See `backend/scrapers/README.md`.

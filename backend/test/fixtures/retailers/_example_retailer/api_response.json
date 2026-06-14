@@ -1,0 +1,6 @@
+{
+  "title": "Example Widget",
+  "price_cents": 2999,
+  "currency": "CAD",
+  "in_stock": true
+}
