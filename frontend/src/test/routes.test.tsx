@@ -90,6 +90,12 @@ describe('routes', () => {
     expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument()
   })
 
+  it('settings page does not render the T4.2 stub', async () => {
+    renderApp('/settings', { authenticated: true })
+    expect(await screen.findByRole('heading', { name: /^settings$/i })).toBeInTheDocument()
+    expect(screen.queryByText(/coming in t4\.2/i)).not.toBeInTheDocument()
+  })
+
   it('notifications page does not render the T3.3 stub', async () => {
     renderApp('/notifications', { authenticated: true })
     expect(await screen.findByRole('heading', { name: /^notifications$/i })).toBeInTheDocument()

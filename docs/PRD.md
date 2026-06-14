@@ -82,7 +82,7 @@ There is **one product** in V1 — it serves both personas identically. There is
 | Back-in-stock notifications (separate from price drops)                                                                        | Real-time stock alerts                                              |
 | 5 fixed categories: Clothing / Shoes / Home / Tech / Other, with **AI auto-categorization** on add (manual override available) | Custom user categories beyond the fixed 5; AI inventing new buckets |
 | Archive (instead of delete) on purchase, with a history view                                                                   | Detailed purchase analytics                                         |
-| CAD as canonical currency; cosmetic display-currency switcher with free FX API                                                 | Multi-currency monitoring or thresholds                             |
+| CAD as canonical currency; cosmetic display-currency control in `/settings` with free FX API                                    | Multi-currency monitoring or thresholds                             |
 | Revisit prompts: "still want this, it's on sale?" and "let this go?" for old wishlist items                                    | Behavioral analytics, in-depth purchase coaching                    |
 | Light + dark theme with toggle in settings                                                                                     | System-theme auto-detection (V2)                                    |
 | Local retailer fixture/mock harness so engineers and agents iterate without hitting real retailers                             | Recording new fixtures automatically from production scrapes        |
@@ -101,7 +101,7 @@ The PRD describes **complete V1**, but implementation should start with a **firs
 - `SCRAPER_MODE=fixtures` works in local dev, CI, and automated agent tests with no outbound retailer requests.
 - Scheduled scrape and fixed-time digest paths run against fixture data in tests.
 
-After this slice is working, agents can expand in parallel across UI polish, settings and account lifecycle (T4.2/T4.3), additional retailer modules, drift detection, production validation (T6.2+), and fixture coverage. Notification workflows through the daily digest job (T3.1–T3.6) are shipped; deployment docs and production URLs are in `docs/DEPLOYMENT.md` (T6.1). Completing a reliable app with fewer retailers is higher priority than shipping many flaky retailer modules.
+After this slice is working, agents can expand in parallel across UI polish, account deletion (T4.3), additional retailer modules, drift detection, production validation (T6.2+), and fixture coverage. Notification workflows through the daily digest job (T3.1–T3.6) and the settings page (T4.2) are shipped; deployment docs and production URLs are in `docs/DEPLOYMENT.md` (T6.1). Completing a reliable app with fewer retailers is higher priority than shipping many flaky retailer modules.
 
 
 ---
@@ -162,7 +162,7 @@ Each story below is a V1 commitment.
 ### 5.7 Currency display
 
 - **U-CUR-1.** Prices are stored and computed in **CAD** always. All thresholds and trend math operate on the CAD value.
-- **U-CUR-2.** The header has a display-currency switcher; default is CAD. Supported display currencies in V1: CAD, USD, EUR, GBP. (More can be added trivially.)
+- **U-CUR-2.** `/settings` is the sole display-currency control; default is CAD. Supported display currencies in V1: CAD, USD, EUR, GBP. (More can be added trivially.)
 - **U-CUR-3.** Conversion uses a free FX API (see §10.5). Rates are cached for 24 hours. Conversion failures fall back silently to CAD display.
 
 ### 5.8 Archiving & purchase history
@@ -174,7 +174,7 @@ Each story below is a V1 commitment.
 
 ### 5.9 Settings
 
-- **U-SET-1.** Settings include: display currency, global notifications on/off, global default notification threshold %, daily email digest on/off, light/dark theme toggle, revisit-prompt cadence + on/off, and "Delete my account."
+- **U-SET-1.** Settings include: display currency, global notifications on/off, global default notification threshold %, daily email digest on/off, light/dark theme toggle, revisit-prompt cadence + on/off, and a delete-account entry point (backend deletion ships in T4.3).
 
 ### 5.10 Revisit prompts (healthy-consumerism nudges)
 
@@ -202,7 +202,7 @@ V1 frontend routes (all behind auth except `/login`):
 | `/settings`              | Global preferences (currency, threshold, digest, theme, revisit prompts) + delete account |
 
 
-A persistent top nav contains: app title/logo, "Add Product" CTA, currency switcher, bell icon (notifications), avatar menu (settings, sign out).
+A persistent top nav contains: app title/logo, "Add Product" CTA, bell icon (notifications), avatar menu (settings, sign out).
 
 The "Add Product" CTA opens a modal with a single URL input. On submit, the modal closes and the user is taken to the new product detail page in a loading state.
 
@@ -822,7 +822,7 @@ V1 is considered complete when:
 6. A user receives a daily digest email containing accurate price-drop, back-in-stock, and revisit-prompt events when those events occur.
 7. Revisit prompts fire per §7.10 logic in a dry-run unit test against a synthetic 90-day product/price-history fixture, and never repeat within the 30-day debounce window.
 8. The 30-day trend chip is visibly correct for products with ≥ 7 days of data.
-9. The display-currency switcher correctly converts and renders for CAD/USD/EUR/GBP.
+9. The display-currency control in `/settings` correctly converts and renders for CAD/USD/EUR/GBP.
 10. A user can archive, restore, delete, and re-categorize products.
 11. A user can toggle between light and dark theme from `/settings`; the preference survives reload.
 12. The dashboard and product detail pages hit Lighthouse Performance ≥ 95 and Accessibility ≥ 95 on a desktop throttled run.

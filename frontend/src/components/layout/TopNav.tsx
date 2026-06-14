@@ -2,16 +2,12 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Bell, Menu, Plus, User } from 'lucide-react'
 import { useAuth } from '@/contexts/AuthContext'
-import { CURRENCIES, useCurrency, type Currency } from '@/contexts/CurrencyContext'
 import { AddProductDialog } from '@/components/add-product/AddProductDialog'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
@@ -24,7 +20,6 @@ function formatUnreadBadge(count: number): string {
 
 export function TopNav() {
   const { signOut } = useAuth()
-  const { currency, setCurrency } = useCurrency()
   const navigate = useNavigate()
   const [addDialogOpen, setAddDialogOpen] = useState(false)
   const { data: unreadCount = 0 } = useUnreadNotificationCount()
@@ -36,30 +31,6 @@ export function TopNav() {
     await signOut()
     navigate('/login')
   }
-
-  const currencySwitcher = (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" aria-label="Display currency">
-          {currency}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuLabel>Display currency</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuRadioGroup
-          value={currency}
-          onValueChange={(value) => setCurrency(value as Currency)}
-        >
-          {CURRENCIES.map((code) => (
-            <DropdownMenuRadioItem key={code} value={code}>
-              {code}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
 
   const addProductButton = (
     <Button size="sm" onClick={() => setAddDialogOpen(true)}>
@@ -107,18 +78,6 @@ export function TopNav() {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuItem onSelect={() => setAddDialogOpen(true)}>Add Product</DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuLabel>Display currency</DropdownMenuLabel>
-        <DropdownMenuRadioGroup
-          value={currency}
-          onValueChange={(value) => setCurrency(value as Currency)}
-        >
-          {CURRENCIES.map((code) => (
-            <DropdownMenuRadioItem key={code} value={code}>
-              {code}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-        <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => navigate('/notifications')}>Notifications</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => navigate('/history')}>Archived products</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => navigate('/settings')}>Settings</DropdownMenuItem>
@@ -139,7 +98,6 @@ export function TopNav() {
           <div className="flex items-center gap-2">
             <div className="hidden items-center gap-2 md:flex">
               {addProductButton}
-              {currencySwitcher}
               {notificationsLink}
               {avatarMenu}
             </div>

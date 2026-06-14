@@ -4,6 +4,20 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T4.2 Settings page
+
+**What:** Full `/settings` UI for display currency, dark mode, notifications, default threshold, email digest, and revisit prompts. Removed header/mobile currency switcher (settings is sole control). Extended `ThemeContext` with profile hydrate + optimistic PATCH (mirrors `CurrencyContext`). Reordered providers: `QueryClientProvider → AuthProvider → ThemeProvider → CurrencyProvider`. Delete account section visible but gated (`ACCOUNT_DELETE_ENABLED = false`) until T4.3.
+
+**Locked behavior:** Optimistic per-control PATCH with rollback toast on error. Profile wins over localStorage for theme/currency after login. `email_digest_enabled` and `notifications_enabled` remain independent. Revisit child controls disabled when master off. No `DELETE /api/account` in this PR.
+
+**Files:** `frontend/src/pages/SettingsPage.tsx`, `frontend/src/contexts/ThemeContext.tsx`, `frontend/src/main.tsx`, `frontend/src/components/layout/TopNav.tsx`, `frontend/src/components/ui/switch.tsx`, `frontend/src/test/settings-page.test.tsx`, `frontend/src/test/theme.test.tsx`, `frontend/src/test/top-nav.test.tsx`, `frontend/src/test/routes.test.tsx`, `frontend/src/test/test-utils.tsx`, `frontend/e2e/settings.spec.ts`, `docs/ROADMAP.md`, `backend/services/README.md`, `MEMORY.md`.
+
+**Verification:** `npm run lint`, `npm run test:run`, `npm run build`, `make test-e2e` with `SCRAPER_MODE=fixtures`. PRD updated: currency control lives in `/settings` only (U-CUR-2).
+
+**Deferred:** Account deletion → T4.3; `scrape_failing` hide toggle not in scope.
+
+---
+
 ## [2026-06-14] Docs status audit (T3.6 + T6.1 cross-reference)
 
 **What:** Audited `main` against README, PRD, and ROADMAP after T3.6 (#35) and T6.1 (#34) merges. Fixed stale plan markers: ROADMAP §15 still said Phase 3 complete through T3.5 only; T3.6 verification and T6.1 build bullets still referenced H4/T3.6 as deferred; historical bootstrap list omitted T3.5/T3.6/T6.1; PRD §4.1 still listed "remaining notification workflows" and §10.3 digest runner lacked the T3.6 `workflow_dispatch`-only note (matching scrape). README was already current.

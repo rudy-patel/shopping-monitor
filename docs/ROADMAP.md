@@ -51,7 +51,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M1: Foundation | done | Schema, auth primitives, app shell, service interfaces, and fixture harness contracts exist. | Product flows and scraper work can proceed in parallel. |
 | M2: First local vertical slice | done | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
 | M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
-| M4: MVP product workflows | in progress | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5), digest email (T3.6). **Remaining:** settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
+| M4: MVP product workflows | in progress | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5), digest email (T3.6), settings UI (T4.2). **Remaining:** account delete (T4.3). | Deployment hardening and broader retailer expansion. |
 | M5: V1 retailer coverage | pending | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. | V1 success criteria can be tested end-to-end. |
 | M6: Production-ready V1 | pending | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check, account-delete verification. **Progress:** T6.1 deployment docs done; T3.5/T3.6 job code shipped (`workflow_dispatch` only); prod scrape `workflow_dispatch` verified — digest prod smoke, account delete, cron (T6.2–T6.4), and schedules (T6.3) remain. | Invite early friends for feedback. |
 
@@ -547,21 +547,22 @@ These can proceed after the local vertical slice lands.
 
 ### T4.2 Settings page
 
-**Status:** pending
+**Status:** done
 
 - **Owner:** agent.
 - **PR size:** frontend-heavy full-stack PR.
 - **Build:**
-  - Display currency.
+  - Display currency (settings-only; header switcher removed).
   - Global notifications on/off.
   - Default threshold.
   - Email digest on/off.
-  - Light/dark theme toggle.
+  - Light/dark theme toggle with profile sync.
   - Revisit prompt toggles and `revisit_stale_days`.
-  - Delete-account entry point with confirmation UI.
+  - Delete-account section gated until T4.3.
 - **Verification:**
-  - Backend profile validation tests.
-  - Frontend tests for settings persistence and theme class.
+  - Backend profile validation tests (existing).
+  - Frontend Vitest for settings persistence and theme class.
+  - Playwright theme persistence across reload.
 
 ### T4.3 Delete account
 
@@ -785,9 +786,8 @@ Constraints:
 
 **Phase 3 notification/discovery work through T3.6, Phase 4 currency (T4.1), and deployment docs (T6.1) are complete.** Pick next from:
 
-1. **T6.2** Production smoke — sign-in, add live Best Buy URL, manual refresh, digest `workflow_dispatch` (scrape pre-verified 2026-06-14).
-2. **T4.2** Settings page — profile-backed theme, digest toggle, thresholds, revisit prefs (currency switcher already in header from T4.1).
-3. **T4.3** Delete account — can ship with T4.2 or as a follow-up PR.
+1. **T4.3** Delete account — enable gated settings UI + `DELETE /api/account`.
+2. **T6.2** Production smoke — sign-in, add live Best Buy URL, manual refresh, digest `workflow_dispatch` (scrape pre-verified 2026-06-14).
 4. ~~**T3.6** Digest email service and job~~ — **done**.
 5. ~~**T3.5** Internal scrape job endpoint~~ — **done**; enable cron in T6.3 after explicit human confirmation.
 

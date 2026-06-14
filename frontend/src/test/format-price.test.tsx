@@ -1,7 +1,7 @@
 import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
-import { TopNav } from '@/components/layout/TopNav'
+import { SettingsPage } from '@/pages/SettingsPage'
 import { ProductCard } from '@/components/products/ProductCard'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
@@ -149,16 +149,12 @@ describe('currency profile sync', () => {
     expect(localStorage.getItem('display-currency')).toBe('EUR')
   })
 
-  it('PATCHes profile when header currency changes', async () => {
+  it('PATCHes profile when settings currency changes', async () => {
     const user = userEvent.setup()
-    renderWithProviders(<TopNav />, { authenticated: true })
+    renderWithProviders(<SettingsPage />, { authenticated: true })
 
-    await waitFor(() => {
-      expect(apiModule.apiFetch).toHaveBeenCalledWith('/api/profile')
-    })
-
-    await user.click(screen.getByRole('button', { name: /display currency/i }))
-    await user.click(await screen.findByRole('menuitemradio', { name: /usd/i }))
+    await screen.findByRole('heading', { name: /^display$/i })
+    await user.click(screen.getByRole('radio', { name: /^usd$/i }))
 
     await waitFor(() => {
       expect(apiModule.apiFetch).toHaveBeenCalledWith('/api/profile', {
@@ -184,15 +180,15 @@ describe('currency profile sync', () => {
     })
 
     const user = userEvent.setup()
-    renderWithProviders(<TopNav />, { authenticated: true })
+    renderWithProviders(<SettingsPage />, { authenticated: true })
 
-    await user.click(screen.getByRole('button', { name: /display currency/i }))
-    await user.click(await screen.findByRole('menuitemradio', { name: /usd/i }))
+    await screen.findByRole('heading', { name: /^display$/i })
+    await user.click(screen.getByRole('radio', { name: /^usd$/i }))
 
     await waitFor(() => {
       expect(toast.error).toHaveBeenCalledWith("Couldn't save currency preference")
     })
-    expect(screen.getByRole('button', { name: /display currency/i })).toHaveTextContent('CAD')
+    expect(screen.getByRole('radio', { name: /^cad$/i })).toBeChecked()
     expect(localStorage.getItem('display-currency')).toBe('CAD')
   })
 })
