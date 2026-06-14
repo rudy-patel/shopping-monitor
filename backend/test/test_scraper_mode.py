@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import os
-
 import pytest
 
 from core.settings import DEFAULT_SCRAPER_MODE, clear_settings_cache
@@ -66,10 +64,7 @@ def test_require_fixture_mode_guard_raises_in_live_mode(monkeypatch):
         require_fixtures_mode()  # pragma: allowlist secret
 
 
-def test_ci_default_is_fixture_mode():
-    """Without env override, resolved mode must be fixture mode for CI safety."""
-    env_value = os.environ.get(SCRAPER_MODE_ENV_VAR)
-    if env_value is not None:
-        pytest.skip("scraper mode env var is set in the environment")
+def test_automated_tests_require_fixture_mode():
+    """CI and local unit tests must resolve to fixture mode (explicit or default)."""
     clear_settings_cache()
-    assert get_scraper_mode().value == DEFAULT_SCRAPER_MODE
+    require_fixtures_mode()  # pragma: allowlist secret
