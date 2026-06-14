@@ -6,7 +6,7 @@
 
 **Shopping Monitor** — **Python/FastAPI** backend (port 8000) and **React/Vite/TypeScript** frontend (port 3000). Data lives in a remote **Supabase** instance (no local database). See `README.md` and `docs/PRD.md` for full documentation.
 
-Before feature work, read `MEMORY.md`, `docs/PRD.md`, and this file. The PRD is the source of truth for V1 scope, non-goals, data model, worker boundaries, and the first integrated vertical slice.
+Before feature work, read `MEMORY.md`, `docs/PRD.md`, `docs/ROADMAP.md`, and this file. The PRD is the source of truth for V1 scope, non-goals, data model, worker boundaries, and the first integrated vertical slice. The roadmap is the source of truth for milestone/task status, prioritized implementation sequencing, parallel-agent lanes, and just-in-time human-setup checkpoints.
 
 ### Environment variables
 
@@ -76,3 +76,5 @@ Integration tests are excluded from `make test` / CI unit jobs. They require a l
 - **No local database.** All persistence is via remote Supabase.
 - **Auth bypass:** Set `AUTH_BYPASS_ENABLED=true` in `backend/.env` for local development without real Supabase auth (when auth routes exist).
 - **Supabase security:** Never expose `SUPABASE_SERVICE_ROLE_KEY` to frontend code. Every new `public` table must enable RLS in the same migration and be documented in `docs/DATABASE.md`.
+- **Runs without Supabase creds:** With placeholder/missing Supabase env, the backend still serves `/` and the frontend renders; only `/health` reports `"degraded"` (`database: disconnected`). This is expected for local dev and does not block the frontend↔backend hello-world.
+- **Migration check working dir:** Run `python scripts/check_migrations.py` from the **repo root** (it lives in `scripts/`, not `backend/scripts/`). CI invokes it with `working-directory: ${{ github.workspace }}`.
