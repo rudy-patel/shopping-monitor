@@ -347,7 +347,7 @@ The generic scraper never participates in cross-retailer discovery (it can't rel
 
 ### 7.9 Scraper benchmark pipeline
 
-**Status (2026-06-14):** Harness implemented (ROADMAP T5.1). Fixture catalog covers `generic`, `bestbuy_ca`, `palmisleskate`, `tikiroomskate`, `indigo`, `apple_ca`, and `abercrombie`; reports live in `docs/benchmarks/`. Regenerate with `make benchmark-retailers`. Additional §11 retailers deferred to T5.4+.
+**Status (2026-06-14):** Harness implemented (ROADMAP T5.1). Fixture catalog covers production retailers through T5.4 (`amazon_ca`, `nike_ca`); reports live in `docs/benchmarks/`. Regenerate with `make benchmark-retailers`. Deferred §11 retailers: `sportchek`, `footlocker_ca`, `costco_ca`, `oakley`, `canadiantire`, `vans_ca`, `eatyourwater`.
 
 Before implementing the full supported-retailer list, engineering must add a small benchmark harness that can run a candidate URL through multiple extraction strategies and record comparable results. The goal is to learn which approach works for each retailer before committing to a brittle scraper implementation.
 
@@ -717,17 +717,17 @@ Each natively supported retailer needs a scraper module exposing a `scrape(url) 
 
 | Slug            | Domain(s)                       | Default category | Notes                                                                                                                                                                |
 | --------------- | ------------------------------- | ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `amazon_ca`     | amazon.ca                       | other            | Strict 1P only — must verify "Sold by Amazon.ca" or "Ships from and sold by Amazon.ca" in scraper. Benchmark first; likely needs `curl_cffi` or Playwright fallback. |
+| `amazon_ca`     | amazon.ca                       | other            | Shipped T5.4 — 1P seller verification; twister variants via `curl_cffi` HTML parser.                                                                                |
 | `bestbuy_ca`    | bestbuy.ca                      | tech             | Cloudflare-protected; benchmark structured data / `curl_cffi` before Playwright.                                                                                     |
 | `apple_ca`      | apple.com/ca                    | tech             | Buy-flow JSON-LD + config grid; shared structured scraper (T5.3).                                                                                                    |
-| `nike_ca`       | nike.com/ca                     | shoes            | Aggressive bot protection; benchmark `curl_cffi`; Playwright may be needed.                                                                                          |
-| `sportchek`     | sportchek.ca                    | clothing         | Akamai-protected; benchmark before selecting default strategy.                                                                                                       |
+| `nike_ca`       | nike.com/ca                     | shoes            | Shipped T5.4 — `__NEXT_DATA__` parser via `curl_cffi`; HTTP-only (no production Playwright).                                                                         |
+| `sportchek`     | sportchek.ca                    | clothing         | Deferred T5.4 — Akamai shell HTML without extractable product data over HTTP-only.                                                                                   |
 | `indigo`        | indigo.ca                       | other            | Shopify + ProductGroup format stock; shared structured scraper (T5.3).                                                                                              |
 | `canadiantire`  | canadiantire.ca                 | home             | Region-aware (asks for store); use the central/online price.                                                                                                         |
 | `costco_ca`     | costco.ca                       | other            | Some pages behind member login — we restrict to public listings only.                                                                                                |
 | `abercrombie`   | abercrombie.com (Canada region) | clothing         | Embedded productPrices + scoped SKU inventory; shared structured scraper (T5.3).                                                                                    |
 | `oakley`        | oakley.com/en-ca                | other            |                                                                                                                                                                      |
-| `footlocker_ca` | footlocker.ca                   | shoes            |                                                                                                                                                                      |
+| `footlocker_ca` | footlocker.ca                   | shoes            | Deferred T5.4 — JS-heavy PDP without extractable price over HTTP-only.                                                                                              |
 | `vans_ca`       | vans.ca                         | shoes            |                                                                                                                                                                      |
 | `palmisleskate` | palmisleskateshop.com           | other            | Small Shopify store; shared Shopify scraper (T5.2).                                                                                                                    |
 | `tikiroomskate` | tikiroomskateboards.com         | other            | Small Shopify store; shared Shopify scraper (T5.2).                                                                                                                    |

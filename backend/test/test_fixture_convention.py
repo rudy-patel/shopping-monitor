@@ -8,10 +8,12 @@ from scrapers.registry import all_retailers, reset_registry
 
 def _register_production_retailers() -> None:
     from scrapers.abercrombie import register_abercrombie
+    from scrapers.amazon_ca import register_amazon_ca
     from scrapers.apple_ca import register_apple_ca
     from scrapers.bestbuy_ca import register_bestbuy_ca
     from scrapers.generic import register_generic
     from scrapers.indigo import register_indigo
+    from scrapers.nike_ca import register_nike_ca
     from scrapers.palmisleskate import register_palmisleskate
     from scrapers.tikiroomskate import register_tikiroomskate
 
@@ -22,6 +24,8 @@ def _register_production_retailers() -> None:
     register_indigo()
     register_apple_ca()
     register_abercrombie()
+    register_amazon_ca()
+    register_nike_ca()
 
 
 def test_registered_retailers_have_required_fixture_files():

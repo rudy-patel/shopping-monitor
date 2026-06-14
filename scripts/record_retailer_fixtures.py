@@ -20,7 +20,16 @@ _CHALLENGE_MARKERS = (
     "cf-browser-verification",
     "challenge-platform",
     "Attention Required",
+    "access denied",
+    "please verify you are a human",
+    "bot manager",
 )
+
+
+def _validate_amazon_first_party(html: str) -> None:
+    from scrapers.extraction.amazon import assert_amazon_ca_first_party
+
+    assert_amazon_ca_first_party(html, url="record")
 
 
 def _validate_response(body_text: str, status_code: int) -> None:
@@ -52,6 +61,11 @@ def main() -> int:
     parser.add_argument("--slug", required=True, help="Retailer slug, e.g. indigo")
     parser.add_argument("--scenario", required=True, help="Fixture scenario name")
     parser.add_argument("--url", required=True, help="Live product URL")
+    parser.add_argument(
+        "--validate-amazon-1p",
+        action="store_true",
+        help="Require Amazon.ca first-party seller before recording",
+    )
     args = parser.parse_args()
 
     require_not_fixtures_mode()
@@ -59,6 +73,8 @@ def main() -> int:
     parse_html = get_parser(args.slug)
     response = scraper_fetch(args.url, retailer_slug=args.slug)
     _validate_response(response.body_text, response.status_code)
+    if args.validate_amazon_1p or args.slug == "amazon_ca":
+        _validate_amazon_first_party(response.body_text)
     extracted = parse_html(response.body_text, args.url)
 
     if extracted.currency and extracted.currency != "CAD":

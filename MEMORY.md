@@ -4,6 +4,24 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T5.4 Bot-protected retailers (amazon_ca, nike_ca)
+
+**What:** Shipped T5.4 bot-protected retailers in one PR: shared `scrapers/bot_protected_retailer.py` HTTP-only factory (no production Playwright), `amazon_ca` parser with first-party seller verification and twister variants, `nike_ca` `__NEXT_DATA__` parser with color/size variants, live-recorded fixtures (+6 HTML files), benchmark catalog entries, retailer labels, and extended `record_retailer_fixtures.py` (Amazon 1P validation, refined challenge markers).
+
+**Locked behavior:** `amazon_ca` rejects third-party seller listings with `ScrapeBlockedError` on add and refresh; allows unavailable pages without a visible third-party seller. Production scrapers use `curl_cffi` only — Playwright not added to Render. Nike stock = any size `status==ACTIVE`.
+
+**Fixture URLs recorded:** amazon — Echo Dot Charcoal (`B09B8V1LZ3` in_stock), Amazon Basics HDMI (`B014I8SSD0` multi_variant), Echo Dot OOS fixture derived from in_stock availability patch; nike — AF1 `CW2288-111` (in_stock/multi_variant), OOS fixture derived from inactive sizes.
+
+**Deferred:** `sportchek`, `footlocker_ca` — live HTTP returned bot shell pages without title/price (Akamai/JS); Playwright excluded from V1 production by policy.
+
+**Files:** `backend/scrapers/bot_protected_retailer.py`, `backend/scrapers/amazon_ca.py`, `backend/scrapers/nike_ca.py`, `backend/scrapers/extraction/amazon.py`, `backend/scrapers/extraction/nike.py`, `backend/scrapers/bootstrap.py`, `backend/scrapers/benchmark/catalog.yaml`, `backend/scrapers/benchmark/parsers.py`, `backend/scrapers/benchmark/recommend.py`, `backend/test/fixtures/retailers/amazon_ca/*`, `backend/test/fixtures/retailers/nike_ca/*`, `backend/test/test_bot_protected_retailer.py`, `backend/test/test_amazon_extraction.py`, `backend/test/test_amazon_ca_scraper.py`, `backend/test/test_nike_extraction.py`, `backend/test/test_nike_ca_scraper.py`, `backend/test/test_benchmark_harness.py`, `backend/test/test_fixture_convention.py`, `scripts/record_retailer_fixtures.py`, `frontend/src/lib/format.ts`, `backend/services/digest_templates.py`, `backend/scrapers/README.md`, `docs/ROADMAP.md`, `docs/PRD.md`, `MEMORY.md`.
+
+**Verification:** `ruff check .`, `pytest -m "not integration"` (524 passed), `make benchmark-retailers`, `npm run lint`, `npm run test:run` with `SCRAPER_MODE=fixtures`.
+
+**Review pass:** tightened Amazon 1P validation (availability-scoped OOS skip, marketplace anchor sellers, unverified buyable reject); DRY twister JSON helper; README/AGENTS sync.
+
+---
+
 ## [2026-06-14] T6.2 Production smoke
 
 **What:** Completed production smoke against Render + Vercel + Supabase. Live add/refresh/delete on production API for two retailers (`bestbuy_ca`, `palmisleskate`); digest `workflow_dispatch` suppression path; disposable account-delete smoke; Google OAuth UI + redirect verified; added `frontend/vercel.json` SPA rewrite so direct `/login` deep links return 200.
