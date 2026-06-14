@@ -1,7 +1,7 @@
 # Shopping Monitor — Development Makefile
 # Run `make help` to see available commands
 
-.PHONY: help start stop restart status logs health test test-backend test-frontend test-integration test-all clean install-deps setup
+.PHONY: help start stop restart status logs health test test-backend test-frontend test-integration test-e2e test-all clean install-deps setup
 
 help:
 	@echo "🛒 Shopping Monitor — development commands"
@@ -21,6 +21,7 @@ help:
 	@echo "  make test-frontend  - Run frontend tests"
 	@echo "  make setup-integration-env - Write backend/.env from Supabase secrets"
 	@echo "  make test-integration - Run integration tests (requires Supabase)"
+	@echo "  make test-e2e       - Run Playwright e2e tests (requires running servers)"
 	@echo "  make test-all       - Run all tests including integration"
 	@echo ""
 	@echo "Development:"
@@ -86,6 +87,10 @@ test-integration: setup-integration-env
 	else \
 		cd backend && REQUIRE_INTEGRATION_ENV=1 python3 -m pytest test/ -v -m "integration"; \
 	fi
+
+test-e2e:
+	@echo "🎭 Running Playwright e2e tests (requires backend :8000 and frontend :3000)..."
+	@cd frontend && npx playwright test
 
 test-all: test test-integration
 	@echo "✅ All tests completed!"

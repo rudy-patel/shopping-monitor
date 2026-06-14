@@ -4,6 +4,14 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-13] T2.6 Product frontend vertical slice
+
+**What:** Implemented the product frontend vertical slice: Add Product modal (URL + category), monochrome dashboard grouped by category, filtered flat list, product detail (listings table, threshold/category PATCH, refresh, archive, delete), variant picker for `needs_input`, **archived products History page with restore**, TanStack Query hooks with optimistic PATCH/archive/restore, Vitest coverage, Playwright scaffold with archive→history→restore e2e, and optional frontend live API integration test (`VITE_INTEGRATION=1`). Backend micro-amendments: `available_variants` on listing responses, `needs_review_count` on product summaries.
+
+**Files:** `backend/routers/products.py`, `backend/services/product_service.py`, `backend/test/test_products_router.py`, `frontend/src/lib/products.ts`, `frontend/src/lib/categories.ts`, `frontend/src/lib/format.ts`, `frontend/src/hooks/useProducts.ts`, `frontend/src/components/products/*`, `frontend/src/components/ui/select.tsx`, `frontend/src/components/ui/badge.tsx`, `frontend/src/components/ui/alert-dialog.tsx`, `frontend/src/components/add-product/AddProductDialog.tsx`, `frontend/src/pages/DashboardPage.tsx`, `frontend/src/pages/ListPage.tsx`, `frontend/src/pages/ProductDetailPage.tsx`, `frontend/src/pages/VariantPickerPage.tsx`, `frontend/src/index.css`, `frontend/src/test/*.test.tsx`, `frontend/src/test/integration/products-api.integration.test.ts`, `frontend/e2e/products.spec.ts`, `frontend/playwright.config.ts`, `frontend/package.json`, `Makefile`, `AGENTS.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Deferred:** Listing accept/reject → T3.2; full e2e CI job → T2.7; FX conversion display → T4.1. History/archive restore UI implemented in T2.6 follow-up (archived products no longer orphaned).
+
 ## [2026-06-13] T2.5 Product API vertical slice
 
 **What:** Implemented the backend Product API vertical slice: seven authenticated endpoints (`POST/GET/PATCH/DELETE /api/products`, refresh, select-variant), product/listing orchestration with fixture-backed scraping and categorization, product-level trend/best-price helpers, discovery stub via BackgroundTasks (`discovery_status='complete'`), and first `price_history` row with `source='scheduled'` on add (no `last_refresh_at` on add). Extended scraper registry `lookup_by_url()` to resolve `fixtures.local/<retailer_slug>/<scenario>` URLs for tests and local dev.

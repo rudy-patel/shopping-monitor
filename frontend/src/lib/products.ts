@@ -1,0 +1,161 @@
+import { apiFetch } from '@/lib/api'
+import type { CategoryInput, ProductCategory } from '@/lib/categories'
+
+export type ProductStatus = 'active' | 'archived' | 'needs_input'
+export type TrendDirection = 'down' | 'same' | 'up'
+
+export interface TrendChip {
+  direction: TrendDirection
+  delta_pct: number | null
+  days_of_data: number
+  label: string
+}
+
+export interface VariantAttribute {
+  attribute_name: string
+  attribute_value: string
+}
+
+export interface AvailableVariant {
+  attributes: VariantAttribute[]
+  sku?: string
+}
+
+export interface Listing {
+  id: string
+  retailer_slug: string
+  url: string
+  variant_attributes: Record<string, string>
+  available_variants: AvailableVariant[] | null
+  is_primary: boolean
+  review_status: string
+  last_known_price_cents: number | null
+  is_in_stock: boolean | null
+  last_scraped_at: string | null
+  scrape_status: string | null
+  match_confidence: number | null
+}
+
+export interface ProductSummary {
+  id: string
+  title: string
+  brand: string | null
+  image_url: string | null
+  category: ProductCategory
+  category_source: string
+  status: ProductStatus
+  notification_threshold_pct: number | null
+  notifications_enabled: boolean
+  discovery_status: string
+  last_refresh_at: string | null
+  last_user_interaction_at: string | null
+  created_at: string
+  updated_at: string
+  best_price_cents: number | null
+  best_retailer_slug: string | null
+  trend: TrendChip
+  listing_count: number
+  effective_threshold_pct: number
+  last_scraped_at: string | null
+  needs_review_count: number
+}
+
+export interface ProductDetail extends ProductSummary {
+  listings: Listing[]
+}
+
+export interface ProductFilters {
+  status?: ProductStatus | 'active'
+  category?: ProductCategory
+}
+
+export interface CreateProductInput {
+  url: string
+  category?: CategoryInput
+}
+
+export interface UpdateProductInput {
+  category?: ProductCategory
+  notification_threshold_pct?: number
+  notifications_enabled?: boolean
+  status?: 'active' | 'archived'
+}
+
+export interface VariantOption {
+  attributes: Record<string, string>
+  label: string
+}
+
+export function productsQueryKey(filters: ProductFilters = {}) {
+  return ['products', filters] as const
+}
+
+export function productQueryKey(id: string) {
+  return ['products', id] as const
+}
+
+export function listProducts(filters: ProductFilters = {}): Promise<ProductSummary[]> {
+  const params = new URLSearchParams()
+  if (filters.status) params.set('status', filters.status)
+  if (filters.category) params.set('category', filters.category)
+  const query = params.toString()
+  return apiFetch<ProductSummary[]>(`/api/products${query ? `?${query}` : ''}`)
+}
+
+export function getProduct(id: string): Promise<ProductDetail> {
+  return apiFetch<ProductDetail>(`/api/products/${id}`)
+}
+
+export function createProduct(input: CreateProductInput): Promise<ProductDetail> {
+  return apiFetch<ProductDetail>('/api/products', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+}
+
+export function updateProduct(id: string, patch: UpdateProductInput): Promise<ProductDetail> {
+  return apiFetch<ProductDetail>(`/api/products/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(patch),
+  })
+}
+
+export function deleteProduct(id: string): Promise<void> {
+  return apiFetch<void>(`/api/products/${id}`, { method: 'DELETE' })
+}
+
+export function refreshProduct(id: string): Promise<ProductDetail> {
+  return apiFetch<ProductDetail>(`/api/products/${id}/refresh`, { method: 'POST' })
+}
+
+export function selectVariant(
+  id: string,
+  variantAttributes: Record<string, string>,
+): Promise<ProductDetail> {
+  return apiFetch<ProductDetail>(`/api/products/${id}/select-variant`, {
+    method: 'POST',
+    body: JSON.stringify({ variant_attributes: variantAttributes }),
+  })
+}
+
+export function normalizeVariants(
+  raw: AvailableVariant[] | null | undefined,
+): VariantOption[] {
+  if (!raw?.length) return []
+
+  return raw.map((variant) => {
+    const attributes: Record<string, string> = {}
+    for (const attr of variant.attributes ?? []) {
+      const key = attr.attribute_name.toLowerCase()
+      attributes[key] = attr.attribute_value
+    }
+    const label = (variant.attributes ?? [])
+      .map((attr) => attr.attribute_value)
+      .join(' · ')
+    return { attributes, label: label || 'Default' }
+  })
+}
+
+export function primaryListing(product: ProductDetail): Listing | undefined {
+  return product.listings.find((listing) => listing.is_primary) ?? product.listings[0]
+}

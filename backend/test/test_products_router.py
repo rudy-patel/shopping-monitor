@@ -195,6 +195,8 @@ def test_post_multi_variant_needs_input(products_client):
     assert response.status_code == 201
     body = response.json()
     assert body["status"] == "needs_input"
+    primary = next(row for row in body["listings"] if row["is_primary"])
+    assert primary["available_variants"]
     needs_input = [
         row for row in fake.notifications.values() if row["type"] == "needs_input"
     ]
@@ -288,6 +290,28 @@ def test_get_detail_includes_sorted_listings_and_trend(products_client, fake_cli
     assert prices == sorted(prices)
     assert "trend" in body
     assert body["trend"]["label"]
+    assert body["needs_review_count"] == 0
+
+
+def test_needs_review_count_increments_for_unreviewed_listings(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    _seed_listing(fake, product["id"], review_status="accepted")
+    _seed_listing(
+        fake,
+        product["id"],
+        is_primary=False,
+        review_status="needs_review",
+        last_known_price_cents=8000,
+    )
+
+    response = client.get(f"/api/products/{product['id']}")
+
+    assert response.status_code == 200
+    assert response.json()["needs_review_count"] == 1
+
+    list_response = client.get("/api/products")
+    assert list_response.json()[0]["needs_review_count"] == 1
 
 
 def test_patch_updates_category_and_interaction(products_client, fake_client):

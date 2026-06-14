@@ -278,7 +278,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.2 Generic JSON-LD/OG scraper
 
-**Status:** ✅ Complete
+**Status:** done
 
 - **Owner:** agent.
 - **Human setup:** none.
@@ -346,7 +346,7 @@ The tasks in this phase converge on the one-retailer MVP.
 
 ### T2.6 Product frontend vertical slice
 
-**Status:** pending
+**Status:** done
 
 - **Owner:** agent.
 - **Human setup:** H1/H2 for live auth; local auth-bypass acceptable.
@@ -355,12 +355,13 @@ The tasks in this phase converge on the one-retailer MVP.
   - Add Product modal with URL input and category dropdown defaulting to Auto.
   - Dashboard grouped by category.
   - Flat list view with category/retailer/needs-review filters.
-  - Product detail page with listings, threshold edit, category edit, refresh, archive/restore/delete.
+  - Product detail page with listings, threshold edit, category edit, refresh, archive/delete (no restore UI until History).
   - Variant picker route for `needs_input`.
-  - Optimistic mutations, skeletons, toasts, trend chip.
+  - Optimistic mutations, skeletons, toasts, monochrome trend chip.
+  - Playwright scaffold + optional live API integration test.
 - **Verification:**
-  - Vitest/Testing Library coverage for add modal, grouping, detail mutation controls, archive/restore/delete flows with mocked API.
-  - Add an e2e framework here or in T2.7 if not already present.
+  - Vitest/Testing Library coverage for add modal, grouping, detail mutation controls, archive/delete flows with mocked API.
+  - Playwright happy-path spec (local only; CI wiring in T2.7).
 
 ### T2.7 Local end-to-end one-retailer slice
 

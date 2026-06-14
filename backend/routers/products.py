@@ -40,6 +40,7 @@ class ListingResponse(BaseModel):
     retailer_slug: str
     url: str
     variant_attributes: dict[str, str]
+    available_variants: list[dict] | None = None
     is_primary: bool
     review_status: str
     last_known_price_cents: int | None
@@ -70,6 +71,7 @@ class ProductSummary(BaseModel):
     listing_count: int
     effective_threshold_pct: int
     last_scraped_at: str | None
+    needs_review_count: int = 0
 
 
 class ProductDetail(ProductSummary):
