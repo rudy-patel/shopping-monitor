@@ -77,6 +77,18 @@ def _block_live_gemini(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _block_live_resend(monkeypatch):
+    """Keep pytest/CI off live Resend; tests mock resend.Emails.send locally when needed."""
+    monkeypatch.delenv("RESEND_API_KEY", raising=False)
+    monkeypatch.setattr("core.settings._env_file_path", lambda: None)
+    clear_settings_cache()
+    with patch("services.resend_mail.resend") as mock_resend:
+        mock_resend.Emails.send = MagicMock()
+        yield
+    clear_settings_cache()
+
+
+@pytest.fixture(autouse=True)
 def _scraper_test_registry(request):
     if not _is_scraper_test(request):
         yield

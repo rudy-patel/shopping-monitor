@@ -58,7 +58,7 @@ See `AGENTS.md` for lint/test commands and environment details.
 
 ### Implementation status (2026-06-14)
 
-Milestones **M0–M3** (planning, foundation, local vertical slice, live Best Buy validation) are **done**. **M4** (MVP product workflows) is **in progress**: discovery, listing review, notifications (read API + evaluators), display currency, and the scheduled scrape job (T3.5) are shipped; **remaining** — digest email (T3.6), settings page (T4.2), account delete (T4.3). Human setup **H5** (Render/Vercel/GitHub Actions) and deployment docs (**T6.1**) are **done** — production URLs in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md); **H4** (Resend) is still **pending**. See [`docs/ROADMAP.md`](docs/ROADMAP.md) §15 for the recommended next tasks.
+Milestones **M0–M3** (planning, foundation, local vertical slice, live Best Buy validation) are **done**. **M4** (MVP product workflows) is **in progress**: discovery, listing review, notifications (read API + evaluators), display currency, scheduled scrape job (T3.5), and digest email (T3.6) are shipped; **remaining** — settings page (T4.2), account delete (T4.3). Human setup **H4** (Resend) and **H5** (Render/Vercel/GitHub Actions) and deployment docs (**T6.1**) are **done** — production URLs in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). See [`docs/ROADMAP.md`](docs/ROADMAP.md) §15 for the recommended next tasks.
 
 ## Documentation
 

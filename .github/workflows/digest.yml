@@ -1,0 +1,19 @@
+name: Daily digest
+
+on:
+  workflow_dispatch:
+  # schedule: "0 14 * * *"  # T6.3 — enable only after production validation
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install httpx
+      - run: python backend/workers/send_digests.py
+        env:
+          BACKEND_BASE_URL: ${{ secrets.BACKEND_BASE_URL }}
+          WORKER_TOKEN: ${{ secrets.WORKER_TOKEN }}

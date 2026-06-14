@@ -21,6 +21,7 @@ DEFAULT_GEMINI_DISCOVER_TIMEOUT_S = 30.0
 DEFAULT_FX_CACHE_TTL_HOURS = 24
 DEFAULT_FRANKFURTER_BASE_URL = "https://api.frankfurter.dev"
 DEFAULT_EXCHANGERATE_API_OPEN_URL = "https://open.er-api.com/v6/latest"
+DEFAULT_RESEND_FROM_EMAIL = "Shopping Monitor <onboarding@resend.dev>"
 DEFAULT_CORS_ORIGINS = [DEFAULT_APP_BASE_URL, "http://127.0.0.1:3000"]
 ScraperMode = Literal["fixtures", "live", "record"]  # pragma: allowlist secret
 
@@ -46,6 +47,7 @@ class Settings(BaseSettings):
     frankfurter_base_url: str = DEFAULT_FRANKFURTER_BASE_URL
     exchangerate_api_open_url: str = DEFAULT_EXCHANGERATE_API_OPEN_URL
     resend_api_key: str = ""
+    resend_from_email: str = DEFAULT_RESEND_FROM_EMAIL
     app_base_url: str = DEFAULT_APP_BASE_URL
     scraper_mode: ScraperMode = DEFAULT_SCRAPER_MODE
     log_level: str = "INFO"
