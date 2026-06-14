@@ -206,8 +206,7 @@ These tasks should land before broad feature work. They are intentionally small 
 
 ### T1.3 Frontend app shell and shared dependencies
 
-**Status:** pending
-
+**Status:** complete — PR https://github.com/rudy-patel/shopping-monitor/pull/9.
 
 - **Owner:** agent.
 - **Human setup:** none for fixture/local mode.

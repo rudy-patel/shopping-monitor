@@ -1,9 +1,23 @@
-import { render, screen } from '@testing-library/react'
-import App from '../App'
+import { screen } from '@testing-library/react'
+import { renderApp, clearAuthStorage } from './test-utils'
 
 describe('App', () => {
-  it('renders the app title', () => {
-    render(<App />)
-    expect(screen.getByRole('heading', { name: /shopping monitor/i })).toBeInTheDocument()
+  beforeEach(() => {
+    clearAuthStorage()
+  })
+
+  it('redirects unauthenticated users to login', async () => {
+    renderApp('/', { authenticated: false })
+
+    expect(await screen.findByRole('heading', { name: /shopping monitor/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /continue with google/i })).toBeDisabled()
+  })
+
+  it('shows top nav and dashboard when authenticated', async () => {
+    renderApp('/', { authenticated: true })
+
+    expect(await screen.findByRole('heading', { name: /^dashboard$/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /shopping monitor/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /add product/i })).toBeInTheDocument()
   })
 })
