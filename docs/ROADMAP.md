@@ -598,6 +598,7 @@ Start after M3 proves the one-retailer architecture.
   - Fixture-mode benchmark tests (`backend/test/test_benchmark_harness.py`).
   - `make benchmark-retailers` → `docs/benchmarks/fixtures-*.json`.
   - Document command and output format (`docs/benchmarks/README.md`, `backend/scrapers/README.md`).
+  - PR https://github.com/rudy-patel/shopping-monitor/pull/38
 
 ### T5.2 Easy Shopify/scrape-friendly retailers
 

@@ -14,7 +14,7 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Files:** `backend/scrapers/benchmark/*`, `scripts/run_scraper_benchmark.py`, `backend/requirements-benchmark.txt`, `backend/requirements.txt`, `backend/test/test_benchmark_harness.py`, `docs/benchmarks/`, `backend/scrapers/README.md`, `AGENTS.md`, `Makefile`, `docs/ROADMAP.md`, `MEMORY.md`.
 
-**Verification:** `ruff check .`, `pytest -m "not integration"` (448 passed), `make benchmark-retailers` with `SCRAPER_MODE=fixtures`.
+**Verification:** `ruff check .`, `pytest -m "not integration"` (448 passed), `make benchmark-retailers` with `SCRAPER_MODE=fixtures`. PR https://github.com/rudy-patel/shopping-monitor/pull/38
 
 **Second-pass cleanup:** Simplified catalog API (`slugs` filter only), cleaner skipped-strategy field output, fixed `_status_from_fields` to use `failed` not `blocked` for parse misses, accurate dimemtl catalog `expect` flags, docs sync (PRD §7.9, README, ROADMAP M5/T5.1/§15).
 
