@@ -18,6 +18,7 @@ Two `.env` files are needed (not committed). Backend secrets (`SUPABASE_URL`, `S
   - `WORKER_TOKEN` — shared secret required by `/internal/jobs/*` endpoints.
   - `APP_BASE_URL` — deployed frontend origin used in email links.
   - `SCRAPER_MODE=fixtures` — local/CI default; valid values: `fixtures`, `live`, `record`.
+  - `SUPABASE_ACCESS_TOKEN` — optional; Supabase dashboard **Account → Access Tokens**. Required for agents to apply SQL migrations when MCP is unavailable. (`SUPABASE_SERVICE_ROLE_KEY` alone cannot run DDL.)
 - `frontend/.env` — `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_API_URL=http://localhost:8000`.
 
 See `backend/.env.example` and `frontend/.env.example` for placeholders.
@@ -63,6 +64,7 @@ Integration tests are excluded from `make test` / CI unit jobs. They require a l
    - `SUPABASE_URL`
    - `SUPABASE_ANON_KEY`
    - `SUPABASE_SERVICE_ROLE_KEY`
+   - `SUPABASE_ACCESS_TOKEN` — enables agents to apply migrations via `scripts/apply_supabase_migration.py` when MCP is unavailable
 2. Alternative: set `SUPABASE_ACCESS_TOKEN` (or `SUPABASE_PAT`) + `SUPABASE_PROJECT_REF`; the setup script fetches keys via the Supabase Management API.
 3. Sync env and run:
    ```bash
@@ -88,6 +90,26 @@ Quick validation after configuring credentials:
 make setup-integration-env   # should print "Wrote backend/.env..."
 make test-integration
 ```
+
+### Applying Supabase migrations (agents)
+
+**Service-role keys are not enough** — PostgREST cannot run `CREATE FUNCTION` / DDL. Use one of:
+
+1. **Supabase MCP (preferred in Cursor):** Enable **Supabase** under **Settings → Tools & MCP** and complete OAuth once per machine. Project wiring lives in `.cursor/mcp.json` (scoped to this repo’s Supabase project). Then call MCP `apply_migration` or `execute_sql`. If tools are missing, restart Cursor after auth — the `supabase` server must appear alongside `cursor-app-control`.
+
+2. **Management API script (CI / Cloud Agents fallback):** Add `SUPABASE_ACCESS_TOKEN` to Cursor Cloud secrets (or `backend/.env` locally), then:
+   ```bash
+   python scripts/apply_supabase_migration.py 002_scrape_job_advisory_lock.sql
+   ```
+   Uses `SUPABASE_URL` to derive the project ref. Verifiable afterward via `client.rpc('try_acquire_scrape_all_lock')`.
+
+**Troubleshooting**
+
+| Symptom | Fix |
+| --- | --- |
+| MCP `server does not exist: supabase` | Authenticate Supabase MCP in Cursor; confirm `.cursor/mcp.json` exists; start a **new** agent turn after enabling |
+| `Migration API failed (401/403)` | Regenerate `SUPABASE_ACCESS_TOKEN`; do not use service-role key for the script |
+| `PGRST202` on lock RPC after deploy | Migration not applied yet — run MCP or `apply_supabase_migration.py` |
 
 ### Gotchas
 

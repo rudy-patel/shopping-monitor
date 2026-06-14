@@ -204,6 +204,8 @@ When integration tests need DB access:
 | `001_core_schema.sql` | Initial core schema (profiles, products, product_listings, price_history, notifications, fx_rates_cache) with RLS, indexes, and updated_at trigger |
 | `002_scrape_job_advisory_lock.sql` | Pattern B advisory-lock helpers (`try_acquire_scrape_all_lock`, `release_scrape_all_lock`) for T3.5 scheduled scrape-all job deduplication |
 
+**Apply on the linked Supabase project:** Supabase MCP `apply_migration`, or `python scripts/apply_supabase_migration.py <filename>` (see `AGENTS.md` § Applying Supabase migrations). CI only validates migration files exist and are documented here.
+
 ### Advisory lock helpers (Pattern B)
 
 **RLS:** No table — `SECURITY DEFINER` functions callable only via service role (`client.rpc(...)`).
