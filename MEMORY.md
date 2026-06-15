@@ -4,6 +4,20 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Dashboard collapsible categories + manual ordering
+
+**What:** Category-grouped dashboard (`/`) now behaves like a Notion toggle list: all five fixed categories always render (empty ones show · 0 and start collapsed), sections expand/collapse with chevron headers, and **Edit order** enables drag-reorder of category sections (localStorage) and products within a category (`dashboard_sort_order` via `PUT /api/products/dashboard-order`). Cross-category product moves remain on the product detail category field. Flat list view (`/list`) keeps `created_at` desc — manual order is dashboard-only.
+
+**Backend:** Migration `004_dashboard_sort_order.sql`; `reorder_dashboard_products()`; `ProductSummary.dashboard_sort_order`; route registered before `/products/{id}`.
+
+**Frontend:** `@dnd-kit/*` (edit mode only — no DnD overhead in normal browsing); `DashboardCategoryList`, `SortableProductRow`, `lib/dashboard-layout.ts` for collapse/category-order prefs.
+
+**Files:** `backend/db/migrations/004_dashboard_sort_order.sql`, `backend/services/product_service.py`, `backend/routers/products.py`, `backend/test/test_products_router.py`, `frontend/src/components/products/DashboardCategoryList.tsx`, `CategorySection.tsx`, `SortableProductRow.tsx`, `frontend/src/pages/DashboardPage.tsx`, `frontend/src/lib/dashboard-layout.ts`, `frontend/src/lib/categories.ts`, `frontend/src/lib/products.ts`, `frontend/src/hooks/useProducts.ts`, `frontend/src/test/dashboard-grouping.test.tsx`, `frontend/src/test/dashboard-layout.test.ts`, `docs/PRD.md`, `docs/ROADMAP.md`, `docs/DATABASE.md`, `MEMORY.md`.
+
+**Apply migration:** `python scripts/apply_supabase_migration.py 004_dashboard_sort_order.sql`
+
+---
+
 ## [2026-06-15] LLM-cleaned product titles on add
 
 > **Second-pass code review (same PR):** centralized `MIN_CLEAN_TITLE_LEN` / `MAX_CLEAN_TITLE_LEN` constants in `services/llm.py` so the contract has one source of truth (removed dupes from `gemini.py` + `llm_fixtures.py`); collapsed `test_product_service_clean_title.py` from 9 tests to 2 parametrized cases (same coverage, less noise); added an inclusive-boundary test (`abcd` 4 chars / `"x"*80` 80 chars accepted) to lock the bound semantics against future `<=`/`>=` slips; refreshed `scripts/smoke_gemini_categorize.py` to print `clean_title` and use a verbose AirPods-style seed title so manual `--live` runs actually exercise the shortening path. Documented backfill of existing verbose titles as deferred (would require an opt-in worker; ≈1 Gemini request per backfilled product).

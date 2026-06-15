@@ -888,6 +888,7 @@ Constraints:
 <details>
 <summary>Recently completed (M8)</summary>
 
+- ~~**T8.6** Dashboard category UX~~ — collapsible Notion-style category toggles; all five categories visible (empty ones collapsed at 0); **Edit order** mode for category-section and within-category product drag-reorder (`dashboard_sort_order` + `PUT /api/products/dashboard-order`; category order in localStorage). Flat list view (`/list`) keeps `created_at` desc — manual order applies only on the grouped dashboard (PRD U-VIEW-1).
 - ~~**T8.5** LLM-cleaned product titles on add~~ — `clean_title` returned alongside `category` from the same Gemini Flash structured-JSON call (zero added requests). Adopted only when strictly shorter than the scraped title; original scraped title preserved on the listing. Fixture-mode shortener mirrors the live UX for local dev.
 - ~~**T8.4** Search quota + transient-error resilience~~ — switched grounded calls to `gemini-2.5-flash-lite` (separate free-tier RPD pool from Flash), split error mapping (quota → 429, transient → 503, timeout → 504), retry only on transient errors / empty responses, never on quota; non-leaking executor shutdown; graceful refusal handling; distinct frontend copy for quota vs transient with Add-by-URL fallback; new `/health/llm` diagnostic endpoint.
 - ~~**T8.2** Search production hotfix~~ — Gemini grounded JSON parsing fix (#49), `SearchThinking` loading UX, 30s search timeout + `asyncio.to_thread` second pass.

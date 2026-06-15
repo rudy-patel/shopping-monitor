@@ -46,3 +46,17 @@ export function groupByCategory<T extends { category: ProductCategory }>(
   }
   return grouped
 }
+
+export function sortProductsInCategory<T extends { dashboard_sort_order?: number | null; created_at: string }>(
+  items: T[],
+): T[] {
+  const ordered = items.filter((item) => item.dashboard_sort_order != null)
+  const unordered = items.filter((item) => item.dashboard_sort_order == null)
+  ordered.sort(
+    (a, b) => (a.dashboard_sort_order ?? 0) - (b.dashboard_sort_order ?? 0),
+  )
+  unordered.sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+  )
+  return [...ordered, ...unordered]
+}

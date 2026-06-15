@@ -62,6 +62,7 @@ profiles  products  notifications      fx_rates_cache    search_cache
 | `category_source`            | `text`        | `manual`, `llm`, `heuristic`, `default_other`. Used to skip future auto-categorization when value is `manual`.                                                                          |
 | `last_refresh_at`            | `timestamptz` | nullable; used to enforce manual refresh cooldown                                                                                                                                       |
 | `last_user_interaction_at`   | `timestamptz` | nullable; updated on manual refresh, threshold/category edits, listing accept/reject, archive/restore, or notification mark-read for this product. Used by §7.10 stale revisit prompts. |
+| `dashboard_sort_order`       | `int`         | nullable; manual ordering within the user's category-grouped dashboard. Null falls back to `created_at` desc.                                                                           |
 | `created_at`, `updated_at`   | `timestamptz` |                                                                                                                                                                                         |
 
 ### `product_listings`
@@ -215,6 +216,7 @@ When integration tests need DB access:
 | `001_core_schema.sql` | Initial core schema (profiles, products, product_listings, price_history, notifications, fx_rates_cache) with RLS, indexes, and updated_at trigger |
 | `002_scrape_job_advisory_lock.sql` | Pattern B advisory-lock helpers (`try_acquire_scrape_all_lock`, `release_scrape_all_lock`) for T3.5 scheduled scrape-all job deduplication |
 | `003_search_cache.sql` | Pattern B `search_cache` table for the search-based product add flow (T8.1) — global 24h cache keyed by SHA-256 of the normalized query |
+| `004_dashboard_sort_order.sql` | Adds nullable `dashboard_sort_order` on `products` plus `(user_id, category, dashboard_sort_order)` index for manual dashboard row ordering (T8.6) |
 
 **Apply on the linked Supabase project:** Supabase MCP `apply_migration`, or `python scripts/apply_supabase_migration.py <filename>` (see `AGENTS.md` § Applying Supabase migrations). CI only validates migration files exist and are documented here.
 

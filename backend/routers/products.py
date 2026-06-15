@@ -21,6 +21,7 @@ from services.product_service import (
     list_products,
     refresh_product,
     reject_listing,
+    reorder_dashboard_products,
     select_variant,
     update_product,
 )
@@ -78,6 +79,7 @@ class ProductSummary(BaseModel):
     effective_threshold_pct: int
     last_scraped_at: str | None
     needs_review_count: int = 0
+    dashboard_sort_order: int | None = None
 
 
 class PriceHistoryPoint(BaseModel):
@@ -116,6 +118,15 @@ class SelectVariantRequest(BaseModel):
     variant_attributes: dict[str, str]
 
 
+class DashboardReorderEntry(BaseModel):
+    id: UUID
+    dashboard_sort_order: int = Field(ge=0)
+
+
+class DashboardReorderRequest(BaseModel):
+    items: list[DashboardReorderEntry] = Field(min_length=1)
+
+
 @router.post("/products", response_model=ProductDetail, status_code=201)
 async def post_product(
     body: ProductCreateRequest,
@@ -145,6 +156,17 @@ async def get_products(
 ) -> list[ProductSummary]:
     rows = list_products(user_id=user.user_id, status=status, category=category)
     return [ProductSummary.model_validate(row) for row in rows]
+
+
+@router.put("/products/dashboard-order", status_code=204)
+async def put_dashboard_order(
+    body: DashboardReorderRequest,
+    user: CurrentUser = Depends(get_current_user),
+) -> None:
+    reorder_dashboard_products(
+        user_id=user.user_id,
+        items=[entry.model_dump() for entry in body.items],
+    )
 
 
 @router.get("/products/{product_id}", response_model=ProductDetail)

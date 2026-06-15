@@ -17,6 +17,7 @@ vi.mock('@/hooks/useProducts', () => ({
   useDeleteListing: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   useCreateProduct: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   useSelectVariant: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  useReorderDashboardProducts: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }))
 
 import { useProducts, useProduct } from '@/hooks/useProducts'
