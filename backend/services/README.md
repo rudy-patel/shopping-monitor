@@ -25,10 +25,12 @@ result = get_categorizer().categorize(
         breadcrumbs=["Electronics", "Computers"],
     )
 )
-# result.category, result.source
+# result.category, result.source, result.clean_title
 ```
 
 `get_categorizer()` wires `GeminiFlashLlmProvider` when `GEMINI_API_KEY` is set; otherwise it falls back to `NoOpLlmProvider` and the heuristic waterfall. Heuristic precedence (PRD §7.7): retailer default → breadcrumb keywords → title/brand keywords → `other`.
+
+The same Gemini call also returns a `clean_title` (4-80 chars; otherwise `None`) — a short, human-friendly product name used when it is **strictly shorter** than the scraped title. This adds **zero** Gemini requests per add since both fields ride one structured-JSON response. Heuristic / `default_other` fallbacks intentionally leave `clean_title` as `None` and the scraped title is kept verbatim. The original scraped title is always preserved on `product_listings.scrape_snapshot.title` for traceability.
 
 ### Human smoke (H3)
 

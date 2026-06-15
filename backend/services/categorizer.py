@@ -69,6 +69,7 @@ class CategorizationContext(BaseModel):
 class CategorizationResult(BaseModel):
     category: LlmCategory
     source: CategorySource
+    clean_title: str | None = None
 
 
 class Categorizer(Protocol):
@@ -142,6 +143,7 @@ class DefaultCategorizer:
             return CategorizationResult(
                 category=llm_result.category,
                 source="llm",
+                clean_title=llm_result.clean_title,
             )
         except LlmProviderError:
             pass

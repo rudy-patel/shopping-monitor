@@ -41,6 +41,55 @@ def test_llm_happy_path():
         CategorizationContext(title="Laptop", retailer_slug="bestbuy_ca")
     )
     assert (result.category, result.source) == ("tech", "llm")
+    assert result.clean_title is None
+
+
+def test_llm_clean_title_propagates():
+    llm = FakeLlmProvider(
+        categorize_result=LlmCategorizationResult(
+            category="tech",
+            clean_title="Apple AirPods Pro 3",
+        ),
+    )
+    result = DefaultCategorizer(llm).categorize(
+        CategorizationContext(
+            title="Apple AirPods Pro 3 Noise Cancelling True Wireless Earbuds",
+            retailer_slug="bestbuy_ca",
+        )
+    )
+    assert result.clean_title == "Apple AirPods Pro 3"
+    assert result.source == "llm"
+
+
+def test_manual_override_does_not_carry_clean_title():
+    llm = FakeLlmProvider(
+        categorize_result=LlmCategorizationResult(
+            category="tech",
+            clean_title="should-not-be-used",
+        ),
+    )
+    result = DefaultCategorizer(llm).categorize(
+        CategorizationContext(
+            title="Anything",
+            retailer_slug="unknown",
+            manual_override="shoes",
+        )
+    )
+    assert result.source == "manual"
+    assert result.clean_title is None
+
+
+def test_heuristic_fallback_does_not_set_clean_title():
+    llm = FakeLlmProvider(raise_on_categorize=LlmQuotaExhaustedError("quota"))
+    result = DefaultCategorizer(llm).categorize(
+        CategorizationContext(
+            title="Generic Laptop with Marketing Suffix",
+            retailer_slug="unknown",
+            breadcrumbs=["Electronics", "Laptops"],
+        )
+    )
+    assert result.source == "heuristic"
+    assert result.clean_title is None
 
 
 @pytest.mark.parametrize(

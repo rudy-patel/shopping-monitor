@@ -18,6 +18,8 @@ from core.logging import get_logger
 from scrapers.exceptions import RetailerNotSupportedError
 from scrapers.registry import all_retailers, lookup_by_url
 from services.llm import (
+    MAX_CLEAN_TITLE_LEN,
+    MIN_CLEAN_TITLE_LEN,
     LlmCategory,
     LlmCategorizationResult,
     LlmDiscoveryCandidate,
@@ -39,6 +41,7 @@ _MAX_SEARCH_CANDIDATES = 8
 
 class _GeminiCategoryPayload(BaseModel):
     category: str
+    clean_title: str | None = None
 
 
 class _GeminiDiscoverCandidatePayload(BaseModel):
@@ -71,6 +74,23 @@ def _extract_json_text(raw_text: str) -> str:
     if stripped.startswith("```"):
         stripped = _JSON_FENCE_RE.sub("", stripped).strip()
     return stripped
+
+
+def _validate_clean_title(value: str | None) -> str | None:
+    """Drop oversized / undersized / whitespace-only LLM titles silently.
+
+    Title cleanup is best-effort: a rejected title falls through to the scraped
+    title in product_service. We never raise here — a bad title shouldn't fail
+    categorization, since the category is the load-bearing field.
+    """
+    if value is None:
+        return None
+    cleaned = value.strip()
+    if not cleaned:
+        return None
+    if len(cleaned) < MIN_CLEAN_TITLE_LEN or len(cleaned) > MAX_CLEAN_TITLE_LEN:
+        return None
+    return cleaned
 
 
 _GROUNDED_MAX_ATTEMPTS = 3
@@ -169,13 +189,32 @@ def _build_categorize_prompt(
     breadcrumb_text = ", ".join(breadcrumbs) if breadcrumbs else "none"
     brand_text = brand or "unknown"
     return (
-        "Classify this Canadian retail product into exactly one category slug.\n"
-        "Allowed slugs (pick exactly one): clothing, shoes, home, tech, other\n"
-        f"Product title: {title}\n"
+        "Classify this Canadian retail product and produce a short, human-friendly "
+        "name for the user's wishlist.\n"
+        "Allowed category slugs (pick exactly one): clothing, shoes, home, tech, other\n"
+        f"Scraped product title: {title}\n"
         f"Brand: {brand_text}\n"
         f"Retailer: {retailer_slug}\n"
         f"Breadcrumbs: {breadcrumb_text}\n"
-        'Return JSON with a single "category" field containing one allowed slug.'
+        "\n"
+        "Return JSON with two fields:\n"
+        '- "category": one allowed slug above.\n'
+        '- "clean_title": a concise display title for the same product. Keep brand + '
+        "model/series + the variant attributes that distinguish it (color, capacity, size, "
+        "edition). Strip retailer SEO suffixes, marketing adjectives, feature lists, "
+        "shipping/membership perks, and trailing punctuation. Length 4-80 characters. "
+        "Do not invent details, do not change the brand, and do not translate.\n"
+        "\n"
+        'Examples:\n'
+        '- "Apple AirPods Pro 3 Noise Cancelling True Wireless Earbuds with MagSafe Charging Case" '
+        '→ "Apple AirPods Pro 3"\n'
+        '- "Lenovo Yoga Slim 7x 14.5\" Touchscreen Copilot+ PC Laptop - Cosmic Blue (Snapdragon X Elite/16GB/1TB SSD)" '
+        '→ "Lenovo Yoga Slim 7x 14.5\\" - 16GB/1TB"\n'
+        '- "Nintendo Switch OLED Model: Super Mario Bros. Wonder Bundle with 3-Month Online Individual Membership" '
+        '→ "Nintendo Switch OLED - Mario Wonder Bundle"\n'
+        "\n"
+        'If the scraped title is already concise and clean, return it unchanged in '
+        '"clean_title".'
     )
 
 
@@ -544,6 +583,7 @@ class GeminiFlashLlmProvider:
 
         return LlmCategorizationResult(
             category=cast(LlmCategory, payload.category),
+            clean_title=_validate_clean_title(payload.clean_title),
             raw_response=raw_text,
         )
 

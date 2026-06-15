@@ -4,6 +4,31 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] LLM-cleaned product titles on add
+
+> **Second-pass code review (same PR):** centralized `MIN_CLEAN_TITLE_LEN` / `MAX_CLEAN_TITLE_LEN` constants in `services/llm.py` so the contract has one source of truth (removed dupes from `gemini.py` + `llm_fixtures.py`); collapsed `test_product_service_clean_title.py` from 9 tests to 2 parametrized cases (same coverage, less noise); added an inclusive-boundary test (`abcd` 4 chars / `"x"*80` 80 chars accepted) to lock the bound semantics against future `<=`/`>=` slips; refreshed `scripts/smoke_gemini_categorize.py` to print `clean_title` and use a verbose AirPods-style seed title so manual `--live` runs actually exercise the shortening path. Documented backfill of existing verbose titles as deferred (would require an opt-in worker; ≈1 Gemini request per backfilled product).
+
+**What:** Verbose retailer titles are now shortened to a human-friendly display name on add. The Best Buy SEO title *"Apple AirPods Pro 3 Noise Cancelling True Wireless Earbuds with MagSafe Charging Case"* lands in the user's wishlist as *"Apple AirPods Pro 3"*. Implemented as a piggy-back on the existing categorize Gemini call — the structured-JSON response now returns `{category, clean_title}` from the same `gemini-2.5-flash` request, so this adds **zero** Gemini API calls per add (PRD §10.9 free-tier budget unchanged).
+
+**Backend:**
+- `services/llm.py`: `LlmCategorizationResult.clean_title: str | None`. `FakeLlmProvider` already accepts the new field via the Pydantic model (no signature change).
+- `services/gemini.py`: `_GeminiCategoryPayload.clean_title`, `_validate_clean_title()` enforces 4-80 char bounds and returns `None` for invalid output (a bad title never fails categorization — `category` is the load-bearing field). Prompt updated with three concrete examples covering AirPods / Lenovo Yoga / Switch OLED bundle styles.
+- `services/categorizer.py`: `CategorizationResult.clean_title` propagated from LLM only — manual override and heuristic/`default_other` fallbacks intentionally leave it `None`.
+- `services/llm_fixtures.py`: `FixtureLlmProvider.categorize` runs `_shorten_title_for_fixtures()` (split on first `,`/`-`/`|`/`:` separator) so local dev / fixture-mode CI sees the same UX as live LLM.
+- `services/product_service.py`: new `_pick_display_title()` policy — accepts the LLM title only when **non-empty, not equal to scraped (case-insensitive), and strictly shorter**. Otherwise the scraped title is used. The original scraped title is always preserved verbatim in `product_listings.scrape_snapshot.title` for traceability.
+
+**Frontend:** No code changes — `product.title` flows through unchanged into `ProductListRow`, `ProductDetailPage`, `VariantPickerPage`, archived rows, and notification copy.
+
+**Locked behavior:** Title cleanup is opportunistic and never raises. If the LLM is unavailable (quota/timeout/transient/no-key), categorization falls back to heuristic/default_other and the product keeps its scraped title — exactly the existing behavior. No new env vars; reuses `GEMINI_MODEL` and `GEMINI_CATEGORIZE_TIMEOUT_S`. Fixture mode short-circuits to the deterministic separator-split heuristic.
+
+**Free-tier impact:** Zero added requests. Both fields ride the same `gemini-2.5-flash` non-grounded call. Free-tier non-grounded RPD on Flash is ~1,500/day (verified June 2026) — well above the ~30 adds/day budgeted in PRD §10.9.
+
+**Files:** `backend/services/llm.py`, `backend/services/gemini.py`, `backend/services/categorizer.py`, `backend/services/llm_fixtures.py`, `backend/services/product_service.py`, `backend/test/test_services_gemini.py`, `backend/test/test_services_categorizer.py`, `backend/test/test_llm_fixtures.py`, `backend/test/test_products_router.py`, `backend/test/test_product_service_clean_title.py`, `backend/services/README.md`, `docs/PRD.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** Backend `ruff check .` clean; `pytest -m "not integration"` 657 passed (4 deselected). Frontend `npm run lint` clean (`--max-warnings 0`), `npm run test:run` 173 passed + 2 skipped, `npm run build` clean.
+
+---
+
 ## [2026-06-15] Listing card retailer link (Tier 3–4 follow-up)
 
 **What:** Product detail listing cards now hyperlink the retailer name (with external-link icon) beside the logo instead of a separate "Open on …" row — saves vertical space while keeping the same destination URL and new-tab behavior.

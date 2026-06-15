@@ -63,8 +63,102 @@ def test_categorize_valid_json(mock_client_cls: MagicMock):
 
     assert result == LlmCategorizationResult(
         category="tech",
+        clean_title=None,
         raw_response='{"category":"tech"}',
     )
+
+
+@patch("services.gemini.genai.Client")
+def test_categorize_returns_clean_title(mock_client_cls: MagicMock):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    payload = (
+        '{"category":"tech","clean_title":"Apple AirPods Pro 3"}'
+    )
+    mock_client.models.generate_content.return_value = _mock_response(payload)
+
+    result = _make_provider().categorize(
+        title=(
+            "Apple AirPods Pro 3 Noise Cancelling True Wireless Earbuds with "
+            "MagSafe Charging Case"
+        ),
+        brand="Apple",
+        retailer_slug="bestbuy_ca",
+        breadcrumbs=["Electronics", "Audio"],
+    )
+
+    assert result.category == "tech"
+    assert result.clean_title == "Apple AirPods Pro 3"
+
+
+@pytest.mark.parametrize(
+    "raw_clean_title",
+    [
+        "",  # empty string
+        "   ",  # whitespace only
+        "abc",  # 3 chars (just below MIN_CLEAN_TITLE_LEN=4)
+        "x" * 81,  # 81 chars (just above MAX_CLEAN_TITLE_LEN=80)
+    ],
+)
+@patch("services.gemini.genai.Client")
+def test_categorize_drops_invalid_clean_title(
+    mock_client_cls: MagicMock, raw_clean_title: str
+):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    payload = json.dumps({"category": "tech", "clean_title": raw_clean_title})
+    mock_client.models.generate_content.return_value = _mock_response(payload)
+
+    result = _make_provider().categorize(
+        title="Sony WH-1000XM5 Wireless Noise Cancelling Headphones",
+        brand="Sony",
+        retailer_slug="bestbuy_ca",
+        breadcrumbs=["Electronics", "Audio"],
+    )
+
+    # Bad title is dropped silently; category is still trusted.
+    assert result.category == "tech"
+    assert result.clean_title is None
+
+
+@pytest.mark.parametrize("raw_clean_title", ["abcd", "x" * 80])
+@patch("services.gemini.genai.Client")
+def test_categorize_accepts_clean_title_at_inclusive_length_bounds(
+    mock_client_cls: MagicMock, raw_clean_title: str
+):
+    """Lock that MIN/MAX_CLEAN_TITLE_LEN are inclusive — guards against a future
+    `<=`/`>=` slip that would silently drop boundary-valid titles."""
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    payload = json.dumps({"category": "tech", "clean_title": raw_clean_title})
+    mock_client.models.generate_content.return_value = _mock_response(payload)
+
+    result = _make_provider().categorize(
+        title="Some long scraped product title that needs cleaning here",
+        brand="Brand",
+        retailer_slug="bestbuy_ca",
+        breadcrumbs=[],
+    )
+
+    assert result.clean_title == raw_clean_title
+
+
+@patch("services.gemini.genai.Client")
+def test_categorize_clean_title_strips_whitespace(mock_client_cls: MagicMock):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.return_value = _mock_response(
+        '{"category":"tech","clean_title":"  Apple AirPods Pro 3  "}'
+    )
+
+    result = _make_provider().categorize(
+        title="Apple AirPods Pro 3 with Long SEO Suffix",
+        brand="Apple",
+        retailer_slug="bestbuy_ca",
+        breadcrumbs=[],
+    )
+
+    assert result.clean_title == "Apple AirPods Pro 3"
 
 
 @patch("services.gemini.genai.Client")

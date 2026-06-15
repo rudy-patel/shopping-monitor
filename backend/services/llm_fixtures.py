@@ -15,6 +15,8 @@ from pathlib import Path
 from typing import cast
 
 from services.llm import (
+    MAX_CLEAN_TITLE_LEN,
+    MIN_CLEAN_TITLE_LEN,
     LlmCategorizationResult,
     LlmCategory,
     LlmDiscoveryResult,
@@ -27,6 +29,27 @@ _BACKEND_DIR = Path(__file__).resolve().parents[1]
 _DEFAULT_FIXTURE_DIR = _BACKEND_DIR / "test" / "fixtures" / "search"
 
 _SLUG_NORMALIZE = re.compile(r"[^a-z0-9]+")
+# First "stop" character that typically separates the core product name from
+# retailer SEO suffixes / feature lists in scraped titles. We split here in
+# fixtures-mode to mimic what the live LLM would return.
+_FIXTURE_TITLE_SPLIT_RE = re.compile(r"\s*[,\-|:]\s")
+
+
+def _shorten_title_for_fixtures(title: str) -> str | None:
+    """Deterministic title shortener used by FixtureLlmProvider.
+
+    Returns ``None`` when no meaningful shortening is possible so the caller
+    falls through to the scraped title (matching live-LLM behavior on already-
+    concise titles). Length bounds match the LLM contract (``MIN_CLEAN_TITLE_LEN``
+    / ``MAX_CLEAN_TITLE_LEN``) so fixture-mode never produces a title that the
+    real Gemini path would reject.
+    """
+    head = _FIXTURE_TITLE_SPLIT_RE.split(title.strip(), maxsplit=1)[0].strip()
+    if not head or head == title.strip():
+        return None
+    if len(head) < MIN_CLEAN_TITLE_LEN or len(head) > MAX_CLEAN_TITLE_LEN:
+        return None
+    return head
 
 
 def slugify_query(query: str) -> str:
@@ -85,7 +108,10 @@ class FixtureLlmProvider:
             category = "shoes"
         elif any(word in lowered for word in ("lamp", "rug", "sofa", "pillow", "kitchen")):
             category = "home"
-        return LlmCategorizationResult(category=category)
+        return LlmCategorizationResult(
+            category=category,
+            clean_title=_shorten_title_for_fixtures(title),
+        )
 
     def search(self, *, query: str, timeout_s: float = 5.0) -> LlmSearchResult:
         slug = slugify_query(query)

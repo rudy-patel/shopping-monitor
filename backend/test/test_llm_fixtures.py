@@ -113,6 +113,31 @@ def test_categorize_falls_back_to_other_for_unknown():
     )
 
 
+def test_categorize_shortens_title_at_first_separator():
+    provider = FixtureLlmProvider()
+    result = provider.categorize(
+        title=(
+            "Apple AirPods Pro 3 - Noise Cancelling True Wireless Earbuds with "
+            "MagSafe Charging Case"
+        ),
+        brand="Apple",
+        retailer_slug="bestbuy_ca",
+        breadcrumbs=[],
+    )
+    assert result.clean_title == "Apple AirPods Pro 3"
+
+
+def test_categorize_returns_no_clean_title_when_already_concise():
+    provider = FixtureLlmProvider()
+    result = provider.categorize(
+        title="Sony WH-1000XM5",
+        brand="Sony",
+        retailer_slug="bestbuy_ca",
+        breadcrumbs=[],
+    )
+    assert result.clean_title is None
+
+
 def test_discover_returns_empty_in_fixture_mode():
     provider = FixtureLlmProvider()
     result = provider.discover(
