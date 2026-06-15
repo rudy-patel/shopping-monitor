@@ -17,9 +17,14 @@ DEFAULT_APP_BASE_URL = "http://localhost:3000"  # pragma: allowlist secret
 PRODUCTION_APP_BASE_URL = "https://shopping-monitor-nine.vercel.app"
 DEFAULT_SCRAPER_MODE = "fixtures"  # pragma: allowlist secret
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+# Grounded search uses a separate, lighter model. The free-tier RPD pool for
+# `gemini-2.5-flash` is tiny (≈20 RPD as of mid-2026); `gemini-2.5-flash-lite`
+# has its own quota pool, returns grounded JSON in ~1.3s, and is the recommended
+# default for free-tier search. Override via `GEMINI_SEARCH_MODEL` to upgrade.
+DEFAULT_GEMINI_SEARCH_MODEL = "gemini-2.5-flash-lite"
 DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S = 1.5
 DEFAULT_GEMINI_DISCOVER_TIMEOUT_S = 30.0
-DEFAULT_GEMINI_SEARCH_TIMEOUT_S = 30.0
+DEFAULT_GEMINI_SEARCH_TIMEOUT_S = 20.0
 DEFAULT_SEARCH_CACHE_TTL_HOURS = 24
 DEFAULT_FX_CACHE_TTL_HOURS = 24
 DEFAULT_FRANKFURTER_BASE_URL = "https://api.frankfurter.dev"
@@ -44,6 +49,7 @@ class Settings(BaseSettings):
     worker_token: str = ""
     gemini_api_key: str = ""
     gemini_model: str = DEFAULT_GEMINI_MODEL
+    gemini_search_model: str = DEFAULT_GEMINI_SEARCH_MODEL
     gemini_categorize_timeout_s: float = DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S
     gemini_discover_timeout_s: float = DEFAULT_GEMINI_DISCOVER_TIMEOUT_S
     gemini_search_timeout_s: float = DEFAULT_GEMINI_SEARCH_TIMEOUT_S

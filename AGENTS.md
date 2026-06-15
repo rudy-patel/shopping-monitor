@@ -23,7 +23,8 @@ Two `.env` files are needed (not committed). Backend secrets (`SUPABASE_URL`, `S
 
 - `backend/.env` — Supabase credentials + `AUTH_BYPASS_ENABLED=true` for local dev (optional until auth is implemented), plus optional V1 service vars:
   - `GEMINI_API_KEY` — LLM discovery / categorization / **search** provider key (fixture mode uses `FixtureLlmProvider` automatically when unset, see `backend/services/factory.py`).
-  - `GEMINI_SEARCH_TIMEOUT_S` — optional, defaults to `30.0`s for `/api/search` Gemini calls (align with `GEMINI_DISCOVER_TIMEOUT_S`).
+  - `GEMINI_SEARCH_MODEL` — optional, defaults to `gemini-2.5-flash-lite`. Drives **both** grounded paths (`search()` + `discover()`); the base `gemini-2.5-flash` shares the same google_search RPD pool which is ~20/day on the free tier and exhausts in minutes. Override only if you have paid quota for Flash. `GEMINI_MODEL` (default `gemini-2.5-flash`) still drives categorization.
+  - `GEMINI_SEARCH_TIMEOUT_S` — optional, defaults to `20.0`s for `/api/search` Gemini calls (Flash-Lite responds in ~1-2s; raise toward `30.0` only if 504s appear in logs).
   - `SEARCH_CACHE_TTL_HOURS` — optional, defaults to `24`h for the `search_cache` table.
   - `RESEND_API_KEY` — daily digest email provider key.
   - `WORKER_TOKEN` — shared secret required by `/internal/jobs/*` endpoints.

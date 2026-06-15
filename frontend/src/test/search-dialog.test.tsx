@@ -242,7 +242,7 @@ describe('SearchCommandDialog', () => {
     )
   })
 
-  it('shows an error state when the search API fails', async () => {
+  it('shows an error state when the search API fails with a transient error', async () => {
     vi.spyOn(apiModule, 'apiFetch').mockRejectedValue(
       new apiModule.ApiError(503, 'Search is temporarily unavailable'),
     )
@@ -256,13 +256,90 @@ describe('SearchCommandDialog', () => {
     await user.type(screen.getByPlaceholderText(/search any product/i), 'anything')
     await user.click(screen.getByRole('button', { name: /^search$/i }))
 
-    // useSearch retries transient 503s twice with backoff before surfacing the error.
+    // useSearch retries transient 503s once with a short backoff before surfacing.
     await waitFor(
       () => {
         expect(screen.getByTestId('search-error')).toHaveTextContent(/temporarily unavailable/i)
       },
       { timeout: 8000 },
     )
+
+    // Add-by-URL fallback is always offered on errors so the user is never stuck.
+    expect(screen.getByRole('button', { name: /add by url/i })).toBeInTheDocument()
+  })
+
+  it('shows the daily-limit message (no transient-error retries) when Gemini quota is exhausted', async () => {
+    let searchCallCount = 0
+    vi.spyOn(apiModule, 'apiFetch').mockImplementation(async (path) => {
+      if (path === '/api/search') {
+        searchCallCount += 1
+        throw new apiModule.ApiError(
+          429,
+          'Daily AI search limit reached. Try again later — or paste a product URL directly to add it now.',
+        )
+      }
+      throw new apiModule.ApiError(500, 'unrelated')
+    })
+    const onRequestUrlAdd = vi.fn()
+    const user = userEvent.setup()
+
+    renderWithProviders(
+      <SearchCommandDialog
+        open
+        onOpenChange={vi.fn()}
+        onRequestUrlAdd={onRequestUrlAdd}
+      />,
+      { authenticated: true },
+    )
+
+    await user.type(screen.getByPlaceholderText(/search any product/i), 'anything')
+    await user.click(screen.getByRole('button', { name: /^search$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('search-quota-exhausted')).toBeInTheDocument()
+    })
+
+    expect(screen.getByText(/daily ai search limit reached/i)).toBeInTheDocument()
+    // 429 must not trigger retries — that would burn more quota for the same wall time.
+    expect(searchCallCount).toBe(1)
+
+    await user.click(screen.getByRole('button', { name: /add by url/i }))
+    await waitFor(
+      () => {
+        expect(onRequestUrlAdd).toHaveBeenCalled()
+      },
+      { timeout: 500 },
+    )
+  })
+
+  it('retries once on transient 503 but stops there so the spinner does not linger', async () => {
+    let searchCallCount = 0
+    vi.spyOn(apiModule, 'apiFetch').mockImplementation(async (path) => {
+      if (path === '/api/search') {
+        searchCallCount += 1
+        throw new apiModule.ApiError(503, 'Search is temporarily unavailable')
+      }
+      throw new apiModule.ApiError(500, 'unrelated')
+    })
+    const user = userEvent.setup()
+
+    renderWithProviders(
+      <SearchCommandDialog open onOpenChange={vi.fn()} onRequestUrlAdd={vi.fn()} />,
+      { authenticated: true },
+    )
+
+    await user.type(screen.getByPlaceholderText(/search any product/i), 'anything')
+    await user.click(screen.getByRole('button', { name: /^search$/i }))
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('search-error')).toBeInTheDocument()
+      },
+      { timeout: 5000 },
+    )
+
+    // Original attempt + exactly one retry; never an open-ended retry loop.
+    expect(searchCallCount).toBe(2)
   })
 
   it('Track failure clears the pending state so the user can retry', async () => {

@@ -4,6 +4,41 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Search prod outage — Gemini quota + transient-error resilience
+
+**Bug:** Production `/api/search` spun for ~30s and then surfaced "Search is temporarily unavailable." for every query — including ones with no cache hit. User reported never successfully completing a single live search since launch. Local dev was masking the issue because `SCRAPER_MODE=fixtures` short-circuits Gemini entirely.
+
+**Root cause:** Three compounding issues stacked on the same flow:
+
+1. **Free-tier quota exhaustion on `gemini-2.5-flash`.** Google reduced the free-tier RPD for `gemini-2.5-flash` with `google_search` grounding to **20 requests/day per project**. Repeated agent smoke runs + every prod search burned through that quota in minutes; afterward every request returned `429 RESOURCE_EXHAUSTED` until the next UTC reset.
+2. **Quota errors were retried.** `_call_gemini_grounded` retried once on any "429-looking" error with a 1s backoff (intended for short-lived RPM rate limits), which (a) doubled the wall-clock wait on a hard daily-quota failure and (b) burned a second quota slot for nothing. The router then mapped `LlmQuotaExhaustedError` to a generic `503`, so the frontend retried the whole request once more — multiplying the damage and the spinner duration. Net effect: a 4-call cascade where every call was guaranteed to fail.
+3. **Timed-out threads leaked.** `GeminiFlashLlmProvider.search()` ran the blocking `client.models.generate_content(...)` call in a `ThreadPoolExecutor` and raised `LlmTimeoutError` on `future.result(timeout=...)`, but never shut the executor down. The Google SDK thread kept executing in the background past the user-visible timeout, holding sockets and worker capacity.
+
+**Fix (model + error mapping + retries):**
+
+- **Default search model → `gemini-2.5-flash-lite`** (new `GEMINI_SEARCH_MODEL` setting; categorize/discover continue using `gemini-2.5-flash`). Lite has a separate, materially larger free-tier quota and proved stable in repeated live smoke runs. `GeminiFlashLlmProvider` accepts a per-call `search_model` and falls back to the default model when unset, so prod can override via env without code changes.
+- **Quota = `429`, transient = `503`, timeout = `504`.** `LlmQuotaExhaustedError` now returns `HTTP 429` with a user-readable "Daily AI search limit reached" message; `LlmProviderError` (transient) returns `503`; `LlmTimeoutError` returns `504`. The router no longer collapses everything into 503.
+- **Smarter backend retries.** `_call_gemini_grounded` now distinguishes quota (never retry — that just burns more quota) from genuinely transient `500/502/503/504` errors and empty responses (retry up to 3 attempts with 1s backoff). Per-attempt logs include model, elapsed ms, finish reason, and text length for fast prod diagnostics.
+- **Non-leaking timeout.** Both `search()` and `discover()` now wrap the `ThreadPoolExecutor` in a `try/finally` and call `pool.shutdown(wait=False, cancel_futures=True)`, so timed-out Gemini calls release their thread immediately.
+- **Graceful refusal handling.** Gemini sometimes responds to broad queries (e.g. "patagonia jacket") with a natural-language refusal instead of JSON; `_parse_search_response` now treats that as "no results" and returns an empty candidate list (frontend shows the empty state with the URL fallback) instead of `LlmInvalidResponseError` → 502.
+- **Frontend retry tightening.** `useSearch` stops retrying when the backend returns 429 (`isQuotaExhaustedError`), and caps retries at exactly one attempt for transient 503/504 (`SEARCH_RETRY_LIMIT = 1`). `SearchCommandDialog`'s `ErrorState` renders a distinct "Daily AI search limit reached" message (`data-testid="search-quota-exhausted"`) for 429 vs. the generic transient copy (`data-testid="search-error"`); both states include the **Add by URL** fallback so the user is never stuck.
+- **Production diagnostics.** New `GET /health/llm` (unauth) reports `configured`, `categorize_model`, `search_model`, timeouts, and `scraper_mode` without making any Gemini API call — safe to curl from anywhere when triaging.
+
+**Files:** `backend/core/settings.py`, `backend/services/gemini.py`, `backend/services/factory.py`, `backend/routers/search.py`, `backend/routers/health.py`, `backend/test/test_services_gemini.py`, `backend/test/test_search_router.py`, `backend/.env.example`, `frontend/src/hooks/useSearch.ts`, `frontend/src/components/search/SearchCommandDialog.tsx`, `frontend/src/test/search-dialog.test.tsx`, `MEMORY.md`.
+
+**Deploy steps (Render + Vercel):**
+
+1. **Render backend env:** set `GEMINI_SEARCH_MODEL=gemini-2.5-flash-lite` and (optionally) `GEMINI_SEARCH_TIMEOUT_S=20`. No migration required.
+2. Redeploy backend. Confirm `curl https://<backend>/health/llm` reports `"search_model": "gemini-2.5-flash-lite"`.
+3. Frontend (Vercel): redeploy `main`. No env changes.
+4. Smoke: open prod search, type "airpods pro", expect 5 results in ≤5s; type a too-broad query like "jacket" and confirm graceful empty state + Add-by-URL fallback (no 502/503).
+
+**Locked behavior:** Quota exhaustion is now a terminal client error (429) — never retried by either tier. Single transient retry only. Timed-out Gemini threads always release immediately. `GET /health/llm` never calls Gemini and never costs quota.
+
+**Verification:** Backend `pytest -m "not integration"` 633 passed; `ruff check .` clean. Frontend `npm run lint` clean (`--max-warnings 0`), `npm run test:run` 150 passed + 2 skipped, `npm run build` clean. Live in-Cursor browser smoke against local backend + remote Supabase + live Gemini key: "airpods pro" returned 5 results (Apple Canada, Best Buy Canada, Amazon Canada, Indigo, Costco Canada) in ~3.6s with Track buttons rendering correctly. `GET /health/llm` returned `{"configured":true,"search_model":"gemini-2.5-flash-lite",...}` without burning quota.
+
+---
+
 ## [2026-06-15] Product detail listings polish (Tier 2)
 
 **What:** Polished the product detail **Listings** section while keeping the typography-first aesthetic. Active listings stay sorted cheapest-first (primary no longer pinned above a cheaper discovered match). Each card leads with a larger price, puts retailer + stock badge + relative scrape time on one meta line, and demotes "Open on …" to a secondary link-style action. Scrape status (`ok`, etc.) is no longer rendered on listing cards. Multi-retailer products highlight the winning card with a subtle left accent plus a "Best price" badge, and show `+$N vs best` on every more expensive listing.

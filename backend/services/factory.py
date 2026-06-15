@@ -39,6 +39,7 @@ def get_llm_provider(settings: Settings | None = None) -> LlmProvider:
         return GeminiFlashLlmProvider(
             api_key=settings.gemini_api_key,
             model=settings.gemini_model,
+            search_model=settings.gemini_search_model,
             default_timeout_s=settings.gemini_categorize_timeout_s,
             discover_timeout_s=settings.gemini_discover_timeout_s,
             search_timeout_s=settings.gemini_search_timeout_s,

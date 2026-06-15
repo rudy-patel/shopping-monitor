@@ -14,6 +14,7 @@ from google.genai import errors as genai_errors
 from google.genai import types
 from pydantic import BaseModel, Field
 
+from core.logging import get_logger
 from scrapers.exceptions import RetailerNotSupportedError
 from scrapers.registry import all_retailers, lookup_by_url
 from services.llm import (
@@ -28,6 +29,8 @@ from services.llm import (
     LlmSearchResult,
     LlmTimeoutError,
 )
+
+logger = get_logger(__name__)
 
 _VALID_CATEGORIES = frozenset({"clothing", "shoes", "home", "tech", "other"})
 _MAX_DISCOVER_CANDIDATES = 8
@@ -71,14 +74,34 @@ def _extract_json_text(raw_text: str) -> str:
 
 
 _GROUNDED_MAX_ATTEMPTS = 3
-_GROUNDED_RETRY_BACKOFF_S = 2.0
+_GROUNDED_RETRY_BACKOFF_S = 1.0
+# HTTP statuses Google returns when the grounded-search pipeline is briefly
+# overloaded or a single attempt times out. Retrying is the documented mitigation
+# (see python-genai#2249). 429 is intentionally NOT in this set — it's a daily
+# free-tier quota cap and retrying just burns more quota for the same wall-time.
+_TRANSIENT_RETRY_STATUS_CODES = frozenset({500, 502, 503, 504})
 
 
-def _is_rate_limit_error(exc: Exception) -> bool:
-    if isinstance(exc, genai_errors.APIError) and exc.code == 429:
-        return True
+def _is_quota_error(exc: Exception) -> bool:
+    if isinstance(exc, genai_errors.APIError):
+        if exc.code == 429:
+            return True
+        if exc.status == "RESOURCE_EXHAUSTED":
+            return True
     message = str(exc).lower()
-    return "rate limit" in message or "too many requests" in message
+    if "rate limit" in message or "too many requests" in message:
+        return True
+    return "quota" in message or "resource_exhausted" in message
+
+
+def _is_transient_provider_error(exc: Exception) -> bool:
+    """Brief Gemini-side hiccups (overload, deadline, server error) — safe to retry."""
+    if isinstance(exc, genai_errors.APIError):
+        if exc.code in _TRANSIENT_RETRY_STATUS_CODES:
+            return True
+        if exc.status in {"UNAVAILABLE", "DEADLINE_EXCEEDED", "INTERNAL"}:
+            return True
+    return False
 
 
 def _extract_grounded_response_text(response: object) -> str | None:
@@ -100,14 +123,24 @@ def _extract_grounded_response_text(response: object) -> str | None:
     return joined or None
 
 
-def _is_quota_error(exc: Exception) -> bool:
-    if _is_rate_limit_error(exc):
-        return True
-    if isinstance(exc, genai_errors.APIError):
-        if exc.status == "RESOURCE_EXHAUSTED":
-            return True
-    message = str(exc).lower()
-    return "quota" in message or "resource_exhausted" in message
+def _extract_finish_reason(response: object) -> str | None:
+    """Best-effort `finish_reason` string for diagnostic logging."""
+    candidates = getattr(response, "candidates", None) or []
+    if not candidates:
+        return None
+    reason = getattr(candidates[0], "finish_reason", None)
+    if reason is None:
+        return None
+    return getattr(reason, "name", str(reason))
+
+
+def _summarize_exc(exc: Exception) -> str:
+    """Short error string for log fields — full traceback stays in `logger.exception`."""
+    code = getattr(exc, "code", None)
+    status = getattr(exc, "status", None)
+    if code or status:
+        return f"{type(exc).__name__}({code or '-'} {status or '-'}): {str(exc)[:140]}"
+    return f"{type(exc).__name__}: {str(exc)[:140]}"
 
 
 def _raise_gemini_call_error(exc: Exception) -> None:
@@ -210,20 +243,35 @@ def _build_discover_prompt(
 
 
 class GeminiFlashLlmProvider:
-    """Gemini Flash provider: structured categorization; prompt-parsed JSON for grounded search/discovery."""
+    """Gemini Flash provider: structured categorization; prompt-parsed JSON for grounded search/discovery.
+
+    Two models are wired:
+
+    - ``model`` drives **categorization** (no grounding, structured JSON output,
+      low-latency). Defaults align with the Flash family.
+    - ``search_model`` drives **all grounded calls** — both ``search()`` and
+      ``discover()`` — because they share the same google_search tool and free-tier
+      RPD pool. Defaults to ``gemini-2.5-flash-lite``: the base ``gemini-2.5-flash``
+      free-tier RPD for grounded queries is ~20/day (exhausts within minutes of
+      normal use), while Flash-Lite has its own larger quota pool and returns
+      grounded JSON in ~1-2s.
+    """
 
     def __init__(
         self,
         *,
         api_key: str,
         model: str,
+        search_model: str | None = None,
         default_timeout_s: float = 1.5,
         discover_timeout_s: float = 30.0,
-        search_timeout_s: float = 5.0,
+        search_timeout_s: float = 20.0,
     ) -> None:
         if not api_key.strip():
             raise LlmQuotaExhaustedError("GEMINI_API_KEY not configured")
         self._model = model
+        # Shared by search() and discover() — both grounded paths use the same model.
+        self._search_model = search_model or model
         self._default_timeout_s = default_timeout_s
         self._discover_timeout_s = discover_timeout_s
         self._search_timeout_s = search_timeout_s
@@ -235,23 +283,39 @@ class GeminiFlashLlmProvider:
             self._search_timeout_s if timeout_s is None else timeout_s
         )
 
+        # `daemon` workers + a short shutdown so a stuck Gemini call doesn't
+        # block the request thread (or our process) after we've already raised
+        # LlmTimeoutError to the caller.
+        pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="gemini-search")
         try:
-            with ThreadPoolExecutor(max_workers=1) as pool:
-                future = pool.submit(
-                    self._call_gemini_grounded,
-                    prompt,
-                    empty_message="Gemini returned empty search response",
+            future = pool.submit(
+                self._call_gemini_grounded,
+                prompt,
+                model=self._search_model,
+                empty_message="Gemini returned empty search response",
+                call_label="search",
+            )
+            try:
+                raw_text = future.result(timeout=effective_timeout)
+            except FuturesTimeoutError as exc:
+                logger.warning(
+                    "gemini_search_timeout",
+                    extra={
+                        "model": self._search_model,
+                        "timeout_s": effective_timeout,
+                    },
                 )
-                try:
-                    raw_text = future.result(timeout=effective_timeout)
-                except FuturesTimeoutError as exc:
-                    raise LlmTimeoutError(
-                        f"Gemini search timed out after {effective_timeout}s"
-                    ) from exc
-        except (LlmTimeoutError, LlmInvalidResponseError, LlmQuotaExhaustedError):
-            raise
-        except Exception as exc:
-            _raise_gemini_call_error(exc)
+                raise LlmTimeoutError(
+                    f"Gemini search timed out after {effective_timeout}s"
+                ) from exc
+            except (LlmInvalidResponseError, LlmQuotaExhaustedError, LlmProviderError):
+                # _call_gemini_grounded already classified these; re-raising avoids
+                # double-wrapping (e.g. LlmProviderError → LlmProviderError("...")).
+                raise
+            except Exception as exc:
+                _raise_gemini_call_error(exc)
+        finally:
+            pool.shutdown(wait=False, cancel_futures=True)
 
         return self._parse_search_response(raw_text)
 
@@ -278,23 +342,34 @@ class GeminiFlashLlmProvider:
             self._discover_timeout_s if timeout_s is None else timeout_s
         )
 
+        pool = ThreadPoolExecutor(max_workers=1, thread_name_prefix="gemini-discover")
         try:
-            with ThreadPoolExecutor(max_workers=1) as pool:
-                future = pool.submit(
-                    self._call_gemini_grounded,
-                    prompt,
-                    empty_message="Gemini returned empty discovery response",
+            future = pool.submit(
+                self._call_gemini_grounded,
+                prompt,
+                model=self._search_model,
+                empty_message="Gemini returned empty discovery response",
+                call_label="discover",
+            )
+            try:
+                raw_text = future.result(timeout=effective_timeout)
+            except FuturesTimeoutError as exc:
+                logger.warning(
+                    "gemini_discover_timeout",
+                    extra={
+                        "model": self._search_model,
+                        "timeout_s": effective_timeout,
+                    },
                 )
-                try:
-                    raw_text = future.result(timeout=effective_timeout)
-                except FuturesTimeoutError as exc:
-                    raise LlmTimeoutError(
-                        f"Gemini discover timed out after {effective_timeout}s"
-                    ) from exc
-        except (LlmTimeoutError, LlmInvalidResponseError, LlmQuotaExhaustedError):
-            raise
-        except Exception as exc:
-            _raise_gemini_call_error(exc)
+                raise LlmTimeoutError(
+                    f"Gemini discover timed out after {effective_timeout}s"
+                ) from exc
+            except (LlmInvalidResponseError, LlmQuotaExhaustedError, LlmProviderError):
+                raise
+            except Exception as exc:
+                _raise_gemini_call_error(exc)
+        finally:
+            pool.shutdown(wait=False, cancel_futures=True)
 
         return self._parse_discover_response(raw_text)
 
@@ -347,30 +422,108 @@ class GeminiFlashLlmProvider:
             raise LlmInvalidResponseError("Gemini returned empty categorization response")
         return raw_text
 
-    def _call_gemini_grounded(self, prompt: str, *, empty_message: str) -> str:
-        # Gemini 2.5 rejects controlled JSON schema alongside google_search grounding.
-        # Prompt for JSON and parse/validate locally instead.
+    def _call_gemini_grounded(
+        self,
+        prompt: str,
+        *,
+        model: str,
+        empty_message: str,
+        call_label: str,
+    ) -> str:
+        # Gemini 2.5 rejects controlled JSON schema alongside google_search grounding,
+        # so we prompt for JSON and parse/validate locally. The grounded pipeline is
+        # documented as flaky (python-genai#2249) — 503/504/500 are common transient
+        # failures, while 429 is a daily-quota cap and is NOT retried.
         last_error: Exception | None = None
         for attempt in range(_GROUNDED_MAX_ATTEMPTS):
+            attempt_started = time.perf_counter()
             try:
                 response = self._client.models.generate_content(
-                    model=self._model,
+                    model=model,
                     contents=prompt,
                     config=types.GenerateContentConfig(
                         tools=[types.Tool(google_search=types.GoogleSearch())],
                     ),
                 )
+                elapsed_ms = int((time.perf_counter() - attempt_started) * 1000)
                 raw_text = _extract_grounded_response_text(response)
+                finish_reason = _extract_finish_reason(response)
                 if raw_text:
+                    logger.info(
+                        "gemini_grounded_success",
+                        extra={
+                            "call": call_label,
+                            "model": model,
+                            "attempt": attempt + 1,
+                            "elapsed_ms": elapsed_ms,
+                            "finish_reason": finish_reason,
+                            "text_len": len(raw_text),
+                        },
+                    )
                     return raw_text
+                # Empty grounded response — model decided not to use search results.
+                # This is intermittent (model capacity rotation), so retry up to
+                # _GROUNDED_MAX_ATTEMPTS - 1 times before surfacing the empty-response
+                # error. We don't bucket this as a transient provider error because
+                # the API call itself succeeded; only the payload was empty.
+                logger.warning(
+                    "gemini_grounded_empty_response",
+                    extra={
+                        "call": call_label,
+                        "model": model,
+                        "attempt": attempt + 1,
+                        "elapsed_ms": elapsed_ms,
+                        "finish_reason": finish_reason,
+                    },
+                )
+                if attempt < _GROUNDED_MAX_ATTEMPTS - 1:
+                    time.sleep(_GROUNDED_RETRY_BACKOFF_S * (attempt + 1))
+                    continue
                 raise LlmInvalidResponseError(empty_message)
             except LlmInvalidResponseError:
                 raise
             except Exception as exc:
+                elapsed_ms = int((time.perf_counter() - attempt_started) * 1000)
                 last_error = exc
-                if _is_rate_limit_error(exc) and attempt < _GROUNDED_MAX_ATTEMPTS - 1:
+                if _is_quota_error(exc):
+                    # Daily free-tier cap — retrying just burns more quota.
+                    logger.warning(
+                        "gemini_grounded_quota_exhausted",
+                        extra={
+                            "call": call_label,
+                            "model": model,
+                            "attempt": attempt + 1,
+                            "elapsed_ms": elapsed_ms,
+                            "error": _summarize_exc(exc),
+                        },
+                    )
+                    _raise_gemini_call_error(exc)
+                if (
+                    _is_transient_provider_error(exc)
+                    and attempt < _GROUNDED_MAX_ATTEMPTS - 1
+                ):
+                    logger.warning(
+                        "gemini_grounded_transient_retry",
+                        extra={
+                            "call": call_label,
+                            "model": model,
+                            "attempt": attempt + 1,
+                            "elapsed_ms": elapsed_ms,
+                            "error": _summarize_exc(exc),
+                        },
+                    )
                     time.sleep(_GROUNDED_RETRY_BACKOFF_S * (attempt + 1))
                     continue
+                logger.warning(
+                    "gemini_grounded_failed",
+                    extra={
+                        "call": call_label,
+                        "model": model,
+                        "attempt": attempt + 1,
+                        "elapsed_ms": elapsed_ms,
+                        "error": _summarize_exc(exc),
+                    },
+                )
                 _raise_gemini_call_error(exc)
         if last_error is not None:
             _raise_gemini_call_error(last_error)
@@ -422,8 +575,21 @@ class GeminiFlashLlmProvider:
         return LlmDiscoveryResult(candidates=filtered)
 
     def _parse_search_response(self, raw_text: str) -> LlmSearchResult:
+        cleaned = _extract_json_text(raw_text)
+        # Gemini sometimes refuses with natural language ("I'm sorry, but…") on
+        # broad/ambiguous queries. That isn't an error worth showing — it's just
+        # "no good matches". Detect refusals (no leading `{`) and degrade
+        # gracefully to empty results so the UI can offer "Add by URL" instead of
+        # firing a 502 + frontend retry that would burn another grounded call.
+        if not cleaned.lstrip().startswith("{"):
+            logger.info(
+                "gemini_search_non_json_response",
+                extra={"text_preview": cleaned[:160]},
+            )
+            return LlmSearchResult(candidates=[])
+
         try:
-            payload = _GeminiSearchPayload.model_validate_json(_extract_json_text(raw_text))
+            payload = _GeminiSearchPayload.model_validate_json(cleaned)
         except Exception as exc:
             raise LlmInvalidResponseError(
                 f"Gemini search response was not valid JSON: {raw_text!r}"

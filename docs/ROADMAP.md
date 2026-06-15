@@ -790,6 +790,23 @@ Start after M3 proves the one-retailer architecture.
 - **Docs:** PRD v1.4 (§4 scope, §5.2 U-ADD-0, §6 IA, §8.7 `search_cache`, §9 API surface, §10.7 LLM use cases + free-tier table); MEMORY.md entry.
 - **Verification (local, in-Cursor browser):** Dashboard → ⌘K opens overlay → example query → results render with supported + unsupported badges → Track adds product and navigates to detail with thinking shimmer + listing populated.
 
+### T8.4 Search quota + transient-error resilience (M8)
+
+**Status:** done — 2026-06-15
+
+- **Owner:** agent.
+- **Scope:** unwedge production `/api/search` — every query was timing out at ~30s with "Search is temporarily unavailable", and no real search had succeeded in production since launch.
+- **Root causes (stacked):**
+  1. **Free-tier quota wall.** `gemini-2.5-flash` + `google_search` is capped at ~20 RPD/project on the free tier; that pool exhausted within minutes of normal use and every subsequent request returned `429 RESOURCE_EXHAUSTED`.
+  2. **Quota errors were retried.** Backend retried 429 once (~1s sleep), router mapped quota to `503`, frontend treated 503 as transient and retried again. One user click → up to 4 cascaded failed Gemini calls with the spinner held the entire time.
+  3. **Timed-out Gemini threads leaked.** `ThreadPoolExecutor` was never shut down after `LlmTimeoutError`; the SDK thread kept running past the user-visible timeout.
+- **Backend:** new `GEMINI_SEARCH_MODEL` setting defaulting to `gemini-2.5-flash-lite` (separate, much larger free-tier RPD pool; faster grounded responses). Distinct HTTP status codes — quota=`429`, transient=`503`, timeout=`504`, malformed=`502`. `_call_gemini_grounded` retries up to 3 attempts only on truly transient `500/502/503/504` errors and empty responses; **never** retries on quota. `search()` / `discover()` wrap the executor in `try/finally` with `pool.shutdown(wait=False, cancel_futures=True)`. Natural-language refusals (e.g. "I'm sorry, I can't…" on broad queries) degrade to empty results instead of 502. Per-attempt structured logs include model, elapsed_ms, finish_reason, text_len. New unauthenticated `GET /health/llm` reports config without burning quota.
+- **Frontend:** `useSearch` stops retrying on 429 (`isQuotaExhaustedError`) and caps transient retries at exactly one (`SEARCH_RETRY_LIMIT = 1`). `SearchCommandDialog`'s `ErrorState` renders distinct copy for quota exhaustion (`search-quota-exhausted` testid: "Daily AI search limit reached…") vs. generic transient (`search-error`), both with **Add by URL** fallback so the user is never stuck.
+- **Tests:** `test_grounded_search_does_not_retry_on_quota_error`, `test_grounded_search_retries_on_transient_503` / `_504` / `_on_empty_response`, `test_search_uses_search_model_not_default_model`, `test_search_model_falls_back_to_default_model`, `test_discover_uses_search_model_not_categorize_model`, `test_search_does_not_double_wrap_provider_error`, `test_search_natural_language_refusal_returns_empty_results`, `test_search_malformed_json_still_raises`, `test_search_provider_error_returns_503`, `test_search_quota_exhausted_returns_429`, `test_health_llm_returns_configured_models`, `test_settings` env-key + default coverage for `GEMINI_SEARCH_MODEL`; frontend `shows the daily-limit message (no transient-error retries) when Gemini quota is exhausted` + `retries once on transient 503 but stops there so the spinner does not linger` in `search-dialog.test.tsx`.
+- **Docs:** PRD §10.7 (search-model split + retry/timeout policy + `/health/llm`) + §10.9 quota table; `DEPLOYMENT.md` (env matrix + verification curl); `AGENTS.md` (env var + corrected timeout default); `MEMORY.md` entry.
+- **Deploy:** set `GEMINI_SEARCH_MODEL=gemini-2.5-flash-lite` (and optionally `GEMINI_SEARCH_TIMEOUT_S=20`) on Render. No migrations.
+- **Verification (live in-Cursor browser):** "airpods pro" returned 5 results (Apple Canada, Best Buy Canada, Amazon Canada, Indigo, Costco Canada) in ~3.6s; `/health/llm` reports `search_model: "gemini-2.5-flash-lite"`.
+
 ### T8.2 Search production hotfix (M8)
 
 **Status:** done — 2026-06-15 (second pass: timeout alignment)
@@ -857,6 +874,7 @@ Constraints:
 <details>
 <summary>Recently completed (M8)</summary>
 
+- ~~**T8.4** Search quota + transient-error resilience~~ — switched grounded calls to `gemini-2.5-flash-lite` (separate free-tier RPD pool from Flash), split error mapping (quota → 429, transient → 503, timeout → 504), retry only on transient errors / empty responses, never on quota; non-leaking executor shutdown; graceful refusal handling; distinct frontend copy for quota vs transient with Add-by-URL fallback; new `/health/llm` diagnostic endpoint.
 - ~~**T8.2** Search production hotfix~~ — Gemini grounded JSON parsing fix (#49), `SearchThinking` loading UX, 30s search timeout + `asyncio.to_thread` second pass.
 - ~~**T8.1** Search-based product addition~~ — `POST /api/search` + 24h cache, `discovery_seed` plumbing, ⌘K command palette dialog, fixture-mode LLM provider.
 

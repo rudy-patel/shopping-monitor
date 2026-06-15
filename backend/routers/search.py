@@ -61,10 +61,15 @@ async def post_search(
         # Grounded Gemini calls can take 10–30s; keep the event loop responsive.
         result = await asyncio.to_thread(run_search, body.query, client=client)
     except LlmQuotaExhaustedError as exc:
+        # Daily Gemini free-tier quota — retrying just burns more quota. Use 429 so
+        # the frontend can show a specific "daily limit" message and stop retrying.
         logger.warning("search_quota_exhausted", extra={"error": str(exc)})
         raise HTTPException(
-            status_code=503,
-            detail="Search is temporarily unavailable — please try again later.",
+            status_code=429,
+            detail=(
+                "Daily AI search limit reached. Try again later — "
+                "or paste a product URL directly to add it now."
+            ),
         ) from exc
     except LlmTimeoutError as exc:
         logger.warning("search_timeout", extra={"error": str(exc)})
@@ -81,8 +86,8 @@ async def post_search(
     except LlmProviderError as exc:
         logger.warning("search_provider_error", extra={"error": str(exc)})
         raise HTTPException(
-            status_code=502,
-            detail="Search provider error — please try again.",
+            status_code=503,
+            detail="Search is temporarily unavailable — please try again in a moment.",
         ) from exc
 
     return SearchResponseModel.model_validate(result.to_dict())
