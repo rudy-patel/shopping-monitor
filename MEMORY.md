@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] BrandMark wing removal (splash + OG image)
+
+**What:** Removed optional wing SVG flourishes from **`BrandMark`** (sign-in splash, nav, empty state now share the same dashed pill). Regenerated `og-image.png` without wings; added `og-image.svg` as the editable source (regen: `npx @resvg/resvg-js-cli public/og-image.svg public/og-image.png` from `frontend/`). OG tagline aligned with `loginTaglines[0]` (comma, no em dash).
+
+**Files:** `frontend/src/components/brand/BrandMark.tsx`, `frontend/src/components/products/EmptyState.tsx`, `frontend/public/og-image.svg`, `frontend/public/og-image.png`, `frontend/src/test/brand-mark.test.tsx`, `frontend/src/test/site-meta.test.ts`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `npm run lint`; `npm run test:run` (brand-mark, site-meta).
+
+---
+
 ## [2026-06-15] Demo seed refresh timestamps (production fix)
 
 **What:** Demo seed had backdated `products.last_refresh_at` tied to `created_days_ago`, so the UI showed "last refreshed" weeks ago even though listings were scraped yesterday. Seed now sets `last_refresh_at` and `last_scraped_at` to ~1 day ago regardless of backdated `created_at`. Added `--refresh-timestamps` to update existing seeded rows in production (manifest or catalog-title scope; skips user-added products).

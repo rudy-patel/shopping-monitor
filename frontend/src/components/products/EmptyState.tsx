@@ -14,7 +14,7 @@ export function EmptyState({ title, description, action, showBrandMark = false }
     <div className="rounded-lg border border-dashed border-border px-6 py-12 text-center">
       {showBrandMark ? (
         <div className="mb-6 flex justify-center">
-          <BrandMark size="compact" showWings={false} />
+          <BrandMark size="compact" />
         </div>
       ) : null}
       <h2 className="text-lg font-semibold tracking-tight">{title}</h2>
