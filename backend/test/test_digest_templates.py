@@ -102,3 +102,13 @@ def test_discovery_complete_copy_with_needs_review():
         payload={"auto_added_count": 1, "needs_review_count": 2},
     )
     assert summary == "Found 3 matches for Camera. 2 need your review."
+
+
+def test_generic_retailer_label_avoids_em_dash():
+    summary = notification_summary(
+        notification_type=NotificationKind.BACK_IN_STOCK,
+        product_title="Widget",
+        payload={"retailer_slug": "generic"},
+    )
+    assert summary == "Widget is back in stock at Generic scraper (may be unreliable)."
+    assert "\u2014" not in summary

@@ -22,7 +22,7 @@ _RETAILER_LABELS: dict[str, str] = {
     "nike_ca": "Nike Canada",
     "palmisleskate": "Palm Isle Skate Shop",
     "tikiroomskate": "Tiki Room Skateboards",
-    "generic": "Generic scraper — may be unreliable",
+    "generic": "Generic scraper (may be unreliable)",  # sync with frontend/src/lib/format.ts
 }
 
 _REVISIT_TYPES = frozenset(

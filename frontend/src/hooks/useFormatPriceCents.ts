@@ -9,7 +9,7 @@ export function useFormatPriceCents() {
 
   return useCallback(
     (cents: number | null | undefined) => {
-      if (cents == null) return '—'
+      if (cents == null) return formatCadCents(cents)
 
       const quote = isError || !fx?.rates ? 'CAD' : currency
       if (quote === 'CAD') {

@@ -5,14 +5,14 @@
       "title": "Patagonia Down Sweater Jacket - Men's",
       "retailer_hint": "Mountain Equipment Company",
       "brand_hint": "Patagonia",
-      "justification": "MEC carries the Patagonia Down Sweater Jacket — best-effort tracking"
+      "justification": "MEC carries the Patagonia Down Sweater Jacket, best-effort tracking"
     },
     {
       "url": "https://www.atmosphere.ca/en-ca/product/patagonia-mens-nano-puff-jacket/333068.html",
       "title": "Patagonia Men's Nano Puff Jacket",
       "retailer_hint": "Atmosphere",
       "brand_hint": "Patagonia",
-      "justification": "Atmosphere Canada PDP — not a natively supported retailer"
+      "justification": "Atmosphere Canada PDP, not a natively supported retailer"
     }
   ]
 }

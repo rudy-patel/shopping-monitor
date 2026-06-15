@@ -4,12 +4,12 @@ import { Sparkles } from 'lucide-react'
 import { useMotionEnabled } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
-const SEARCH_STATUS_MESSAGES = [
+export const SEARCH_STATUS_MESSAGES = [
   'Scouring Canadian retailers…',
   'Checking Best Buy, Apple, Indigo, and more…',
   'Asking the internet nicely…',
   'Hunting for the best match…',
-  'Good finds take a moment — hang tight…',
+  'Good finds take a moment. Hang tight…',
 ] as const
 
 const MESSAGE_INTERVAL_MS = 2200

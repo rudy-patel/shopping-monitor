@@ -67,7 +67,7 @@ async def post_search(
         raise HTTPException(
             status_code=429,
             detail=(
-                "Daily AI search limit reached. Try again later — "
+                "Daily AI search limit reached. Try again later, "
                 "or paste a product URL directly to add it now."
             ),
         ) from exc
@@ -75,19 +75,19 @@ async def post_search(
         logger.warning("search_timeout", extra={"error": str(exc)})
         raise HTTPException(
             status_code=504,
-            detail="Search took too long — try a more specific query.",
+            detail="Search took too long. Try a more specific query.",
         ) from exc
     except LlmInvalidResponseError as exc:
         logger.warning("search_invalid_response", extra={"error": str(exc)})
         raise HTTPException(
             status_code=502,
-            detail="Search response was malformed — please try again.",
+            detail="Search response was malformed. Please try again.",
         ) from exc
     except LlmProviderError as exc:
         logger.warning("search_provider_error", extra={"error": str(exc)})
         raise HTTPException(
             status_code=503,
-            detail="Search is temporarily unavailable — please try again in a moment.",
+            detail="Search is temporarily unavailable. Please try again in a moment.",
         ) from exc
 
     return SearchResponseModel.model_validate(result.to_dict())

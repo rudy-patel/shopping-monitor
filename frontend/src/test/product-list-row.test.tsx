@@ -17,7 +17,7 @@ vi.mock('@/hooks/useProducts', () => ({
 
 vi.mock('@/hooks/useFormatPriceCents', () => ({
   useFormatPriceCents: () => (cents: number | null) =>
-    cents === null ? '—' : `$${(cents / 100).toFixed(2)}`,
+    cents === null ? '-' : `$${(cents / 100).toFixed(2)}`,
 }))
 
 describe('ProductListRow category sorting badge', () => {

@@ -336,7 +336,7 @@ function ErrorState({
     ? 'Daily AI search limit reached.'
     : error instanceof ApiError
       ? error.message
-      : 'Search hit a snag — try again.'
+      : 'Search hit a snag. Try again.'
   const hint = isQuota
     ? "We'll be back to full speed soon. In the meantime, paste a product URL to track it now."
     : 'Try again in a moment, or paste a product URL directly.'
