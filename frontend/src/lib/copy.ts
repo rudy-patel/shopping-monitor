@@ -1,6 +1,8 @@
 /** App name and share-preview copy — keep in sync with `frontend/index.html` meta tags. */
 export const SITE_NAME = 'Someday'
 export const SITE_DESCRIPTION = 'Everything you want — when the price is right.'
+/** Primary heading on the grouped dashboard (`/`). */
+export const DASHBOARD_TITLE = 'Wishlist'
 /** Production frontend origin (matches `backend/core/settings.py` PRODUCTION_APP_BASE_URL). */
 export const SITE_ORIGIN = 'https://shopping-monitor-nine.vercel.app'
 

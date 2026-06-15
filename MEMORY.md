@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Condensed wishlist product rows
+
+**What:** Tightened dashboard and flat-list `ProductListRow` layout from four stacked lines to two (title · brand inline; price, compact trend chip, badges, retailer, and updated time on one row). Desktop shows an icon-only refresh beside the kebab menu; mobile refresh stays in the menu. Category sections use slightly tighter spacing. Dashboard heading renamed to **Wishlist** via `DASHBOARD_TITLE` in `copy.ts`. `compactTrendLabel()` shortens trend chips when `delta_pct` is unknown; full label remains on `aria-label`.
+
+**Files:** `frontend/src/components/products/ProductListRow.tsx`, `ProductListRowSkeleton.tsx`, `CategorySection.tsx`, `DashboardCategoryList.tsx`, `TrendChip.tsx`, `frontend/src/lib/trend.ts`, `frontend/src/lib/copy.ts`, `frontend/src/pages/DashboardPage.tsx`, `frontend/src/pages/ListPage.tsx`, `frontend/src/test/product-list-row.test.tsx`, `frontend/src/test/trend-label.test.ts`, `frontend/src/test/trend-chip.test.tsx`, `frontend/src/test/copy.test.ts`, `frontend/src/test/App.test.tsx`, `frontend/src/test/routes.test.tsx`, `frontend/src/test/mobile-tab-bar.test.tsx`, `frontend/e2e/helpers/dashboard.ts`, `docs/PRD.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `npm run lint`; `npm run test:run` (product-list-row, trend-label, trend-chip, copy, App, routes, mobile-tab-bar).
+
+---
+
 ## [2026-06-15] Brand assets, header logo, and share previews
 
 **What:** Extended splash **`BrandMark`** with a `nav` size for `TopNav` (compact dashed pill, no wings). Added `frontend/public/` assets: SVG favicon, 180×180 Apple touch icon, 1200×630 OG image (warm gradient + winged pill + tagline), and `site.webmanifest`. `index.html` now ships Open Graph / Twitter meta tags with absolute production URLs for iMessage/Slack link previews. **`copy.ts`** exports `SITE_NAME`, `SITE_DESCRIPTION`, `SITE_ORIGIN` as the single source of truth; **`site-meta.test.ts`** asserts `index.html` stays aligned.

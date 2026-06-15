@@ -920,6 +920,7 @@ Constraints:
 - ~~**T7.1** UI polish and accessibility~~ — typography-first lists, mobile tab bar, axe vitest, Playwright Mobile Chrome.
 - ~~**Sign-in splash redesign**~~ — warm gradient landing, dashed **Someday.** pill, desktop-only floating shopping stickers; compact `BrandMark` on empty dashboard; axe coverage for `/login`.
 - ~~**Brand assets & share meta**~~ — header `BrandMark` (`nav` size), favicon, Apple touch icon, 1200×630 OG image, Open Graph / Twitter tags; `copy.ts` site constants + `site-meta.test.ts` guards `index.html` drift.
+- ~~**Condensed wishlist rows**~~ — two-line `ProductListRow` (title · brand, then price/trend/meta); compact trend labels; dashboard heading **Wishlist** via `DASHBOARD_TITLE` in `copy.ts` (PRD §5.3 U-VIEW-1/3).
 - ~~**T6.3** Cron schedules~~ — scrape `0 8 * * *` UTC, digest `0 14 * * *` UTC.
 - ~~**T6.2** Production smoke~~ — done.
 

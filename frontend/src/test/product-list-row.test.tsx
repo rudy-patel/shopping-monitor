@@ -1,4 +1,4 @@
-import { act, screen, waitFor } from '@testing-library/react'
+import { act, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ProductListRow } from '@/components/products/ProductListRow'
 import {
@@ -44,5 +44,33 @@ describe('ProductListRow category sorting badge', () => {
     })
 
     expect(screen.queryByTestId('category-sorting-badge')).not.toBeInTheDocument()
+  })
+})
+
+describe('ProductListRow condensed layout', () => {
+  it('renders title and brand inline with a compact trend chip', () => {
+    const product = makeProductSummary({
+      title: 'Nintendo Switch 2 Console',
+      brand: 'Nintendo',
+      trend: {
+        direction: 'same',
+        label: 'Same in the last 30 days',
+        delta_pct: null,
+      },
+    })
+
+    renderWithProviders(<ProductListRow product={product} />)
+
+    expect(screen.getByRole('heading', { name: 'Nintendo Switch 2 Console' })).toBeInTheDocument()
+    expect(screen.getByText('Nintendo')).toBeInTheDocument()
+    expect(screen.getByText('→ Same')).toBeInTheDocument()
+    expect(screen.getByLabelText('→ Same in the last 30 days')).toBeInTheDocument()
+  })
+
+  it('exposes a refresh control with an accessible name', () => {
+    renderWithProviders(<ProductListRow product={makeProductSummary()} />)
+
+    expect(screen.getByRole('button', { name: 'Refresh product' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Product actions' })).toBeInTheDocument()
   })
 })

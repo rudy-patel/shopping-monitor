@@ -7,7 +7,7 @@ import { RotatingCopy } from '@/components/layout/RotatingCopy'
 import { Button } from '@/components/ui/button'
 import { useProducts } from '@/hooks/useProducts'
 import type { ProductSummary } from '@/lib/products'
-import { dashboardQuotes } from '@/lib/copy'
+import { dashboardQuotes, DASHBOARD_TITLE } from '@/lib/copy'
 
 export function DashboardPage() {
   const { data: products = [] as ProductSummary[], isLoading, isError } = useProducts({
@@ -17,10 +17,10 @@ export function DashboardPage() {
   const hasProducts = products.length > 0
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-6 md:py-8">
-      <div className="mb-6 flex flex-wrap items-end justify-between gap-4 md:mb-8">
+    <div className="container mx-auto max-w-5xl px-4 py-5 md:py-6">
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-3 md:mb-6">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">Your list</h1>
+          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">{DASHBOARD_TITLE}</h1>
           <p className="text-sm text-muted-foreground md:text-base">
             Products grouped by category.
           </p>
@@ -53,7 +53,7 @@ export function DashboardPage() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <ProductListRowSkeleton />
           <ProductListRowSkeleton />
           <ProductListRowSkeleton />

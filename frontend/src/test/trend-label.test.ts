@@ -1,4 +1,4 @@
-import { enrichedTrendLabel } from '@/lib/trend'
+import { compactTrendLabel, enrichedTrendLabel } from '@/lib/trend'
 import { sampleTrend } from './product-fixtures'
 
 describe('enrichedTrendLabel', () => {
@@ -42,5 +42,29 @@ describe('enrichedTrendLabel', () => {
         label: 'Same in the last 30 days',
       }),
     ).toBe('→ Same (±1%)')
+  })
+})
+
+describe('compactTrendLabel', () => {
+  it('shortens unknown-delta labels for dense list rows', () => {
+    expect(
+      compactTrendLabel({
+        ...sampleTrend,
+        direction: 'same',
+        delta_pct: null,
+        label: 'Same in the last 30 days',
+      }),
+    ).toBe('→ Same')
+  })
+
+  it('keeps enriched labels when delta_pct is known', () => {
+    expect(
+      compactTrendLabel({
+        ...sampleTrend,
+        direction: 'down',
+        delta_pct: -0.18,
+        label: 'Down in the last 30 days',
+      }),
+    ).toBe('↓ Down 18%')
   })
 })

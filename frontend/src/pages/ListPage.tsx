@@ -44,7 +44,7 @@ export function ListPage() {
       </div>
 
       {isLoading ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <ProductListRowSkeleton />
           <ProductListRowSkeleton />
         </div>
@@ -62,10 +62,10 @@ export function ListPage() {
       ) : null}
 
       {!isLoading && !isError && filtered.length > 0 ? (
-        <div className="space-y-3">
+        <div className="space-y-2">
           <AnimatePresence initial={false}>
             {filtered.map((product) => (
-              <ProductListRow key={product.id} product={product} compact />
+              <ProductListRow key={product.id} product={product} />
             ))}
           </AnimatePresence>
         </div>

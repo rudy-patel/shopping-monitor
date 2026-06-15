@@ -1,4 +1,4 @@
-import { loginTaglines, dashboardQuotes, footerQuips, SITE_DESCRIPTION, SITE_NAME } from '@/lib/copy'
+import { loginTaglines, dashboardQuotes, footerQuips, DASHBOARD_TITLE, SITE_DESCRIPTION, SITE_NAME } from '@/lib/copy'
 
 describe('copy arrays', () => {
   it.each([
@@ -12,6 +12,7 @@ describe('copy arrays', () => {
 
   it('exports site branding constants', () => {
     expect(SITE_NAME).toBe('Someday')
+    expect(DASHBOARD_TITLE).toBe('Wishlist')
     expect(SITE_DESCRIPTION.length).toBeGreaterThan(10)
   })
 })
