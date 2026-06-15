@@ -32,9 +32,7 @@ class DriftSnapshot(BaseModel):
     variant_attribute_names: list[str] = Field(default_factory=list)
     variant_count_bucket: Literal["0", "1", "2+"]
     selected_variant_attribute_names: list[str] = Field(default_factory=list)
-    source: str
     extraction: str | None = None
-    schema_types: list[str] | None = None
 
 
 class DriftCheckResult(BaseModel):

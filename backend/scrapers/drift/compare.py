@@ -37,6 +37,12 @@ def fingerprint_diff(
     for field_name in DriftSnapshot.model_fields:
         baseline_value = getattr(baseline, field_name)
         live_value = getattr(live, field_name)
+        if (
+            field_name == "selected_variant_attribute_names"
+            and not baseline_value
+        ):
+            # Fixture baselines may omit URL-derived selection; live enrichment is OK.
+            continue
         if baseline_value != live_value:
             diff[field_name] = {"baseline": baseline_value, "live": live_value}
     return diff

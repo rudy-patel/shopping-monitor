@@ -205,4 +205,4 @@ SCRAPER_MODE=live python scripts/check_retailer_drift.py --file-issues
 # requires GITHUB_TOKEN + GITHUB_REPOSITORY; use --dry-run to preview issue actions
 ```
 
-Catalog: `scrapers/drift/catalog.yaml` (live URLs; field expectations inherited from `scrapers/benchmark/catalog.yaml`). Baselines: `scrapers/drift/snapshots/<slug>.json`. Comparison uses a structural fingerprint (field presence, variant shape, extraction path) — not price/title text.
+Catalog: `scrapers/drift/catalog.yaml` (live URLs; field expectations inherited from `scrapers/benchmark/catalog.yaml`). Baselines: `scrapers/drift/snapshots/<slug>.json`. Comparison uses a structural fingerprint (field presence, variant shape, extraction path) — not price/title text. `bestbuy_ca` maps `jsonld` and `bestbuy_api` to a shared `bestbuy` extraction label; live selected-variant attributes are ignored when the fixture baseline omits them.

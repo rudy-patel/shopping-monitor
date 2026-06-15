@@ -8,11 +8,11 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **What:** Shipped local-only retailer drift tooling (no GitHub Actions workflow — not run on CI/merge). Added `backend/scrapers/drift/` with live URL catalog, structural fingerprint normalization, committed baselines under `snapshots/`, compare/runner modules, optional GitHub issue sync (`--file-issues`), `scripts/check_retailer_drift.py`, `scripts/update_drift_snapshots.py`, `make check-retailer-drift` (live) and `make update-drift-snapshots` (fixtures).
 
-**Locked behavior:** Compares structural fingerprint (field presence, variant shape, extraction path) — not price/title/stock values. One GitHub issue per retailer when `--file-issues`; auto-close on pass. `blocked` vs `shape_mismatch` vs `error` statuses. CI runs snapshot sync test only (no live network). Field expectations reuse benchmark catalog entries for the same slug/scenario.
+**Locked behavior:** Compares structural fingerprint (field presence, variant shape, extraction path) — not price/title/stock values. One GitHub issue per retailer when `--file-issues`; auto-close on pass. `blocked` vs `shape_mismatch` vs `error` statuses. CI runs snapshot sync test only (no live network). Field expectations reuse benchmark catalog entries for the same slug/scenario. Fingerprint excludes scraper-mode `source`; `bestbuy_ca` canonicalizes `jsonld`/`bestbuy_api` → `bestbuy`.
 
-**Files:** `backend/scrapers/drift/*`, `backend/scrapers/drift/snapshots/*.json`, `scripts/check_retailer_drift.py`, `scripts/update_drift_snapshots.py`, `backend/test/test_retailer_drift.py`, `backend/test/test_scraper_http_guard.py`, `Makefile`, `backend/scrapers/README.md`, `AGENTS.md`, `docs/ROADMAP.md`, `docs/PRD.md`, `README.md`, `MEMORY.md`.
+**Live verification (2026-06-15):** `SCRAPER_MODE=live make check-retailer-drift` — **8/8 ok**; ~6s; no bot blocks from local run.
 
-**Verification:** `ruff check .`, `pytest -m "not integration"` (545 passed), mocked drift tests; snapshot sync test; local `SCRAPER_MODE=live make check-retailer-drift` when validating live pages. PR https://github.com/rudy-patel/shopping-monitor/pull/44
+**Verification:** `ruff check .`, `pytest -m "not integration"` (547 passed), mocked drift tests; snapshot sync test; live run above. PR https://github.com/rudy-patel/shopping-monitor/pull/44
 
 ---
 

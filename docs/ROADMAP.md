@@ -646,7 +646,7 @@ Start after M3 proves the one-retailer architecture.
   - Optional local `--file-issues` to open/update/close GitHub issues tagged `retailer-drift`.
 - **Verification:**
   - Mocked drift pytest (`test_retailer_drift.py`); CI snapshot sync test (no live retailer requests).
-  - Local `SCRAPER_MODE=live make check-retailer-drift` when validating against live pages.
+  - Live smoke: `SCRAPER_MODE=live make check-retailer-drift` — 8/8 retailers ok (2026-06-15).
 
 ---
 

@@ -5,11 +5,9 @@
   "has_stock": true,
   "has_title": true,
   "has_variants": true,
-  "schema_types": null,
   "selected_variant_attribute_names": [
     "color"
   ],
-  "source": "fixture",
   "variant_attribute_names": [
     "color"
   ],

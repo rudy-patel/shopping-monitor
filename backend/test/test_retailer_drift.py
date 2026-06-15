@@ -139,6 +139,36 @@ def test_check_expect_fields():
     assert failures == ["image"]
 
 
+def test_normalize_canonicalizes_bestbuy_extraction():
+    snapshot = _sample_snapshot(
+        retailer_slug="bestbuy_ca",
+        url="https://www.bestbuy.ca/en-ca/product/example/19220080",
+        raw_snapshot={"extraction": "jsonld"},
+    )
+    assert normalize(snapshot).extraction == "bestbuy"
+    api_snapshot = snapshot.model_copy(
+        update={"raw_snapshot": {"extraction": "bestbuy_api"}}
+    )
+    assert normalize(api_snapshot).extraction == "bestbuy"
+
+
+def test_fingerprint_diff_ignores_live_selected_variant_when_baseline_empty():
+    baseline = DriftSnapshot(
+        has_title=True,
+        has_price=True,
+        has_stock=True,
+        has_image=True,
+        has_variants=True,
+        variant_attribute_names=["option_1", "option_2"],
+        variant_count_bucket="2+",
+        selected_variant_attribute_names=[],
+    )
+    live = baseline.model_copy(
+        update={"selected_variant_attribute_names": ["option_1", "option_2"]}
+    )
+    assert fingerprint_diff(baseline, live) == {}
+
+
 def test_fingerprint_diff_reports_changed_fields():
     baseline = DriftSnapshot(
         has_title=True,
@@ -147,11 +177,10 @@ def test_fingerprint_diff_reports_changed_fields():
         has_image=True,
         has_variants=False,
         variant_count_bucket="0",
-        source="fixture",
     )
-    live = baseline.model_copy(update={"has_image": False, "source": "http_parse"})
+    live = baseline.model_copy(update={"has_image": False, "extraction": "opengraph"})
     diff = fingerprint_diff(baseline, live)
-    assert set(diff) == {"has_image", "source"}
+    assert set(diff) == {"has_image", "extraction"}
 
 
 def test_drift_snapshots_match_fixtures():
@@ -194,10 +223,7 @@ def test_run_drift_checks_shape_mismatch_with_mock_live():
     def mock_live(slug: str, url: str) -> ProductSnapshot:
         if slug == "palmisleskate":
             return baseline_snapshot.model_copy(
-                update={
-                    "raw_snapshot": {"extraction": "opengraph"},
-                    "source": ScrapeSource.HTTP_PARSE,
-                }
+                update={"raw_snapshot": {"extraction": "opengraph"}},
             )
         entry = next(item for item in load_catalog()[1] if item.slug == slug)
         return scrape_fixture_baseline(slug, entry.scenario)
@@ -207,7 +233,7 @@ def test_run_drift_checks_shape_mismatch_with_mock_live():
     result = report.results[0]
     assert result.status == "shape_mismatch"
     assert result.diff
-    assert "extraction" in result.diff or "source" in result.diff
+    assert "extraction" in result.diff
 
 
 def test_run_drift_checks_blocked_with_mock_live():
@@ -235,7 +261,7 @@ def test_issue_title_and_body_formatting():
         scenario="in_stock",
         status="shape_mismatch",
         message="Live scrape fingerprint differs from committed baseline",
-        diff={"source": {"baseline": "fixture", "live": "http_parse"}},
+        diff={"extraction": {"baseline": "jsonld", "live": "opengraph"}},
     )
     assert issue_title("bestbuy_ca", "shape_mismatch") == (
         "[retailer-drift] bestbuy_ca — shape mismatch"
