@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Production demo seed script (friend demo catalog)
+
+**What:** Manual service-role script seeds a production Supabase user with a varied catalog — 12 products (active/archived/needs_input), synthetic 30-day `price_history` for trend chips, multi-retailer listings, and 8 in-app notifications. Uses real retailer HTTPS URLs (no `fixtures.local`); manifest file (`.demo_seed_manifest.json`, gitignored) enables `--cleanup` without title prefixes. Notifications get `email_sent_at` set so digest cron does not email demo rows. `--apply` refused in CI.
+
+**Files:** `backend/scripts/seed_demo_data.py`, `backend/scripts/demo_seed_helpers.py`, `backend/scripts/demo_catalog.prod.json`, `backend/test/test_demo_seed_helpers.py`, `.gitignore`, `AGENTS.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `ruff check`; `pytest test/test_demo_seed_helpers.py`; manual `--dry-run` / `--apply` against production Supabase for `itsrudypatel@gmail.com`.
+
+---
+
 ## [2026-06-15] Sign-in splash redesign (floating shopping stickers)
 
 **What:** Replaced the barebones boxed `LoginPage` with a colourful splash inspired by the "Got Mail?" Interfere reference. Centre stage: shared **`BrandMark`** (`hero` size) — **Someday.** in a large dashed-border pill with optional wing flourishes. Below it, rotating `loginTaglines`, then **Continue with Google** (+ dev login unchanged). Background: warm radial gradient via `loginSplashBackgroundClass` (light mode; `dark:bg-background` fallback). **13 desktop-only stickers** (`LoginSplashStickers` + data in `login-stickers.ts`) via `FloatingSticker` primitive — `aria-hidden`, `md:`+ only, Framer Motion entrance with `prefers-reduced-motion` respect. **In-app bridge:** empty dashboard `EmptyState` shows compact `BrandMark` (no wings) so first-run matches sign-in branding without scattering stickers app-wide. **A11y fix:** removed nested `<main>` on login (RootLayout owns `main#main-content`). **Tests:** `brand-mark`, `login-splash-stickers`, login single-main + axe, existing login OAuth tests.

@@ -48,6 +48,9 @@ logs/
 .env.local
 .env.production
 
+# Production demo seed manifest (local cleanup trace)
+backend/scripts/.demo_seed_manifest.json
+
 # Database
 *.db
 *.sqlite3

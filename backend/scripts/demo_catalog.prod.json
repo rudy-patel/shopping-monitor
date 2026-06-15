@@ -1,0 +1,341 @@
+{
+  "version": 1,
+  "products": [
+    {
+      "key": "lenovo-yoga",
+      "title": "Lenovo Yoga Slim 7x 14.5\" Laptop",
+      "brand": "Lenovo",
+      "category": "tech",
+      "status": "active",
+      "trend": "down",
+      "current_price_cents": 139999,
+      "created_days_ago": 45,
+      "dashboard_sort_order": 1,
+      "listings": [
+        {
+          "retailer_slug": "bestbuy_ca",
+          "url": "https://www.bestbuy.ca/en-ca/product/lenovo-yoga-slim-7x-14-5-touchscreen-copilot-pc-laptop-cosmic-blue-snapdragon-x-elite-16gb-ram-1tb-ssd/17819002",
+          "is_primary": true,
+          "review_status": "accepted",
+          "price_cents": 139999
+        },
+        {
+          "retailer_slug": "amazon_ca",
+          "url": "https://www.amazon.ca/Lenovo-Yoga-Slim-Touchscreen-Snapdragon/dp/B0D8XYZ123",
+          "is_primary": false,
+          "review_status": "auto_added",
+          "match_confidence": 0.92,
+          "price_cents": 134999
+        },
+        {
+          "retailer_slug": "indigo",
+          "url": "https://www.indigo.ca/en-ca/electronics/lenovo-yoga-slim-7x-bundle/99999999.html",
+          "is_primary": false,
+          "review_status": "needs_review",
+          "match_confidence": 0.71,
+          "price_cents": 144999
+        }
+      ]
+    },
+    {
+      "key": "iphone-16",
+      "title": "iPhone 16",
+      "brand": "Apple",
+      "category": "tech",
+      "status": "active",
+      "trend": "up",
+      "current_price_cents": 104900,
+      "created_days_ago": 38,
+      "dashboard_sort_order": 2,
+      "listings": [
+        {
+          "retailer_slug": "apple_ca",
+          "url": "https://www.apple.com/ca/shop/buy-iphone/iphone-16",
+          "is_primary": true,
+          "review_status": "accepted",
+          "price_cents": 104900
+        }
+      ]
+    },
+    {
+      "key": "echo-dot",
+      "title": "Amazon Echo Dot (5th Gen)",
+      "brand": "Amazon",
+      "category": "tech",
+      "status": "active",
+      "trend": "same",
+      "current_price_cents": 6999,
+      "created_days_ago": 22,
+      "dashboard_sort_order": 3,
+      "listings": [
+        {
+          "retailer_slug": "amazon_ca",
+          "url": "https://www.amazon.ca/Amazon-Echo-Dot-5th-Gen/dp/B09B8V1LZ3",
+          "is_primary": true,
+          "review_status": "accepted",
+          "price_cents": 6999
+        }
+      ]
+    },
+    {
+      "key": "nike-af1",
+      "title": "Nike Air Force 1 '07",
+      "brand": "Nike",
+      "category": "shoes",
+      "status": "active",
+      "trend": "down",
+      "current_price_cents": 11999,
+      "created_days_ago": 40,
+      "dashboard_sort_order": 1,
+      "listings": [
+        {
+          "retailer_slug": "nike_ca",
+          "url": "https://www.nike.com/ca/t/air-force-1-07-mens-shoes-GjGXSP",
+          "is_primary": true,
+          "review_status": "accepted",
+          "price_cents": 11999
+        }
+      ]
+    },
+    {
+      "key": "abercrombie-hoodie",
+      "title": "Essential Popover Hoodie",
+      "brand": "Abercrombie & Fitch",
+      "category": "clothing",
+      "status": "active",
+      "trend": "same",
+      "current_price_cents": 3497,
+      "created_days_ago": 55,
+      "last_user_interaction_days_ago": 48,
+      "dashboard_sort_order": 1,
+      "listings": [
+        {
+          "retailer_slug": "abercrombie",
+          "url": "https://www.abercrombie.com/shop/ca/p/essential-popover-hoodie-46112345",
+          "is_primary": true,
+          "review_status": "accepted",
+          "price_cents": 3497
+        }
+      ]
+    },
+    {
+      "key": "will-of-many",
+      "title": "The Will of the Many",
+      "brand": "James Islington",
+      "category": "home",
+      "status": "active",
+      "trend": "down",
+      "current_price_cents": 2499,
+      "created_days_ago": 62,
+      "last_user_interaction_days_ago": 55,
+      "dashboard_sort_order": 1,
+      "listings": [
+        {
+          "retailer_slug": "indigo",
+          "url": "https://www.indigo.ca/en-ca/books/the-will-of-the-many-james-islington/9781250244290.html",
+          "is_primary": true,
+          "review_status": "accepted",
+          "price_cents": 2499
+        }
+      ]
+    },
+    {
+      "key": "reds-bearings",
+      "title": "Bones Reds Bearings",
+      "brand": "Bones",
+      "category": "other",
+      "status": "active",
+      "trend": "up",
+      "current_price_cents": 3299,
+      "created_days_ago": 28,
+      "dashboard_sort_order": 1,
+      "listings": [
+        {
+          "retailer_slug": "palmisleskate",
+          "url": "https://palmisleskateshop.com/products/bones-reds-bearings",
+          "is_primary": true,
+          "review_status": "accepted",
+          "price_cents": 3299
+        }
+      ]
+    },
+    {
+      "key": "sony-headphones",
+      "title": "Sony WH-1000XM5 Headphones",
+      "brand": "Sony",
+      "category": "other",
+      "status": "active",
+      "trend": "same",
+      "current_price_cents": 44999,
+      "created_days_ago": 18,
+      "dashboard_sort_order": 2,
+      "listings": [
+        {
+          "retailer_slug": "bestbuy_ca",
+          "url": "https://www.bestbuy.ca/en-ca/product/sony-wh-1000xm5-over-ear-noise-cancelling-wireless-headphones-black/16624748",
+          "is_primary": true,
+          "review_status": "accepted",
+          "price_cents": 44999
+        }
+      ]
+    },
+    {
+      "key": "logitech-combo",
+      "title": "Logitech POP Keyboard & Mouse Combo",
+      "brand": "Logitech",
+      "category": "tech",
+      "status": "needs_input",
+      "trend": "same",
+      "current_price_cents": 7999,
+      "created_days_ago": 5,
+      "dashboard_sort_order": 4,
+      "listings": [
+        {
+          "retailer_slug": "bestbuy_ca",
+          "url": "https://www.bestbuy.ca/en-ca/product/logitech-pop-bluetooth-optical-keyboard-mouse-combo-graphite-off-white-english/18530015",
+          "is_primary": true,
+          "review_status": "accepted",
+          "price_cents": 7999,
+          "available_variants": [
+            {
+              "attributes": [
+                {"attribute_name": "Colour", "attribute_value": "Graphite"},
+                {"attribute_name": "Language", "attribute_value": "English"}
+              ],
+              "is_in_stock": true
+            },
+            {
+              "attributes": [
+                {"attribute_name": "Colour", "attribute_value": "Off-White"},
+                {"attribute_name": "Language", "attribute_value": "English"}
+              ],
+              "is_in_stock": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "key": "ipad-air-archived",
+      "title": "iPad Air 11-inch (M2)",
+      "brand": "Apple",
+      "category": "tech",
+      "status": "archived",
+      "trend": "down",
+      "current_price_cents": 79900,
+      "created_days_ago": 90,
+      "archived_days_ago": 12,
+      "listings": [
+        {
+          "retailer_slug": "apple_ca",
+          "url": "https://www.apple.com/ca/shop/buy-ipad/ipad-air",
+          "is_primary": true,
+          "review_status": "accepted",
+          "price_cents": 79900
+        }
+      ]
+    },
+    {
+      "key": "levis-501-archived",
+      "title": "Levi's 501 Original Fit Jeans",
+      "brand": "Levi's",
+      "category": "clothing",
+      "status": "archived",
+      "trend": "same",
+      "current_price_cents": 9899,
+      "created_days_ago": 75,
+      "archived_days_ago": 20,
+      "listings": [
+        {
+          "retailer_slug": "generic",
+          "url": "https://www.levi.com/CA/en_CA/clothing/men/jeans/501-original/005010019",
+          "is_primary": true,
+          "review_status": "accepted",
+          "price_cents": 9899
+        }
+      ]
+    },
+    {
+      "key": "dyson-archived",
+      "title": "Dyson V15 Detect Absolute",
+      "brand": "Dyson",
+      "category": "home",
+      "status": "archived",
+      "trend": "up",
+      "current_price_cents": 99999,
+      "created_days_ago": 100,
+      "archived_days_ago": 30,
+      "listings": [
+        {
+          "retailer_slug": "bestbuy_ca",
+          "url": "https://www.bestbuy.ca/en-ca/product/dyson-v15-detect-absolute-cordless-stick-vacuum/15712345",
+          "is_primary": true,
+          "review_status": "accepted",
+          "price_cents": 99999
+        }
+      ]
+    }
+  ],
+  "notifications": [
+    {
+      "type": "price_drop",
+      "product_key": "lenovo-yoga",
+      "listing_index": 0,
+      "is_read": false,
+      "days_ago": 2,
+      "payload": {"old_price_cents": 159999, "new_price_cents": 139999}
+    },
+    {
+      "type": "price_drop",
+      "product_key": "nike-af1",
+      "listing_index": 0,
+      "is_read": true,
+      "days_ago": 5,
+      "payload": {"old_price_cents": 15000, "new_price_cents": 11999}
+    },
+    {
+      "type": "back_in_stock",
+      "product_key": "echo-dot",
+      "listing_index": 0,
+      "is_read": false,
+      "days_ago": 1,
+      "payload": {"retailer_slug": "amazon_ca"}
+    },
+    {
+      "type": "discovery_complete",
+      "product_key": "lenovo-yoga",
+      "is_read": false,
+      "days_ago": 3,
+      "payload": {"auto_added_count": 1, "needs_review_count": 1}
+    },
+    {
+      "type": "needs_input",
+      "product_key": "logitech-combo",
+      "is_read": false,
+      "days_ago": 4,
+      "payload": {}
+    },
+    {
+      "type": "scrape_failing",
+      "product_key": "sony-headphones",
+      "listing_index": 0,
+      "is_read": true,
+      "days_ago": 6,
+      "payload": {}
+    },
+    {
+      "type": "revisit_on_sale",
+      "product_key": "abercrombie-hoodie",
+      "is_read": false,
+      "days_ago": 7,
+      "payload": {}
+    },
+    {
+      "type": "revisit_stale",
+      "product_key": "will-of-many",
+      "is_read": true,
+      "days_ago": 10,
+      "payload": {}
+    }
+  ]
+}
