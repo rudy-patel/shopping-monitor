@@ -36,6 +36,10 @@ test.describe('product vertical slice', () => {
     productId = page.url().split('/').pop() ?? null
     expect(productId).toBeTruthy()
 
+    await expect(page.getByTestId('category-thinking')).toBeVisible()
+    await expect(page.getByTestId('category-select')).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByTestId('category-thinking')).toHaveCount(0)
+
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/.+/)
     await expect(page.getByText(/best buy canada/i).first()).toBeVisible()
     await expect(page.getByText(/^in stock$/i).first()).toBeVisible()

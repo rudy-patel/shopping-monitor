@@ -39,9 +39,13 @@ describe('AddProductDialog', () => {
     } as ReturnType<typeof useCreateProduct>)
   })
 
-  it('sends URL and category on submit', async () => {
+  it('sends auto category by default and closes on success', async () => {
     const user = userEvent.setup()
     const onOpenChange = vi.fn()
+
+    mockMutate.mockImplementation((_payload, options) => {
+      options?.onSuccess?.()
+    })
 
     renderWithProviders(
       <AddProductDialog open onOpenChange={onOpenChange} />,
@@ -51,11 +55,47 @@ describe('AddProductDialog', () => {
     await user.type(screen.getByLabelText(/product url/i), IN_STOCK_URL)
     await user.click(screen.getByRole('button', { name: /^add$/i }))
 
-    expect(mockMutate).toHaveBeenCalledWith({
-      url: IN_STOCK_URL,
-      category: 'auto',
+    expect(mockMutate).toHaveBeenCalledWith(
+      { url: IN_STOCK_URL, category: 'auto' },
+      expect.objectContaining({ onSuccess: expect.any(Function) }),
+    )
+    await waitFor(() => {
+      expect(onOpenChange).toHaveBeenCalledWith(false)
     })
-    expect(onOpenChange).toHaveBeenCalledWith(false)
+  })
+
+  it('keeps modal open while mutation is pending', async () => {
+    vi.mocked(useCreateProduct).mockReturnValue({
+      mutate: mockMutate,
+      isPending: true,
+    } as ReturnType<typeof useCreateProduct>)
+
+    renderWithProviders(
+      <AddProductDialog open onOpenChange={vi.fn()} />,
+      { authenticated: true },
+    )
+
+    expect(screen.getByRole('button', { name: /adding/i })).toBeDisabled()
+  })
+
+  it('sends manual category when user expands override', async () => {
+    const user = userEvent.setup()
+
+    renderWithProviders(
+      <AddProductDialog open onOpenChange={vi.fn()} />,
+      { authenticated: true },
+    )
+
+    await user.click(screen.getByRole('button', { name: /set category manually/i }))
+    await user.click(screen.getByRole('combobox', { name: /category/i }))
+    await user.click(screen.getByRole('option', { name: /^home$/i }))
+    await user.type(screen.getByLabelText(/product url/i), IN_STOCK_URL)
+    await user.click(screen.getByRole('button', { name: /^add$/i }))
+
+    expect(mockMutate).toHaveBeenCalledWith(
+      { url: IN_STOCK_URL, category: 'home' },
+      expect.any(Object),
+    )
   })
 
   it('routes to variants when created product needs input', async () => {
@@ -74,25 +114,6 @@ describe('AddProductDialog', () => {
 
     await waitFor(() => {
       expect(mockNavigate).toHaveBeenCalledWith('/products/needs-input-id/variants')
-    })
-  })
-
-  it('routes to detail for active products', async () => {
-    mockMutate.mockImplementation(() => {
-      mockNavigate('/products/active-id')
-    })
-
-    const user = userEvent.setup()
-    renderWithProviders(
-      <AddProductDialog open onOpenChange={vi.fn()} />,
-      { authenticated: true },
-    )
-
-    await user.type(screen.getByLabelText(/product url/i), IN_STOCK_URL)
-    await user.click(screen.getByRole('button', { name: /^add$/i }))
-
-    await waitFor(() => {
-      expect(mockNavigate).toHaveBeenCalledWith('/products/active-id')
     })
   })
 

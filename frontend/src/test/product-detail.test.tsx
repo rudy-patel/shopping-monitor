@@ -1,6 +1,7 @@
 import { screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
+import { clearJustAddedProduct } from '@/lib/just-added-product'
 import { makeProductDetail } from './product-fixtures'
 import { renderApp } from './test-utils'
 
@@ -44,6 +45,7 @@ const product = makeProductDetail({
 
 describe('ProductDetailPage', () => {
   beforeEach(() => {
+    clearJustAddedProduct()
     mockRefreshMutate.mockClear()
     mockUpdateMutate.mockClear()
 

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { ApiError } from '@/lib/api'
+import { markProductJustAdded } from '@/lib/just-added-product'
 import {
   acceptListing,
   createProduct,
@@ -142,6 +143,7 @@ export function useCreateProduct() {
     mutationFn: (input: CreateProductInput) => createProduct(input),
     onSuccess: (product) => {
       queryClient.invalidateQueries({ queryKey: ['products'] })
+      markProductJustAdded(product.id, product.category_source)
       if (product.status === 'needs_input') {
         navigate(`/products/${product.id}/variants`)
       } else {

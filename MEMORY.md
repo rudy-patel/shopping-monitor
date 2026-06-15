@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] T7.4 Auto-categorization UX polish
+
+**What:** Frontend-only polish for self-organizing lists: URL-first Add Product modal with optional manual category disclosure; modal stays open with "Adding…" until success; product detail category field shows ~2.5s "Sorting into your list…" shimmer after add plus brief "Sorted by AI" hint; dashboard row "Sorting…" badge for the same session window via `frontend/src/lib/just-added-product.ts`. **No extra Gemini calls** — animation is client-side only.
+
+**Files:** `frontend/src/lib/just-added-product.ts`, `frontend/src/components/products/CategoryFieldThinking.tsx`, `CategorySortingBadge.tsx`, `CategoryField.tsx`, `AddProductDialog.tsx`, `ProductListRow.tsx`, `ProductDetailPage.tsx`, `useProducts.ts`, `frontend/src/test/just-added-product.test.ts`, `category-field-thinking.test.tsx`, `product-list-row.test.tsx`, `add-product-dialog.test.tsx`, `frontend/e2e/products.spec.ts`, `docs/PRD.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `npm run lint`, `npm run test:run` (108 passed), `npm run build`, backend pytest (549 passed), `make test-e2e` (4 passed Desktop + Mobile Chrome).
+
+---
+
 ## [2026-06-15] T7.1 UI polish and accessibility
 
 **What:** Shipped typography-first product UI: `ProductListRow` replaces image-heavy cards on dashboard, list, and history; product detail uses listing cards with external retailer links (no in-app images). Monochrome `TrendChip`/`StockBadge` with full text labels; refresh uses skeleton shimmer instead of spinners; optimistic delete via `onMutate`; mobile bottom tab bar (`MobileTabBar`); sticky category headers with counts; Framer Motion list animations with reduced-motion guard; vitest-axe on dashboard/detail; Playwright **Mobile Chrome** + Desktop Chrome projects.
