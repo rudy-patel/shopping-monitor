@@ -13,9 +13,18 @@ const DIRECTION_PREFIX: Record<TrendChipType['direction'], string> = {
 }
 
 const DIRECTION_STYLES: Record<TrendChipType['direction'], string> = {
-  down: 'bg-muted/80 text-foreground/90',
-  same: 'bg-muted text-muted-foreground',
-  up: 'border border-foreground/25 bg-background text-foreground',
+  down: 'bg-trend-down-muted text-trend-down',
+  same: 'bg-trend-same-muted text-trend-same',
+  up: 'bg-trend-up-muted text-trend-up',
+}
+
+/** Subtle price text tint paired with the trend chip on product rows. */
+export function trendPriceClass(direction: TrendChipType['direction']): string {
+  return {
+    down: 'text-trend-down',
+    same: 'text-trend-same',
+    up: 'text-trend-up',
+  }[direction]
 }
 
 export function TrendChip({ trend, className }: TrendChipProps) {

@@ -13,7 +13,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { CategorySortingBadge } from '@/components/products/CategorySortingBadge'
 import { DiscoveryIndicator } from '@/components/products/DiscoveryIndicator'
-import { TrendChip } from '@/components/products/TrendChip'
+import { TrendChip, trendPriceClass } from '@/components/products/TrendChip'
 import { useArchiveProduct, useRefreshProduct } from '@/hooks/useProducts'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
 import { useJustAddedCategoryThinking } from '@/lib/just-added-product'
@@ -117,7 +117,12 @@ export function ProductListRow({ product, compact = false }: ProductListRowProps
                 </>
               ) : (
                 <>
-                  <span className="font-medium tabular-nums">
+                  <span
+                    className={cn(
+                      'font-medium tabular-nums',
+                      trendPriceClass(product.trend.direction),
+                    )}
+                  >
                     {formatPriceCents(product.best_price_cents)}
                   </span>
                   <TrendChip trend={product.trend} />
