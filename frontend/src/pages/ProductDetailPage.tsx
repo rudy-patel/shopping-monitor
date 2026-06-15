@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { useParams } from 'react-router-dom'
+import { BackLink } from '@/components/layout/BackLink'
 import { Archive, RotateCcw, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -40,7 +41,10 @@ export function ProductDetailPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto max-w-5xl px-4 py-6 md:py-8">
-        <ProductListRowSkeleton />
+        <BackLink to="/">Back to dashboard</BackLink>
+        <div className="mt-6">
+          <ProductListRowSkeleton />
+        </div>
       </div>
     )
   }
@@ -48,24 +52,19 @@ export function ProductDetailPage() {
   if (isError || !product) {
     return (
       <div className="container mx-auto max-w-5xl px-4 py-6 md:py-8">
-        <p className="text-muted-foreground">Product not found.</p>
-        <Link to="/" className="mt-4 inline-block text-sm underline-offset-4 hover:underline">
-          Back to dashboard
-        </Link>
+        <BackLink to="/">Back to dashboard</BackLink>
+        <p className="mt-4 text-muted-foreground">Product not found.</p>
       </div>
     )
   }
 
   return (
     <div className="container mx-auto max-w-5xl px-4 py-6 pb-28 md:py-8 md:pb-8">
-      <Link
-        to={isArchived ? '/history' : '/'}
-        className="text-sm text-muted-foreground underline-offset-4 hover:underline"
-      >
+      <BackLink to={isArchived ? '/history' : '/'}>
         {isArchived ? 'Back to archived' : 'Back to dashboard'}
-      </Link>
+      </BackLink>
 
-      <div className={cn('mt-4 space-y-8 md:mt-6', isRefreshing && 'opacity-80')}>
+      <div className={cn('mt-6 space-y-8', isRefreshing && 'opacity-80')}>
         {isArchived ? (
           <div className="rounded-lg border border-border bg-muted px-4 py-3 text-sm">
             This product is archived. Restore it to resume price tracking on your dashboard.

@@ -39,6 +39,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Product detail back navigation
+
+**What:** Replaced the floating plain-text "Back to dashboard" link on the product detail page with a shared `BackLink` layout component: left-aligned ghost-style control with `ArrowLeft` icon, hover/focus affordances, and consistent placement above the content stack (loading, not-found, and main states). Restored original `space-y-8` section rhythm below the back control.
+
+**Files:** `frontend/src/components/layout/BackLink.tsx`, `frontend/src/pages/ProductDetailPage.tsx`, `frontend/src/test/back-link.test.tsx`, `frontend/src/test/product-detail.test.tsx`, `MEMORY.md`, `docs/ROADMAP.md`.
+
+**Verification:** Frontend `npm run lint`, `npm run test:run` (incl. new `back-link.test.tsx` + product-detail back-link assertion); existing Playwright e2e still targets `getByRole('link', { name: /back to dashboard/i })`.
+
+---
+
 ## [2026-06-15] Product detail listings polish (Tier 2)
 
 **What:** Polished the product detail **Listings** section while keeping the typography-first aesthetic. Active listings stay sorted cheapest-first (primary no longer pinned above a cheaper discovered match). Each card leads with a larger price, puts retailer + stock badge + relative scrape time on one meta line, and demotes "Open on …" to a secondary link-style action. Scrape status (`ok`, etc.) is no longer rendered on listing cards. Multi-retailer products highlight the winning card with a subtle left accent plus a "Best price" badge, and show `+$N vs best` on every more expensive listing.
