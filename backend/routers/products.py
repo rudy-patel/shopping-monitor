@@ -6,7 +6,7 @@ from typing import Literal
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from core.auth import CurrentUser, get_current_user
 from services.discovery import run_discovery_for_product
@@ -30,6 +30,7 @@ router = APIRouter(prefix="/api", tags=["products"])
 
 TrendDirection = Literal["down", "same", "up"]
 CategoryInput = Literal["auto", "clothing", "shoes", "home", "tech", "other"]
+MAX_PRODUCT_TITLE_LEN = 200
 
 
 class TrendChip(BaseModel):
@@ -108,10 +109,21 @@ class ProductCreateRequest(BaseModel):
 class ProductUpdateRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
+    title: str | None = Field(default=None, min_length=1, max_length=MAX_PRODUCT_TITLE_LEN)
     category: ProductCategory | None = None
     notification_threshold_pct: int | None = Field(default=None, ge=1, le=95)
     notifications_enabled: bool | None = None
     status: Literal["active", "archived"] | None = None
+
+    @field_validator("title")
+    @classmethod
+    def normalize_title(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("title must not be empty")
+        return stripped
 
 
 class SelectVariantRequest(BaseModel):

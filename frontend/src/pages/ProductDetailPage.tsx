@@ -9,6 +9,7 @@ import { DiscoveryIndicator } from '@/components/products/DiscoveryIndicator'
 import { ListingCard } from '@/components/products/ListingCard'
 import { NeedsReviewQueue } from '@/components/products/NeedsReviewQueue'
 import { ProductSettingsSection } from '@/components/products/ProductSettingsSection'
+import { ProductTitleField } from '@/components/products/ProductTitleField'
 import { Sparkline } from '@/components/products/Sparkline'
 import { TrendChip, trendPriceClass } from '@/components/products/TrendChip'
 import { ProductListRowSkeleton } from '@/components/products/ProductListRowSkeleton'
@@ -78,9 +79,7 @@ export function ProductDetailPage() {
         >
           <div className="space-y-5">
             <div className="space-y-1">
-              <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
-                {product.title}
-              </h1>
+              <ProductTitleField productId={product.id} title={product.title} />
               {product.brand ? (
                 <p className="text-muted-foreground">{product.brand}</p>
               ) : null}
