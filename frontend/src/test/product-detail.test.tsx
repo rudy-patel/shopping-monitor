@@ -80,6 +80,8 @@ describe('ProductDetailPage', () => {
     const user = userEvent.setup()
     renderApp(`/products/${product.id}`, { authenticated: true })
 
+    expect(screen.getByRole('link', { name: /back to dashboard/i })).toBeInTheDocument()
+
     await user.click(screen.getByRole('combobox', { name: /category/i }))
     await user.click(screen.getByRole('option', { name: /^home$/i }))
     expect(mockUpdateMutate).toHaveBeenCalledWith({ category: 'home' })
