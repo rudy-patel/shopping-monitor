@@ -274,7 +274,6 @@ export function useSelectVariant(id: string) {
 
 export function useArchiveProduct(id: string) {
   const queryClient = useQueryClient()
-  const navigate = useNavigate()
 
   return useMutation({
     mutationFn: () => updateProduct(id, { status: 'archived' }),
@@ -287,8 +286,7 @@ export function useArchiveProduct(id: string) {
       return { previousLists }
     },
     onSuccess: () => {
-      toast('Product archived')
-      navigate('/history')
+      toast.success('Product archived')
     },
     onError: (_error, _vars, context) => {
       rollbackListCaches(queryClient, context?.previousLists ?? [])

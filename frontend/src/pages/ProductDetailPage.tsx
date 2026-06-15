@@ -52,7 +52,7 @@ export function ProductDetailPage() {
         to={isArchived ? '/history' : '/'}
         className="text-sm text-muted-foreground underline-offset-4 hover:underline"
       >
-        {isArchived ? 'Back to archived products' : 'Back to dashboard'}
+        {isArchived ? 'Back to archived' : 'Back to dashboard'}
       </Link>
 
       <div className={cn('mt-4 space-y-8 md:mt-6', isRefreshing && 'opacity-80')}>

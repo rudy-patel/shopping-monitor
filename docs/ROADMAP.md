@@ -391,7 +391,7 @@ The tasks in this phase converge on the one-retailer MVP.
 - **Human setup:** H1/H2 optional if using local auth bypass; required for full auth test.
 - **PR size:** test-only/small wiring PR.
 - **Build:**
-  - Expand e2e coverage beyond T2.6 scaffold (add → detail → refresh → category/threshold → archive → history → restore → UI delete).
+  - Expand e2e coverage beyond T2.6 scaffold (add → detail → refresh → category/threshold → archive toast on current page → history via nav → restore → UI delete).
   - Wire CI job for Playwright; document `make test-e2e`.
 - **Verification:**
   - E2E test passes in `SCRAPER_MODE=fixtures`.
@@ -865,6 +865,7 @@ Constraints:
 <details>
 <summary>Recently completed (M6 / T7)</summary>
 
+- ~~**Archive in-context feedback**~~ — success toast on archive; no auto-redirect to `/history` (PRD U-ARC-1).
 - ~~**T7.4** Auto-categorization UX polish~~ — URL-first add modal, category thinking shimmer (~2.5s), dashboard sorting badge; client-side only (no extra Gemini calls).
 - ~~**T7.1** UI polish and accessibility~~ — typography-first lists, mobile tab bar, axe vitest, Playwright Mobile Chrome.
 - ~~**T6.3** Cron schedules~~ — scrape `0 8 * * *` UTC, digest `0 14 * * *` UTC.

@@ -27,7 +27,7 @@ export function DashboardPage() {
             All products
           </Link>
           <Link to="/history" className="text-sm underline-offset-4 hover:underline">
-            Archived products
+            Archived
           </Link>
         </div>
       </div>

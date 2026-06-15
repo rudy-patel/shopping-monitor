@@ -4,6 +4,14 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Archive stays in context (toast, no redirect)
+
+**What:** Archiving a product no longer navigates to `/history`. `useArchiveProduct` shows a Sonner success toast and leaves the user on the dashboard or product detail page; archived items remain reachable via nav → History. Aligns with PRD U-ARC-1 perceived-performance feedback.
+
+**Files:** `frontend/src/hooks/useProducts.ts`, `frontend/src/test/archive-delete.test.tsx`, `frontend/src/test/product-archive-hook.test.tsx`, `frontend/e2e/products.spec.ts`, `docs/PRD.md` §5.8/§12, `docs/ROADMAP.md` T2.7, `README.md`.
+
+---
+
 ## [2026-06-15] Trend chip color hints (PR #52)
 
 **What:** Restored PRD U-TREND-1 color coding with desaturated green/yellow/red theme tokens for 30-day trend chips and matching best-price text on product rows. Monochrome `StockBadge` unchanged.

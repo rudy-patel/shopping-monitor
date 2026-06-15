@@ -70,9 +70,9 @@ test.describe('product vertical slice', () => {
 
     await openDetailFromDashboard()
     await page.getByRole('button', { name: /^archive$/i }).click()
-    await expect(page).toHaveURL('/history', { timeout: 10_000 })
-    await expect(page.getByRole('heading', { name: /archived products/i })).toBeVisible()
-    await expect(archivedRow()).toBeVisible()
+    await expect(page).toHaveURL(new RegExp(`/products/${productId}`), { timeout: 10_000 })
+    await expect(page.getByRole('button', { name: /^restore$/i })).toBeVisible({ timeout: 15_000 })
+    await expect(page.getByText(/this product is archived/i)).toBeVisible()
 
     await page.goto('/')
     await expect(productLink()).toHaveCount(0)
