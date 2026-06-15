@@ -28,6 +28,10 @@ VALID_NOTIFICATION_TYPES = frozenset(
 
 CATALOG_PATH = Path(__file__).with_name("demo_catalog.prod.json")
 
+# Demo UI shows last_refresh_at / last_scraped_at — keep these recent even when
+# created_at is backdated for trend history.
+DEFAULT_DEMO_SCRAPE_DAYS_AGO = 1
+
 
 def price_for_day(
     *,
@@ -178,6 +182,22 @@ def trend_direction_for_series(
         for row in rows
     ]
     return compute_trend(observations, today=today).direction
+
+
+def resolve_demo_seed_scope(
+    *,
+    manifest: dict[str, Any] | None,
+    email: str,
+    user_products: list[dict[str, Any]],
+    catalog: dict[str, Any],
+) -> tuple[list[str], list[str] | None]:
+    """Demo seed scope: product ids plus manifest listing ids when available."""
+    if manifest and manifest.get("email", "").strip().lower() == email.strip().lower():
+        listing_ids = manifest.get("listing_ids") or None
+        return list(manifest["product_ids"]), list(listing_ids) if listing_ids else None
+    titles = frozenset(product["title"] for product in catalog["products"])
+    product_ids = [row["id"] for row in user_products if row.get("title") in titles]
+    return product_ids, None
 
 
 def load_catalog(path: Path | None = None) -> dict[str, Any]:

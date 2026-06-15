@@ -680,7 +680,7 @@ Start after M3 proves the one-retailer architecture.
   - Scrape pre-verified — [run #27509008501](https://github.com/rudy-patel/shopping-monitor/actions/runs/27509008501).
   - `frontend/vercel.json` SPA rewrite for direct `/login` deep links.
 - **Script:** `backend/scripts/smoke_production_t6_2.py --live`.
-- **Friend-demo ops (2026-06-15):** `backend/scripts/seed_demo_data.py` + `demo_catalog.prod.json` — service-role seed/cleanup for a real Google-auth user on production Supabase (varied products, price history, notifications). Documented in `AGENTS.md`; unit tests in `test_demo_seed_helpers.py`. Not a product feature — supports M6 early-friend demos while search/scrapers are flaky.
+- **Friend-demo ops (2026-06-15):** `backend/scripts/seed_demo_data.py` + `demo_catalog.prod.json` — service-role seed/cleanup for a real Google-auth user on production Supabase (varied products, price history, notifications). `--refresh-timestamps` keeps demo “last refreshed” UI recent without touching user-added products. Documented in `AGENTS.md`; unit tests in `test_demo_seed_helpers.py`. Not a product feature — supports M6 early-friend demos while search/scrapers are flaky.
 
 ### T6.3 Enable schedules
 

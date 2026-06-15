@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Demo seed refresh timestamps (production fix)
+
+**What:** Demo seed had backdated `products.last_refresh_at` tied to `created_days_ago`, so the UI showed "last refreshed" weeks ago even though listings were scraped yesterday. Seed now sets `last_refresh_at` and `last_scraped_at` to ~1 day ago regardless of backdated `created_at`. Added `--refresh-timestamps` to update existing seeded rows in production (manifest or catalog-title scope; skips user-added products).
+
+**Files:** `backend/scripts/seed_demo_data.py`, `backend/scripts/demo_seed_helpers.py`, `backend/test/test_demo_seed_helpers.py`, `AGENTS.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `ruff check`; `pytest test/test_demo_seed_helpers.py`; `--refresh-timestamps --dry-run` then apply for `itsrudypatel@gmail.com`.
+
+---
+
 ## [2026-06-15] User-facing copy: remove em dashes
 
 **What:** Replaced em dashes in all user-visible strings (taglines, share meta, search errors, generic scraper label, missing-price placeholder) with commas, periods, colons, or parentheses. `ListingCard` now reads the generic label from `retailerLabel('generic')` instead of duplicating copy. Added regression tests (`copy.test.ts`, `site-meta.test.ts`, `format.test.ts`, `search-dialog.test.tsx`, `test_search_router.py`, `test_digest_templates.py`) and synced PRD U-ADD-5.
