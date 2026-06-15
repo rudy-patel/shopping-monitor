@@ -1,10 +1,14 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
-import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN } from '@/lib/copy'
+import { loginTaglines, SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN } from '@/lib/copy'
 
 const indexHtml = readFileSync(path.resolve(__dirname, '../../index.html'), 'utf8')
 const webManifest = readFileSync(
   path.resolve(__dirname, '../../public/site.webmanifest'),
+  'utf8',
+)
+const ogImageSvg = readFileSync(
+  path.resolve(__dirname, '../../public/og-image.svg'),
   'utf8',
 )
 
@@ -37,5 +41,10 @@ describe('index.html share meta', () => {
   it('keeps web manifest description aligned with copy.ts', () => {
     expect(webManifest).toContain(SITE_DESCRIPTION)
     expect(webManifest).not.toContain(EM_DASH)
+  })
+
+  it('keeps og-image.svg tagline aligned with login splash copy', () => {
+    expect(ogImageSvg).toContain(loginTaglines[0])
+    expect(ogImageSvg).not.toContain(EM_DASH)
   })
 })
