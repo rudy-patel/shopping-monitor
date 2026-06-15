@@ -70,7 +70,7 @@ Two complementary paths:
 - **Search (⌘K / Ctrl+K)** — type any product name; the app searches Canadian retailers via Gemini Flash + Google Search grounding, ranks supported retailers first, then offers best-effort tracking for unsupported retailers. One click on **Track** creates the product and seeds cross-retailer discovery without re-burning LLM quota. Grounded calls parse prompt JSON locally (Gemini 2.5 cannot mix Search grounding with controlled `response_schema`).
 - **Add by URL** — header **Add Product** button still accepts a direct product URL when the user already has one.
 
-Both paths share the same scrape / discovery / categorization pipeline. Search results are cached server-side for 24h (`SEARCH_CACHE_TTL_HOURS`).
+Both paths share the same scrape / discovery / categorization pipeline. Search results are cached server-side for 24h (`SEARCH_CACHE_TTL_HOURS`). First grounded search per query may take up to ~30s; `SearchThinking` shows rotating status while Gemini runs.
 
 ## Documentation
 
