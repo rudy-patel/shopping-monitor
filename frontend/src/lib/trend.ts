@@ -29,3 +29,14 @@ export function enrichedTrendLabel(trend: TrendChip): string {
   }
   return `${prefix} ${directionWord} ${deltaSuffix}`
 }
+
+/** Compact label for dense list rows — omits long window copy when delta is unavailable. */
+export function compactTrendLabel(trend: TrendChip): string {
+  if (trend.delta_pct != null) {
+    return enrichedTrendLabel(trend)
+  }
+  const prefix = DIRECTION_PREFIX[trend.direction]
+  const directionWord =
+    trend.direction === 'down' ? 'Down' : trend.direction === 'up' ? 'Up' : 'Same'
+  return `${prefix} ${directionWord}`
+}

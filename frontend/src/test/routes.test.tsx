@@ -53,7 +53,7 @@ describe('routes', () => {
   })
 
   const protectedRoutes: Array<{ path: string; heading: RegExp; setup?: () => void }> = [
-    { path: '/', heading: /your list/i },
+    { path: '/', heading: /^wishlist$/i },
     { path: '/list', heading: /all products/i },
     { path: '/products/abc-123', heading: /route test product/i },
     {

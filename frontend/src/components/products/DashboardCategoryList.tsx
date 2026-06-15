@@ -205,7 +205,7 @@ function DashboardCategorySections({
   toggleCategory: (category: ProductCategory) => void
 }) {
   return (
-    <div className="space-y-8 md:space-y-10">
+    <div className="space-y-5 md:space-y-6">
       {categoryOrder.map((category) => {
         const items = itemsByCategory.get(category) ?? []
         const count = items.length

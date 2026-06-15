@@ -26,7 +26,7 @@ export function CategorySection({
 
   return (
     <section className="space-y-0" aria-labelledby={headingId}>
-      <div className="sticky top-14 z-10 -mx-4 border-b border-border bg-background/95 px-4 py-2 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <div className="sticky top-14 z-10 -mx-4 border-b border-border bg-background/95 px-4 py-1.5 backdrop-blur supports-[backdrop-filter]:bg-background/80">
         <div className="flex items-center gap-1">
           {editMode ? (
             <button
@@ -38,7 +38,7 @@ export function CategorySection({
               <GripVertical className="h-4 w-4" />
             </button>
           ) : null}
-          <h2 id={headingId} className="min-w-0 flex-1 text-lg font-semibold tracking-tight">
+          <h2 id={headingId} className="min-w-0 flex-1 text-base font-semibold tracking-tight">
             <button
               type="button"
               className="flex w-full items-center gap-2 text-left"
@@ -59,7 +59,7 @@ export function CategorySection({
         </div>
       </div>
       {expanded ? (
-        <div className="space-y-3 border-l-2 border-foreground/10 py-3 pl-3">{children}</div>
+        <div className="space-y-2 border-l-2 border-foreground/10 py-2 pl-2">{children}</div>
       ) : null}
     </section>
   )

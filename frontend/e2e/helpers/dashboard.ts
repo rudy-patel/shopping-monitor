@@ -23,6 +23,7 @@ export async function gotoDashboard(page: Page) {
   await page.goto('/')
   await productsLoaded
   await expect(page.getByText('Could not load products.')).not.toBeVisible()
+  await expect(page.getByRole('heading', { name: 'Wishlist', exact: true })).toBeVisible()
 }
 
 /** Return to dashboard via a caller-provided action (link click, etc.). */

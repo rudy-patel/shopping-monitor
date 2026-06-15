@@ -66,4 +66,20 @@ describe('TrendChip', () => {
     )
     expect(screen.getByLabelText('↓ Down 8%')).toBeInTheDocument()
   })
+
+  it('renders shorter visible copy in compact mode while keeping full aria-label', () => {
+    renderWithProviders(
+      <TrendChip
+        compact
+        trend={{
+          ...sampleTrend,
+          direction: 'same',
+          delta_pct: null,
+          label: 'Same in the last 30 days',
+        }}
+      />,
+    )
+    expect(screen.getByLabelText('→ Same in the last 30 days')).toBeInTheDocument()
+    expect(screen.getByText('→ Same')).toBeInTheDocument()
+  })
 })

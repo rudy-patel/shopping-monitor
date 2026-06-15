@@ -1,10 +1,12 @@
 import type { TrendChip as TrendChipType } from '@/lib/products'
-import { enrichedTrendLabel } from '@/lib/trend'
+import { compactTrendLabel, enrichedTrendLabel } from '@/lib/trend'
 import { cn } from '@/lib/utils'
 
 interface TrendChipProps {
   trend: TrendChipType
   className?: string
+  /** Use shorter copy on dense list rows. */
+  compact?: boolean
 }
 
 const DIRECTION_STYLES: Record<TrendChipType['direction'], string> = {
@@ -22,19 +24,20 @@ export function trendPriceClass(direction: TrendChipType['direction']): string {
   }[direction]
 }
 
-export function TrendChip({ trend, className }: TrendChipProps) {
+export function TrendChip({ trend, className, compact = false }: TrendChipProps) {
   const accessibleLabel = enrichedTrendLabel(trend)
+  const displayLabel = compact ? compactTrendLabel(trend) : accessibleLabel
 
   return (
     <span
       className={cn(
-        'inline-flex items-center rounded-md px-2 py-0.5 text-xs',
+        'inline-flex items-center rounded-md px-1.5 py-0.5 text-xs',
         DIRECTION_STYLES[trend.direction],
         className,
       )}
       aria-label={accessibleLabel}
     >
-      {accessibleLabel}
+      {displayLabel}
     </span>
   )
 }
