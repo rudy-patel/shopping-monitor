@@ -32,6 +32,18 @@ const config: Config = {
           DEFAULT: 'hsl(var(--destructive))',
           foreground: 'hsl(var(--destructive-foreground))',
         },
+        'trend-down': {
+          DEFAULT: 'hsl(var(--trend-down))',
+          muted: 'hsl(var(--trend-down-muted))',
+        },
+        'trend-same': {
+          DEFAULT: 'hsl(var(--trend-same))',
+          muted: 'hsl(var(--trend-same-muted))',
+        },
+        'trend-up': {
+          DEFAULT: 'hsl(var(--trend-up))',
+          muted: 'hsl(var(--trend-up-muted))',
+        },
       },
     },
   },

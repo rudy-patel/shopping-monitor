@@ -619,7 +619,7 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 2. **Snappy by default.** Every user action surfaces visible feedback within 100ms. Mutations are optimistic; only roll back on server error. Skeleton loaders, never spinners, for first-paint and route changes. Refresh actions show inline skeleton shimmer and “Refreshing…” copy.
 3. **Calm voice.** Microcopy is playful and empathetic (see §7.10 revisit prompts). No exclamation marks in default UI strings, no robotic tone, no fake urgency.
 4. **Content over chrome.** The category-grouped dashboard is the hero surface; nav is a thin, persistent top bar with a mobile bottom tab bar for primary routes.
-5. **Typography-first lists.** Product rows are text-only in-app (no scraped thumbnails). Monochrome trend and stock chips always include readable labels.
+5. **Typography-first lists.** Product rows are text-only in-app (no scraped thumbnails). Trend chips use subtle green/yellow/red tints (down/same/up) with readable labels; stock chips stay monochrome.
 6. **Accessible.** Color-coded chips always pair with text. Lighthouse Performance and Accessibility ≥ 95 are hard targets (see §12). Vitest axe checks on key routes.
 7. **One keyboard shortcut: ⌘K / Ctrl+K opens the global search overlay.** This is the single command-palette-style affordance in V1; everything else is mouse and touch first-class. Other keyboard shortcuts are deferred to V2.
 

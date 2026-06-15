@@ -2,13 +2,14 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { RotateCcw, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { TrendChip } from '@/components/products/TrendChip'
+import { TrendChip, trendPriceClass } from '@/components/products/TrendChip'
 import { DeleteProductDialog } from '@/components/products/DeleteProductDialog'
 import { useRestoreProduct } from '@/hooks/useProducts'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
 import { formatRelativeTime, retailerLabel } from '@/lib/format'
 import type { ProductSummary } from '@/lib/products'
 import { categoryLabel } from '@/lib/categories'
+import { cn } from '@/lib/utils'
 
 interface ArchivedProductRowProps {
   product: ProductSummary
@@ -33,7 +34,11 @@ export function ArchivedProductRow({ product }: ArchivedProductRowProps) {
             <p className="text-sm text-muted-foreground">{product.brand}</p>
           ) : null}
           <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="tabular-nums">{formatPriceCents(product.best_price_cents)}</span>
+            <span
+              className={cn('tabular-nums', trendPriceClass(product.trend.direction))}
+            >
+              {formatPriceCents(product.best_price_cents)}
+            </span>
             <TrendChip trend={product.trend} />
             <span className="text-muted-foreground">{categoryLabel(product.category)}</span>
           </div>

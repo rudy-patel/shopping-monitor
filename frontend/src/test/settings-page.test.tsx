@@ -146,8 +146,11 @@ describe('SettingsPage', () => {
 
     renderWithProviders(<SettingsPage />, { authenticated: true })
 
-    await screen.findByRole('switch', { name: /dark mode/i })
-    expect(document.documentElement.classList.contains('dark')).toBe(true)
+    const toggle = await screen.findByRole('switch', { name: /dark mode/i })
+    await waitFor(() => {
+      expect(toggle).toBeChecked()
+      expect(document.documentElement.classList.contains('dark')).toBe(true)
+    })
   })
 
   it('disables revisit child controls when master is off', async () => {
