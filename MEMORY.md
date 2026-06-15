@@ -12,7 +12,7 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Files:** `frontend/src/components/products/ProductListRow.tsx`, `ProductListRowSkeleton.tsx`, `ListingCard.tsx`, `StockBadge.tsx`, `CategorySection.tsx`, `NeedsReviewQueue.tsx`, `ArchivedProductRow.tsx`, `TrendChip.tsx`, `frontend/src/components/layout/MobileTabBar.tsx`, `TopNav.tsx`, `RootLayout.tsx`, `frontend/src/pages/*`, `frontend/src/hooks/useProducts.ts`, `frontend/src/lib/motion.ts`, `frontend/src/test/a11y-pages.test.tsx`, `mobile-tab-bar.test.tsx`, `frontend/e2e/products.spec.ts`, `frontend/playwright.config.ts`, `docs/PRD.md`, `docs/ROADMAP.md`, `AGENTS.md`, `MEMORY.md`. Removed `ProductCard.tsx`, `ProductCardSkeleton.tsx`.
 
-**Verification:** `npm run lint`, `npm run test:run` (99 passed), `npm run build`; `make test-e2e` when Supabase creds available.
+**Verification:** `npm run lint`, `npm run test:run` (99 passed), `npm run build`, `make test-e2e` (Desktop + Mobile Chrome). PR https://github.com/rudy-patel/shopping-monitor/pull/46
 
 **Deferred:** T7.2 Lighthouse gate; T7.3 V1 checklist.
 

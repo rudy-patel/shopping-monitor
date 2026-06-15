@@ -713,7 +713,7 @@ Start after M3 proves the one-retailer architecture.
 
 ### T7.1 UI polish and accessibility
 
-**Status:** done — branch `cursor/t7.1-ui-polish-f127`.
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/46
 
 - **Owner:** agent.
 - **PR size:** frontend PR.
