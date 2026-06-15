@@ -25,6 +25,12 @@ def test_search_returns_canned_results_for_known_query():
     )
 
 
+def test_search_returns_canned_results_for_patagonia_short_query():
+    provider = FixtureLlmProvider()
+    result = provider.search(query="patagonia")
+    assert len(result.candidates) >= 1
+
+
 @pytest.mark.parametrize(
     "query",
     ["AirPods Pro", "Nintendo Switch 2", "Lenovo Yoga laptop", "Patagonia jacket"],

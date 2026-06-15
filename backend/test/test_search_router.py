@@ -53,6 +53,7 @@ def auth_env(monkeypatch):
     snapshot = dict(os.environ)
     monkeypatch.setattr("core.settings._env_file_path", lambda: None)
     monkeypatch.setenv("AUTH_BYPASS_ENABLED", "true")
+    monkeypatch.setenv("SCRAPER_MODE", "live")
     clear_settings_cache()
     yield monkeypatch
     os.environ.clear()

@@ -12,7 +12,11 @@ from google.genai import errors as genai_errors
 from core.settings import DEFAULT_GEMINI_SEARCH_TIMEOUT_S, Settings, clear_settings_cache
 from services.categorizer import CategorizationContext
 from services.factory import build_retailer_default_categories, get_categorizer, get_llm_provider
-from services.gemini import GeminiFlashLlmProvider, _extract_json_text
+from services.gemini import (
+    GeminiFlashLlmProvider,
+    _extract_grounded_response_text,
+    _extract_json_text,
+)
 from services.llm import (
     LlmCategorizationResult,
     LlmInvalidResponseError,
@@ -316,6 +320,43 @@ def test_extract_json_text_strips_markdown_fence():
     assert _extract_json_text(fenced) == '{"candidates":[]}'
 
 
+def test_extract_grounded_response_text_falls_back_to_candidate_parts():
+    part = MagicMock()
+    part.text = '{"candidates":[]}'
+    content = MagicMock()
+    content.parts = [part]
+    candidate = MagicMock()
+    candidate.content = content
+    response = MagicMock()
+    response.text = None
+    response.candidates = [candidate]
+    assert _extract_grounded_response_text(response) == '{"candidates":[]}'
+
+
+@patch("services.gemini.time.sleep")
+@patch("services.gemini.genai.Client")
+def test_grounded_search_retries_once_on_rate_limit(
+    mock_client_cls: MagicMock,
+    mock_sleep: MagicMock,
+):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    rate_limited = genai_errors.APIError(
+        429,
+        {"error": {"status": "RESOURCE_EXHAUSTED", "message": "rate limit"}},
+    )
+    mock_client.models.generate_content.side_effect = [
+        rate_limited,
+        _mock_response('{"candidates":[]}'),
+    ]
+
+    result = _make_provider().search(query="patagonia")
+
+    assert result.candidates == []
+    assert mock_client.models.generate_content.call_count == 2
+    mock_sleep.assert_called_once()
+
+
 @patch("services.gemini.genai.Client")
 def test_search_grounded_call_omits_structured_output_config(mock_client_cls: MagicMock):
     mock_client = MagicMock()
@@ -456,8 +497,9 @@ def test_search_timeout(mock_client_cls: MagicMock):
         _make_provider(search_timeout_s=0.05).search(query="something", timeout_s=0.05)
 
 
+@patch("services.gemini.time.sleep")
 @patch("services.gemini.genai.Client")
-def test_search_quota_error(mock_client_cls: MagicMock):
+def test_search_quota_error(mock_client_cls: MagicMock, mock_sleep: MagicMock):
     mock_client = MagicMock()
     mock_client_cls.return_value = mock_client
     mock_client.models.generate_content.side_effect = genai_errors.APIError(
