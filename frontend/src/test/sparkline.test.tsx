@@ -255,4 +255,25 @@ describe('Sparkline component', () => {
     dispatchPointer('pen')
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
   })
+
+  it('renders muted styling when tracking is paused', () => {
+    const history: PriceHistoryPoint[] = [
+      { observed_on: isoOffset(20), price_cents: 25000 },
+      { observed_on: isoOffset(0), price_cents: 23000 },
+    ]
+    const { container } = render(
+      <ProviderStack>
+        <Sparkline
+          history={history}
+          currentPriceCents={23000}
+          direction="down"
+          daysOfData={20}
+          paused
+        />
+      </ProviderStack>,
+    )
+
+    expect(container.querySelector('.opacity-60')).not.toBeNull()
+    expect(screen.queryByText(/−/)).not.toBeInTheDocument()
+  })
 })

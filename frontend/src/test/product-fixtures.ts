@@ -2,7 +2,7 @@ import type { ProductDetail, ProductSummary, TrendChip } from '@/lib/products'
 
 export const sampleTrend: TrendChip = {
   direction: 'down',
-  delta_pct: 5,
+  delta_pct: null,
   days_of_data: 10,
   label: 'Down in the last 30 days',
 }

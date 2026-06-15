@@ -25,6 +25,12 @@ export function formatCadCents(cents: number | null | undefined): string {
   return CAD_FORMATTER.format(cents / 100)
 }
 
+export function formatTrackingSince(iso: string): string {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return 'Unknown'
+  return date.toLocaleDateString('en-CA', { month: 'short', day: 'numeric', year: 'numeric' })
+}
+
 export function formatRelativeTime(iso: string | null | undefined): string {
   if (!iso) return 'Never'
   const date = new Date(iso)

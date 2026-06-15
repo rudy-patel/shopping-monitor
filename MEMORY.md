@@ -4,6 +4,18 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Product detail layout & micro-copy (Tier 3–4)
+
+**What:** Polished the product detail page with a bordered hero card (title, brand, price, trend chip, sparkline, metadata chips), collapsible Settings (chevron, collapsed by default), tighter listings spacing, and a mobile sticky action bar that repeats price + trend chip. Threshold field shows a computed dollar trigger (`Alert when below $X (N% off $Y)`). Trend chips append a quiet percent suffix when `delta_pct` is known. Discovery status sits beside the trend chip and stays hidden once complete. Archived products grey the sparkline and show "Tracking paused" while history remains visible.
+
+**Locked behavior:** Settings collapsed by default; expand via Settings chevron button. Notification baseline for the dollar hint uses MAX(`price_history_30d`) with fallback to current best price (matches backend `baseline_max_daily_minimum` when history is populated). Archive-date sparkline freeze deferred — archived lines render muted but use existing history.
+
+**Files:** `frontend/src/pages/ProductDetailPage.tsx`, `frontend/src/components/products/ProductSettingsSection.tsx`, `ThresholdField.tsx`, `TrendChip.tsx`, `Sparkline.tsx`, `frontend/src/lib/pricing.ts`, `frontend/src/lib/trend.ts`, `frontend/src/lib/format.ts` (`formatTrackingSince`), `frontend/src/test/product-detail.test.tsx`, `pricing.test.ts`, `trend-label.test.ts`, `trend-chip.test.tsx`, `product-fixtures.ts`, `frontend/e2e/products.spec.ts`, `docs/PRD.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `npm run lint`, `npm run test:run`, `npm run build`.
+
+---
+
 ## [2026-06-15] Retailer logo icons (T7.1 follow-up)
 
 **What:** Added minimal bundled SVG marks for all supported retailer slugs (excludes `generic`) so list rows, listing cards, search badges, filters, and review queue cards are easier to scan visually. `RetailerLogo` / `RetailerIdentity` components map slug → asset; `knownRetailerSlugs()` in `format.ts` keeps logo coverage in sync with label slugs via Vitest.
