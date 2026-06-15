@@ -4,7 +4,9 @@ import { vi } from 'vitest'
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
   value: vi.fn().mockImplementation((query: string) => ({
-    matches: false,
+    matches: query.includes('prefers-reduced-motion')
+      ? false
+      : query.includes('min-width'),
     media: query,
     onchange: null,
     addListener: vi.fn(),
@@ -48,6 +50,8 @@ if (!Element.prototype.releasePointerCapture) {
 }
 
 Element.prototype.scrollIntoView = Element.prototype.scrollIntoView || (() => undefined)
+
+window.scrollTo = window.scrollTo || (() => undefined)
 
 export const mockSignInWithOAuth = vi.fn().mockResolvedValue({ data: {}, error: null })
 export const mockSignOut = vi.fn().mockResolvedValue({ error: null })

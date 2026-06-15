@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
 import { Archive, MoreVertical, RefreshCw, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -9,10 +10,12 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { Skeleton } from '@/components/ui/skeleton'
 import { DiscoveryIndicator } from '@/components/products/DiscoveryIndicator'
 import { TrendChip } from '@/components/products/TrendChip'
 import { useArchiveProduct, useRefreshProduct } from '@/hooks/useProducts'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
+import { listItemTransition, useMotionEnabled } from '@/lib/motion'
 import {
   extraRetailerCount,
   formatRelativeTime,
@@ -36,7 +39,7 @@ export function ProductActionsMenu({ product, onRefresh, refreshing }: ProductAc
     <>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label="Product actions">
+          <Button variant="ghost" size="icon" className="h-11 w-11" aria-label="Product actions">
             <MoreVertical className="h-4 w-4" />
           </Button>
         </DropdownMenuTrigger>
@@ -65,64 +68,65 @@ export function ProductActionsMenu({ product, onRefresh, refreshing }: ProductAc
   )
 }
 
-interface ProductCardProps {
+interface ProductListRowProps {
   product: ProductSummary
   compact?: boolean
 }
 
-export function ProductCard({ product, compact = false }: ProductCardProps) {
+export function ProductListRow({ product, compact = false }: ProductListRowProps) {
   const refresh = useRefreshProduct(product.id)
   const formatPriceCents = useFormatPriceCents()
+  const motionEnabled = useMotionEnabled()
   const detailPath =
     product.status === 'needs_input'
       ? `/products/${product.id}/variants`
       : `/products/${product.id}`
   const extraRetailers = extraRetailerCount(product.listing_count)
+  const isRefreshing = refresh.isPending
 
   return (
-    <div
-      className={cn(
-        'rounded-lg border border-border bg-background transition-colors hover:border-foreground/30',
-        compact ? 'p-3' : 'p-4',
-        refresh.isPending && 'opacity-70',
-      )}
+    <motion.div
+      layout={motionEnabled}
+      initial={motionEnabled ? { opacity: 0, height: 0 } : false}
+      animate={{ opacity: 1, height: 'auto' }}
+      exit={motionEnabled ? { opacity: 0, height: 0 } : undefined}
+      transition={listItemTransition}
     >
-      <div className="flex gap-4">
-        <Link to={detailPath} className="flex min-w-0 flex-1 gap-4">
-          {product.image_url ? (
-            <img
-              src={product.image_url}
-              alt=""
-              className={cn(
-                'shrink-0 rounded-md border border-border object-cover',
-                compact ? 'h-14 w-14' : 'h-20 w-20',
-              )}
-            />
-          ) : (
-            <div
-              className={cn(
-                'shrink-0 rounded-md border border-border bg-muted',
-                compact ? 'h-14 w-14' : 'h-20 w-20',
-              )}
-            />
-          )}
-
-          <div className="min-w-0 flex-1">
+      <div
+        className={cn(
+          'rounded-lg border border-border bg-background transition-colors hover:border-foreground/30',
+          compact ? 'p-3' : 'p-4',
+          isRefreshing && 'opacity-80',
+        )}
+      >
+        <div className="flex gap-2 sm:gap-3">
+          <Link to={detailPath} className="min-w-0 flex-1 space-y-1">
             <h3 className="truncate font-medium tracking-tight">{product.title}</h3>
             {product.brand ? (
               <p className="truncate text-sm text-muted-foreground">{product.brand}</p>
             ) : null}
 
-            <div className="mt-2 flex flex-wrap items-center gap-2">
-              <span className="font-medium">{formatPriceCents(product.best_price_cents)}</span>
-              <TrendChip trend={product.trend} />
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              {isRefreshing ? (
+                <>
+                  <Skeleton className="h-5 w-16" />
+                  <Skeleton className="h-5 w-36" />
+                </>
+              ) : (
+                <>
+                  <span className="font-medium tabular-nums">
+                    {formatPriceCents(product.best_price_cents)}
+                  </span>
+                  <TrendChip trend={product.trend} />
+                </>
+              )}
               {product.status === 'needs_input' ? <Badge>Pick variant</Badge> : null}
               {product.needs_review_count > 0 ? (
                 <Badge variant="outline">{product.needs_review_count} to review</Badge>
               ) : null}
             </div>
 
-            <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
               <span>{retailerLabel(product.best_retailer_slug)}</span>
               {extraRetailers ? <span>{extraRetailers}</span> : null}
               <span>
@@ -130,29 +134,28 @@ export function ProductCard({ product, compact = false }: ProductCardProps) {
               </span>
               <DiscoveryIndicator status={product.discovery_status} />
             </div>
-          </div>
-        </Link>
+          </Link>
 
-        <div className="flex shrink-0 items-start gap-2">
-          <ProductActionsMenu
-            product={product}
-            refreshing={refresh.isPending}
-            onRefresh={() => refresh.mutate()}
-          />
-          {!compact ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="hidden sm:inline-flex"
-              disabled={refresh.isPending}
-              onClick={() => refresh.mutate()}
-            >
-              <RefreshCw className={cn('mr-2 h-4 w-4', refresh.isPending && 'animate-spin')} />
-              Refresh
-            </Button>
-          ) : null}
+          <div className="flex shrink-0 items-start gap-1">
+            <ProductActionsMenu
+              product={product}
+              refreshing={isRefreshing}
+              onRefresh={() => refresh.mutate()}
+            />
+            {!compact ? (
+              <Button
+                variant="outline"
+                size="sm"
+                className="hidden h-11 sm:inline-flex"
+                disabled={isRefreshing}
+                onClick={() => refresh.mutate()}
+              >
+                {isRefreshing ? 'Refreshing…' : 'Refresh'}
+              </Button>
+            ) : null}
+          </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

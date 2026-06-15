@@ -90,6 +90,7 @@ describe('NotificationsPage', () => {
 
     expect(await screen.findByText(/found 3 matches for test laptop/i)).toBeInTheDocument()
     expect(screen.getByText(/ready to let it go/i)).toBeInTheDocument()
+    expect(screen.getAllByText(/^unread$/i).length).toBeGreaterThan(0)
   })
 
   it('calls mark-all-read when header action is clicked', async () => {

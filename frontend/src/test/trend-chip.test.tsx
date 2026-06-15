@@ -20,4 +20,16 @@ describe('TrendChip', () => {
     )
     expect(screen.getByLabelText('↑ Up in the last 30 days')).toBeInTheDocument()
   })
+
+  it('uses monochrome gray styles per direction', () => {
+    const { rerender, container } = renderWithProviders(
+      <TrendChip trend={{ ...sampleTrend, direction: 'down', label: 'Down in the last 30 days' }} />,
+    )
+    expect(container.querySelector('[aria-label="↓ Down in the last 30 days"]')).toHaveClass('bg-muted/80')
+
+    rerender(
+      <TrendChip trend={{ ...sampleTrend, direction: 'up', label: 'Up in the last 30 days' }} />,
+    )
+    expect(container.querySelector('[aria-label="↑ Up in the last 30 days"]')).toHaveClass('border')
+  })
 })

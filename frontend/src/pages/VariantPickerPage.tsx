@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import { ProductCardSkeleton } from '@/components/products/ProductCardSkeleton'
+import { ProductListRowSkeleton } from '@/components/products/ProductListRowSkeleton'
 import { useProduct, useSelectVariant } from '@/hooks/useProducts'
 import { normalizeVariants, primaryListing } from '@/lib/products'
 
@@ -20,7 +20,7 @@ export function VariantPickerPage() {
   if (isLoading) {
     return (
       <div className="container mx-auto max-w-5xl px-4 py-8">
-        <ProductCardSkeleton />
+        <ProductListRowSkeleton />
       </div>
     )
   }
@@ -59,7 +59,7 @@ export function VariantPickerPage() {
               <Button
                 key={option.label}
                 variant="outline"
-                className="h-auto w-full justify-start whitespace-normal px-4 py-3 text-left"
+                className="h-11 w-full justify-start whitespace-normal px-4 py-3 text-left"
                 disabled={selectVariant.isPending}
                 onClick={() => selectVariant.mutate(option.attributes)}
               >

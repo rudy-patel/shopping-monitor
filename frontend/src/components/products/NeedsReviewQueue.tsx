@@ -1,5 +1,6 @@
 import { ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { StockBadge } from '@/components/products/StockBadge'
 import {
   useAcceptListing,
   useRejectListing,
@@ -11,16 +12,6 @@ import { needsReviewListings } from '@/lib/products'
 
 interface NeedsReviewQueueProps {
   product: ProductDetail
-}
-
-function stockLabel(inStock: boolean | null): string {
-  if (inStock === true) return 'In stock'
-  if (inStock === false) return 'Out of stock'
-  return 'Unknown'
-}
-
-function candidateImage(listing: Listing, product: ProductDetail): string | null {
-  return listing.review_image_url ?? product.image_url ?? null
 }
 
 function candidateTitle(listing: Listing): string {
@@ -41,13 +32,15 @@ export function NeedsReviewQueue({ product }: NeedsReviewQueueProps) {
   const rejectingId = reject.isPending ? reject.variables : undefined
 
   return (
-    <section className="space-y-4">
-      <h2 className="border-b border-border pb-2 text-lg font-semibold tracking-tight">
+    <section className="space-y-4" aria-labelledby="needs-review-heading">
+      <h2
+        id="needs-review-heading"
+        className="border-b border-border pb-2 text-lg font-semibold tracking-tight"
+      >
         Needs review ({queue.length})
       </h2>
-      <ul className="space-y-4">
+      <ul className="space-y-3">
         {queue.map((listing) => {
-          const imageUrl = candidateImage(listing, product)
           const reason = listing.review_reason ?? 'Possible match'
           const confidencePct =
             listing.match_confidence != null
@@ -61,53 +54,46 @@ export function NeedsReviewQueue({ product }: NeedsReviewQueueProps) {
               key={listing.id}
               className="rounded-lg border border-border p-4"
             >
-              <div className="flex flex-col gap-4 sm:flex-row">
-                {imageUrl ? (
-                  <img
-                    src={imageUrl}
-                    alt=""
-                    className="h-20 w-20 shrink-0 rounded-md border border-border object-cover"
-                  />
-                ) : (
-                  <div className="h-20 w-20 shrink-0 rounded-md border border-border bg-muted" />
-                )}
-                <div className="min-w-0 flex-1 space-y-2">
-                  <p className="font-medium">{candidateTitle(listing)}</p>
-                  <p className="text-sm text-muted-foreground">
-                    {formatPriceCents(listing.last_known_price_cents)} ·{' '}
-                    {stockLabel(listing.is_in_stock)}
-                  </p>
-                  <p className="text-sm italic text-muted-foreground">&ldquo;{reason}&rdquo;</p>
-                  {confidencePct ? (
-                    <p className="text-xs text-muted-foreground">{confidencePct}</p>
-                  ) : null}
-                  <div className="flex flex-wrap gap-2 pt-1">
-                    <Button
-                      size="sm"
-                      disabled={cardPending}
-                      onClick={() => accept.mutate(listing.id)}
+              <div className="space-y-2">
+                <p className="font-medium">{candidateTitle(listing)}</p>
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="tabular-nums">
+                    {formatPriceCents(listing.last_known_price_cents)}
+                  </span>
+                  <StockBadge inStock={listing.is_in_stock} />
+                </div>
+                <p className="text-sm italic text-muted-foreground">&ldquo;{reason}&rdquo;</p>
+                {confidencePct ? (
+                  <p className="text-xs text-muted-foreground">{confidencePct}</p>
+                ) : null}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <Button
+                    size="sm"
+                    className="h-11"
+                    disabled={cardPending}
+                    onClick={() => accept.mutate(listing.id)}
+                  >
+                    Accept
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-11"
+                    disabled={cardPending}
+                    onClick={() => reject.mutate(listing.id)}
+                  >
+                    Reject
+                  </Button>
+                  <Button size="sm" variant="outline" className="h-11" asChild>
+                    <a
+                      href={listing.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
                     >
-                      Accept
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={cardPending}
-                      onClick={() => reject.mutate(listing.id)}
-                    >
-                      Reject
-                    </Button>
-                    <Button size="sm" variant="outline" asChild>
-                      <a
-                        href={listing.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Open source
-                        <ExternalLink className="ml-1 h-3 w-3" />
-                      </a>
-                    </Button>
-                  </div>
+                      Open on {retailerLabel(listing.retailer_slug)}
+                      <ExternalLink className="ml-1 h-3 w-3" />
+                    </a>
+                  </Button>
                 </div>
               </div>
             </li>

@@ -2,7 +2,7 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { vi } from 'vitest'
 import { SettingsPage } from '@/pages/SettingsPage'
-import { ProductCard } from '@/components/products/ProductCard'
+import { ProductListRow } from '@/components/products/ProductListRow'
 import { useCurrency } from '@/contexts/CurrencyContext'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
 import * as apiModule from '@/lib/api'
@@ -193,7 +193,7 @@ describe('currency profile sync', () => {
   })
 })
 
-describe('ProductCard price display', () => {
+describe('ProductListRow price display', () => {
   beforeEach(() => {
     clearAuthStorage()
     localStorage.setItem('shopping-monitor-dev-auth', 'true')
@@ -208,7 +208,7 @@ describe('ProductCard price display', () => {
     vi.restoreAllMocks()
   })
 
-  it('renders converted best price on dashboard card', async () => {
+  it('renders converted best price on product row', async () => {
     localStorage.setItem('display-currency', 'USD')
     vi.spyOn(apiModule, 'apiFetch').mockImplementation(async (path) => {
       if (path === '/api/profile') {
@@ -219,7 +219,7 @@ describe('ProductCard price display', () => {
     })
 
     renderWithProviders(
-      <ProductCard product={makeProductSummary({ best_price_cents: 10000 })} />,
+      <ProductListRow product={makeProductSummary({ best_price_cents: 10000 })} />,
       { authenticated: true },
     )
 

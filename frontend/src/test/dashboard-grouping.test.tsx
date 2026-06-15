@@ -28,8 +28,8 @@ describe('DashboardPage grouping', () => {
   it('groups products under category headers', () => {
     renderWithProviders(<DashboardPage />, { authenticated: true })
 
-    expect(screen.getByRole('heading', { name: /^shoes$/i })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: /^tech$/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /shoes · 1/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /tech · 2/i })).toBeInTheDocument()
     expect(screen.getByText('Shoe Item')).toBeInTheDocument()
     expect(screen.getByText('Tech Item')).toBeInTheDocument()
     expect(screen.getByText('Another Tech')).toBeInTheDocument()

@@ -27,8 +27,8 @@ interface ListFiltersProps {
 
 export function ListFilters({ filters, retailers, onChange }: ListFiltersProps) {
   return (
-    <div className="flex flex-wrap items-end gap-4">
-      <div className="grid gap-2">
+    <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end">
+      <div className="grid w-full gap-2 sm:w-auto">
         <Label htmlFor="filter-category">Category</Label>
         <Select
           value={filters.category}
@@ -36,7 +36,7 @@ export function ListFilters({ filters, retailers, onChange }: ListFiltersProps) 
             onChange({ ...filters, category: value as ListFilterState['category'] })
           }
         >
-          <SelectTrigger id="filter-category" className="w-[160px]">
+          <SelectTrigger id="filter-category" className="w-full sm:w-[160px]">
             <SelectValue placeholder="All categories" />
           </SelectTrigger>
           <SelectContent>
@@ -50,7 +50,7 @@ export function ListFilters({ filters, retailers, onChange }: ListFiltersProps) 
         </Select>
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid w-full gap-2 sm:w-auto">
         <Label htmlFor="filter-retailer">Retailer</Label>
         <Select
           value={filters.retailer}
@@ -58,7 +58,7 @@ export function ListFilters({ filters, retailers, onChange }: ListFiltersProps) 
             onChange({ ...filters, retailer: value as ListFilterState['retailer'] })
           }
         >
-          <SelectTrigger id="filter-retailer" className="w-[200px]">
+          <SelectTrigger id="filter-retailer" className="w-full sm:w-[200px]">
             <SelectValue placeholder="All retailers" />
           </SelectTrigger>
           <SelectContent>
