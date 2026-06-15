@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-15 (T8.5 LLM-cleaned product titles on add).
+> **Last updated:** 2026-06-15 (T8.6 manual product rename on detail page).
 
 ---
 
@@ -835,7 +835,16 @@ Start after M3 proves the one-retailer architecture.
 - **Free-tier guardrail:** zero added Gemini requests per add — both `category` and `clean_title` ride a single structured-JSON `gemini-2.5-flash` call. Validated against ~1,500 RPD non-grounded free-tier ceiling and PRD §10.9's ~30 adds/day budget.
 - **Second-pass cleanup:** centralized `MIN_CLEAN_TITLE_LEN`/`MAX_CLEAN_TITLE_LEN` in `services/llm.py` (single source of truth, removed dupes from `gemini.py` + `llm_fixtures.py`); collapsed `test_product_service_clean_title.py` to two parametrized tests; added inclusive-boundary lock for the 4 / 80 char limits; updated `scripts/smoke_gemini_categorize.py` to print `clean_title` and use a verbose seed title that exercises the live-LLM shortening path.
 
-**Deferred:** retroactive backfill of cleaned titles for existing products (would require an opt-in worker that re-calls categorize per row, ≈1 Gemini request per backfilled product). Not blocking V1 — users can manually re-add or rename products if needed.
+**Deferred:** retroactive backfill of cleaned titles for existing products (would require an opt-in worker that re-calls categorize per row, ≈1 Gemini request per backfilled product). Not blocking V1 — users can rename from the product detail page (T8.6).
+
+### T8.6 Manual product rename (M8)
+
+**Status:** ✅ done.
+
+- **Backend:** `PATCH /api/products/{id}` accepts optional `title` (1–200 chars, trimmed); stored on `products.title`; refresh/scrape does not overwrite manual names.
+- **Frontend:** inline **Rename** control on product detail hero (`ProductTitleField`); uses existing `useUpdateProduct` optimistic cache updates.
+- **Tests:** router PATCH title validation; product detail unit tests; e2e step in `products.spec.ts` lifecycle.
+- **Docs:** PRD U-VIEW-5b; `MEMORY.md`.
 
 ---
 
@@ -888,7 +897,8 @@ Constraints:
 <details>
 <summary>Recently completed (M8)</summary>
 
-- ~~**T8.6** Dashboard category UX~~ — collapsible Notion-style category toggles; all five categories visible (empty ones collapsed at 0); **Edit order** mode for category-section and within-category product drag-reorder (`dashboard_sort_order` + `PUT /api/products/dashboard-order`; category order in localStorage). Flat list view (`/list`) keeps `created_at` desc — manual order applies only on the grouped dashboard (PRD U-VIEW-1).
+- ~~**T8.6** Manual product rename~~ — inline **Rename** on product detail hero; `PATCH /api/products/{id}` accepts `title` (1–200 chars); manual names persist through refresh/scrape (PRD U-VIEW-5b).
+- ~~**Dashboard category UX**~~ — collapsible Notion-style category toggles; all five categories visible (empty ones collapsed at 0); **Edit order** mode for category-section and within-category product drag-reorder (`dashboard_sort_order` + `PUT /api/products/dashboard-order`; category order in localStorage). Flat list view (`/list`) keeps `created_at` desc — manual order applies only on the grouped dashboard (PRD U-VIEW-1).
 - ~~**T8.5** LLM-cleaned product titles on add~~ — `clean_title` returned alongside `category` from the same Gemini Flash structured-JSON call (zero added requests). Adopted only when strictly shorter than the scraped title; original scraped title preserved on the listing. Fixture-mode shortener mirrors the live UX for local dev.
 - ~~**T8.4** Search quota + transient-error resilience~~ — switched grounded calls to `gemini-2.5-flash-lite` (separate free-tier RPD pool from Flash), split error mapping (quota → 429, transient → 503, timeout → 504), retry only on transient errors / empty responses, never on quota; non-leaking executor shutdown; graceful refusal handling; distinct frontend copy for quota vs transient with Add-by-URL fallback; new `/health/llm` diagnostic endpoint.
 - ~~**T8.2** Search production hotfix~~ — Gemini grounded JSON parsing fix (#49), `SearchThinking` loading UX, 30s search timeout + `asyncio.to_thread` second pass.

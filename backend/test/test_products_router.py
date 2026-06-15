@@ -478,6 +478,37 @@ def test_patch_updates_category_and_interaction(products_client, fake_client):
     assert body["last_user_interaction_at"] is not None
 
 
+def test_patch_updates_title(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake, title="Verbose retailer product title")
+    _seed_listing(fake, product["id"])
+
+    response = client.patch(
+        f"/api/products/{product['id']}",
+        json={"title": "  My Custom Name  "},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["title"] == "My Custom Name"
+    assert body["last_user_interaction_at"] is not None
+    assert fake.products[product["id"]]["title"] == "My Custom Name"
+
+
+@pytest.mark.parametrize("title", ["", "   ", "x" * 201])
+def test_patch_rejects_invalid_title(products_client, fake_client, title):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    _seed_listing(fake, product["id"])
+
+    response = client.patch(
+        f"/api/products/{product['id']}",
+        json={"title": title},
+    )
+
+    assert response.status_code == 422
+
+
 def test_patch_restore_archived_product(products_client, fake_client):
     client, fake, _llm = products_client
     product = _seed_product(fake, status="archived")

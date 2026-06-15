@@ -98,6 +98,46 @@ describe('ProductDetailPage', () => {
     expect(mockRefreshMutate).toHaveBeenCalled()
   })
 
+  it('PATCHes title when the user renames the product', async () => {
+    const user = userEvent.setup()
+    renderApp(`/products/${product.id}`, { authenticated: true })
+
+    await user.click(screen.getByRole('button', { name: /^rename product$/i }))
+    const titleInput = screen.getByLabelText(/^product name$/i)
+    await user.clear(titleInput)
+    await user.type(titleInput, 'AirPods Pro 3')
+    await user.keyboard('{Enter}')
+
+    expect(mockUpdateMutate).toHaveBeenCalledWith({ title: 'AirPods Pro 3' }, expect.anything())
+  })
+
+  it('does not PATCH title when the name is unchanged', async () => {
+    const user = userEvent.setup()
+    renderApp(`/products/${product.id}`, { authenticated: true })
+
+    await user.click(screen.getByRole('button', { name: /^rename product$/i }))
+    const titleInput = screen.getByLabelText(/^product name$/i)
+    await user.click(titleInput)
+    await user.tab()
+
+    expect(mockUpdateMutate).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { level: 1, name: product.title })).toBeInTheDocument()
+  })
+
+  it('does not PATCH title when rename is cancelled', async () => {
+    const user = userEvent.setup()
+    renderApp(`/products/${product.id}`, { authenticated: true })
+
+    await user.click(screen.getByRole('button', { name: /^rename product$/i }))
+    const titleInput = screen.getByLabelText(/^product name$/i)
+    await user.clear(titleInput)
+    await user.type(titleInput, 'Ignored name')
+    await user.keyboard('{Escape}')
+
+    expect(mockUpdateMutate).not.toHaveBeenCalled()
+    expect(screen.getByRole('heading', { level: 1, name: product.title })).toBeInTheDocument()
+  })
+
   it('shows restore and archived back link for archived products', () => {
     vi.mocked(useProduct).mockReturnValue({
       data: makeProductDetail({

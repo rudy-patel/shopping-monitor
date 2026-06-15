@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Manual product rename on detail page (T8.6)
+
+**What:** Users can override a bad AI-cleaned or verbose scraped title from the product detail hero. **Rename** opens an inline input; save on Enter/blur via existing `PATCH /api/products/{id}` with `title` (1–200 chars, trimmed). Manual names persist through refresh/scrape — only `products.title` is updated; listing `scrape_snapshot.title` stays as the retailer source.
+
+**Files:** `backend/routers/products.py`, `backend/test/test_products_router.py`, `frontend/src/lib/products.ts`, `frontend/src/components/products/ProductTitleField.tsx` (new), `frontend/src/pages/ProductDetailPage.tsx`, `frontend/src/test/product-detail.test.tsx`, `frontend/e2e/products.spec.ts`, `docs/PRD.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `make test` (backend unit + frontend vitest); e2e rename step in `products.spec.ts` lifecycle.
+
+---
+
 ## [2026-06-15] Frontend rebrand to "Someday"
 
 **What:** Renamed all user-facing "Shopping Monitor" strings to **Someday** — `<title>`, meta description, TopNav logo link, and LoginPage `<h1>`. Added animated rotating taglines in three places: sign-in page subtitle (`loginTaglines`, 4 s interval), dashboard header whisper (`dashboardQuotes`, 6 s, `aria-hidden`, only when products exist), and a new desktop-only footer (`footerQuips`, 8 s, `aria-hidden`). All copy lives in a central `src/lib/copy.ts`. The `RotatingCopy` component uses Framer Motion `AnimatePresence`; accessibility: no `aria-live` (decorative copy should not auto-announce), `min-h-[1.5em]` prevents height flash between transitions. Internal package name, git repo, API paths, and backend are untouched.

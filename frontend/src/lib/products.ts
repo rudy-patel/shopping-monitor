@@ -91,6 +91,7 @@ export interface CreateProductInput {
 }
 
 export interface UpdateProductInput {
+  title?: string
   category?: ProductCategory
   notification_threshold_pct?: number
   notifications_enabled?: boolean

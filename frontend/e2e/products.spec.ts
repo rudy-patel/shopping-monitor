@@ -55,6 +55,14 @@ test.describe('product vertical slice', () => {
     await page.keyboard.press('Escape')
     await expect(categoryCombobox).toContainText(new RegExp(targetCategory, 'i'), { timeout: 10_000 })
 
+    await page.getByRole('button', { name: /^rename product$/i }).click()
+    const titleInput = page.getByLabel(/product name/i)
+    await titleInput.fill('Fixture Rename Test')
+    await titleInput.press('Enter')
+    await expect(page.getByRole('heading', { level: 1 })).toHaveText('Fixture Rename Test', {
+      timeout: 10_000,
+    })
+
     const threshold = page.locator('#threshold')
     await threshold.click()
     await threshold.fill('15')
@@ -69,6 +77,7 @@ test.describe('product vertical slice', () => {
 
     await page.getByRole('link', { name: /back to dashboard/i }).click()
     await expect(page).toHaveURL('/', { timeout: 10_000 })
+    await expect(productLink()).toContainText('Fixture Rename Test', { timeout: 10_000 })
     await expect(productLink()).toBeVisible({ timeout: 15_000 })
 
     await openDetailFromDashboard()
