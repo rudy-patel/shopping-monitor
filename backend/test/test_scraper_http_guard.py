@@ -167,10 +167,14 @@ def test_record_mode_behaves_like_live(monkeypatch):
 
 def test_only_http_py_imports_http_clients():
     scrapers_dir = Path(__file__).resolve().parents[1] / "scrapers"
-    allowed = {"http.py", "__init__.py"}
+    allowed_paths = {
+        scrapers_dir / "http.py",
+        scrapers_dir / "__init__.py",
+        scrapers_dir / "drift" / "github_issues.py",
+    }
     offenders: list[str] = []
     for path in scrapers_dir.rglob("*.py"):
-        if path.name in allowed:
+        if path in allowed_paths:
             continue
         content = path.read_text(encoding="utf-8")
         if _HTTP_IMPORT_RE.search(content):

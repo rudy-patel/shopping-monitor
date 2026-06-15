@@ -4,28 +4,7 @@ from __future__ import annotations
 
 from scrapers.fixtures import FixtureLoader  # pragma: allowlist secret
 from scrapers.registry import all_retailers, reset_registry
-
-
-def _register_production_retailers() -> None:
-    from scrapers.abercrombie import register_abercrombie
-    from scrapers.amazon_ca import register_amazon_ca
-    from scrapers.apple_ca import register_apple_ca
-    from scrapers.bestbuy_ca import register_bestbuy_ca
-    from scrapers.generic import register_generic
-    from scrapers.indigo import register_indigo
-    from scrapers.nike_ca import register_nike_ca
-    from scrapers.palmisleskate import register_palmisleskate
-    from scrapers.tikiroomskate import register_tikiroomskate
-
-    register_generic()
-    register_bestbuy_ca()
-    register_palmisleskate()
-    register_tikiroomskate()
-    register_indigo()
-    register_apple_ca()
-    register_abercrombie()
-    register_amazon_ca()
-    register_nike_ca()
+from test.production_registry import register_production_retailers
 
 
 def test_registered_retailers_have_required_fixture_files():
@@ -42,7 +21,7 @@ def test_registered_retailers_have_required_fixture_files():
 
 def test_production_retailers_have_required_fixture_files():
     reset_registry()
-    _register_production_retailers()
+    register_production_retailers()
     loader = FixtureLoader()
     for entry in all_retailers():
         if entry.slug == "generic":

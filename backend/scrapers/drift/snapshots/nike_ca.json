@@ -1,0 +1,15 @@
+{
+  "extraction": null,
+  "has_image": false,
+  "has_price": true,
+  "has_stock": true,
+  "has_title": true,
+  "has_variants": true,
+  "selected_variant_attribute_names": [
+    "color"
+  ],
+  "variant_attribute_names": [
+    "color"
+  ],
+  "variant_count_bucket": "2+"
+}

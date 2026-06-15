@@ -1,0 +1,36 @@
+# Live canonical URLs for drift detection (T5.5). One in_stock URL per production retailer.
+# Field expectations come from scrapers/benchmark/catalog.yaml (same slug + scenario).
+catalog_version: "1"
+
+entries:
+  - slug: bestbuy_ca
+    scenario: in_stock
+    url: https://www.bestbuy.ca/en-ca/product/lenovo-yoga-slim-7x-14-5-touchscreen-copilot-pc-laptop-cosmic-blue-snapdragon-x-elite-16gb-ram-1tb-ssd/19220080
+
+  - slug: palmisleskate
+    scenario: in_stock
+    url: https://palmisleskateshop.com/products/bones-reds-bearings
+
+  - slug: tikiroomskate
+    scenario: in_stock
+    url: https://tikiroomskateboards.com/products/bones-reds-bearings
+
+  - slug: indigo
+    scenario: in_stock
+    url: https://www.indigo.ca/products/the-will-of-the-many
+
+  - slug: apple_ca
+    scenario: in_stock
+    url: https://www.apple.com/ca/shop/buy-iphone/iphone-16
+
+  - slug: abercrombie
+    scenario: in_stock
+    url: https://www.abercrombie.com/shop/ca/p/essential-popover-hoodie-61980823
+
+  - slug: amazon_ca
+    scenario: in_stock
+    url: https://www.amazon.ca/Echo-Dot-5th-Gen-2022-release/dp/B09B8V1LZ3
+
+  - slug: nike_ca
+    scenario: in_stock
+    url: https://www.nike.com/ca/t/air-force-1-07-mens-shoes-nM2To5/CW2288-111
