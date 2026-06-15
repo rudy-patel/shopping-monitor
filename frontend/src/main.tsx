@@ -29,7 +29,7 @@ ReactDOM.createRoot(root).render(
         <ThemeProvider>
           <CurrencyProvider>
             <App />
-            <Toaster position="bottom-right" richColors />
+            <Toaster position="bottom-right" />
           </CurrencyProvider>
         </ThemeProvider>
       </AuthProvider>

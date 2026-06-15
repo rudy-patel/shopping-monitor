@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArchivedProductRow } from '@/components/products/ArchivedProductRow'
 import { EmptyState } from '@/components/products/EmptyState'
-import { ProductCardSkeleton } from '@/components/products/ProductCardSkeleton'
+import { ProductListRowSkeleton } from '@/components/products/ProductListRowSkeleton'
 import { useProducts } from '@/hooks/useProducts'
 import type { ProductSummary } from '@/lib/products'
 
@@ -26,8 +26,8 @@ export function HistoryPage() {
 
       {isLoading ? (
         <div className="space-y-3">
-          <ProductCardSkeleton />
-          <ProductCardSkeleton />
+          <ProductListRowSkeleton />
+          <ProductListRowSkeleton />
         </div>
       ) : null}
 

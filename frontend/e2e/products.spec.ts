@@ -37,8 +37,8 @@ test.describe('product vertical slice', () => {
     expect(productId).toBeTruthy()
 
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/.+/)
-    await expect(page.getByRole('cell', { name: /best buy canada/i })).toBeVisible()
-    await expect(page.getByRole('cell', { name: /in stock/i })).toBeVisible()
+    await expect(page.getByText(/best buy canada/i).first()).toBeVisible()
+    await expect(page.getByText(/^in stock$/i).first()).toBeVisible()
 
     const categoryCombobox = page.getByRole('combobox', { name: /category/i })
     const currentCategory = (await categoryCombobox.innerText()).toLowerCase()
@@ -57,8 +57,8 @@ test.describe('product vertical slice', () => {
     const refreshButton = page.getByRole('button', { name: /^refresh$/i })
     await refreshButton.click()
     await expect(refreshButton).toBeEnabled({ timeout: 30_000 })
-    await expect(page.getByRole('cell', { name: /best buy canada/i })).toBeVisible()
-    await expect(page.getByRole('cell', { name: /in stock/i })).toBeVisible()
+    await expect(page.getByText(/best buy canada/i).first()).toBeVisible()
+    await expect(page.getByText(/^in stock$/i).first()).toBeVisible()
 
     await page.getByRole('link', { name: /back to dashboard/i }).click()
     await expect(page).toHaveURL('/', { timeout: 10_000 })

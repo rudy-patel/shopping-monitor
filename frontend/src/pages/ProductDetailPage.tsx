@@ -1,16 +1,16 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { Archive, RefreshCw, RotateCcw, Trash2 } from 'lucide-react'
+import { Archive, RotateCcw, Trash2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { CategoryField } from '@/components/products/CategoryField'
 import { DeleteProductDialog } from '@/components/products/DeleteProductDialog'
 import { DiscoveryIndicator } from '@/components/products/DiscoveryIndicator'
-import { ListingRow } from '@/components/products/ListingRow'
+import { ListingCard } from '@/components/products/ListingCard'
 import { NeedsReviewQueue } from '@/components/products/NeedsReviewQueue'
 import { ThresholdField } from '@/components/products/ThresholdField'
 import { TrendChip } from '@/components/products/TrendChip'
-import { ProductCardSkeleton } from '@/components/products/ProductCardSkeleton'
+import { ProductListRowSkeleton } from '@/components/products/ProductListRowSkeleton'
 import { useArchiveProduct, useDeleteListing, useProduct, useRefreshProduct, useRestoreProduct } from '@/hooks/useProducts'
 import { activeListings } from '@/lib/products'
 import { cn } from '@/lib/utils'
@@ -24,18 +24,20 @@ export function ProductDetailPage() {
   const removeListing = useDeleteListing(id ?? '')
   const [deleteOpen, setDeleteOpen] = useState(false)
   const isArchived = product?.status === 'archived'
+  const isRefreshing = refresh.isPending
+  const listings = product ? activeListings(product.listings) : []
 
   if (isLoading) {
     return (
-      <div className="container mx-auto max-w-5xl px-4 py-8">
-        <ProductCardSkeleton />
+      <div className="container mx-auto max-w-5xl px-4 py-6 md:py-8">
+        <ProductListRowSkeleton />
       </div>
     )
   }
 
   if (isError || !product) {
     return (
-      <div className="container mx-auto max-w-5xl px-4 py-8">
+      <div className="container mx-auto max-w-5xl px-4 py-6 md:py-8">
         <p className="text-muted-foreground">Product not found.</p>
         <Link to="/" className="mt-4 inline-block text-sm underline-offset-4 hover:underline">
           Back to dashboard
@@ -45,7 +47,7 @@ export function ProductDetailPage() {
   }
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-8">
+    <div className="container mx-auto max-w-5xl px-4 py-6 pb-28 md:py-8 md:pb-8">
       <Link
         to={isArchived ? '/history' : '/'}
         className="text-sm text-muted-foreground underline-offset-4 hover:underline"
@@ -53,77 +55,58 @@ export function ProductDetailPage() {
         {isArchived ? 'Back to archived products' : 'Back to dashboard'}
       </Link>
 
-      <div className={cn('mt-6 space-y-8', refresh.isPending && 'opacity-70')}>
+      <div className={cn('mt-4 space-y-8 md:mt-6', isRefreshing && 'opacity-80')}>
         {isArchived ? (
           <div className="rounded-lg border border-border bg-muted px-4 py-3 text-sm">
             This product is archived. Restore it to resume price tracking on your dashboard.
           </div>
         ) : null}
 
-        <section className="flex flex-col gap-6 sm:flex-row">
-          {product.image_url ? (
-            <img
-              src={product.image_url}
-              alt=""
-              className="h-40 w-40 rounded-lg border border-border object-cover"
-            />
-          ) : (
-            <div className="h-40 w-40 rounded-lg border border-border bg-muted" />
-          )}
-          <div className="space-y-3">
-            <h1 className="text-2xl font-semibold tracking-tight">{product.title}</h1>
-            {product.brand ? (
-              <p className="text-muted-foreground">{product.brand}</p>
+        <section className="space-y-3">
+          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">{product.title}</h1>
+          {product.brand ? (
+            <p className="text-muted-foreground">{product.brand}</p>
+          ) : null}
+          <div className="flex flex-wrap items-center gap-2">
+            <TrendChip trend={product.trend} />
+            <DiscoveryIndicator status={product.discovery_status} />
+            {product.needs_review_count > 0 ? (
+              <Badge variant="outline">
+                {product.needs_review_count} listing
+                {product.needs_review_count === 1 ? '' : 's'} to review
+              </Badge>
             ) : null}
-            <div className="flex flex-wrap items-center gap-2">
-              <TrendChip trend={product.trend} />
-              <DiscoveryIndicator status={product.discovery_status} />
-              {product.needs_review_count > 0 ? (
-                <Badge variant="outline">
-                  {product.needs_review_count} listing
-                  {product.needs_review_count === 1 ? '' : 's'} to review
-                </Badge>
-              ) : null}
-            </div>
           </div>
         </section>
 
         <NeedsReviewQueue product={product} />
 
-        <section className="space-y-4">
-          <h2 className="border-b border-border pb-2 text-lg font-semibold tracking-tight">
+        <section className="space-y-4" aria-labelledby="listings-heading">
+          <h2
+            id="listings-heading"
+            className="border-b border-border pb-2 text-lg font-semibold tracking-tight"
+          >
             Listings
           </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-border text-muted-foreground">
-                  <th className="py-2 pr-4 font-medium">Retailer</th>
-                  <th className="py-2 pr-4 font-medium">Price</th>
-                  <th className="py-2 pr-4 font-medium">Stock</th>
-                  <th className="py-2 pr-4 font-medium">Last scraped</th>
-                  <th className="py-2 pr-4 font-medium">Status</th>
-                  <th className="py-2 font-medium">Link</th>
-                </tr>
-              </thead>
-              <tbody>
-                {activeListings(product.listings).map((listing) => (
-                  <ListingRow
-                    key={listing.id}
-                    listing={listing}
-                    onRemove={(listingId) => removeListing.mutate(listingId)}
-                    isRemoving={
-                      removeListing.isPending && removeListing.variables === listing.id
-                    }
-                  />
-                ))}
-              </tbody>
-            </table>
+          <div className="space-y-3">
+            {listings.map((listing) => (
+              <ListingCard
+                key={listing.id}
+                listing={listing}
+                onRemove={(listingId) => removeListing.mutate(listingId)}
+                isRemoving={
+                  removeListing.isPending && removeListing.variables === listing.id
+                }
+              />
+            ))}
           </div>
         </section>
 
-        <section className="space-y-4">
-          <h2 className="border-b border-border pb-2 text-lg font-semibold tracking-tight">
+        <section className="space-y-4" aria-labelledby="settings-heading">
+          <h2
+            id="settings-heading"
+            className="border-b border-border pb-2 text-lg font-semibold tracking-tight"
+          >
             Settings
           </h2>
           <div className="grid gap-6 sm:grid-cols-2">
@@ -136,38 +119,46 @@ export function ProductDetailPage() {
           </div>
         </section>
 
-        <section className="flex flex-wrap gap-3 border-t border-border pt-6">
-          <Button
-            variant="default"
-            disabled={refresh.isPending}
-            onClick={() => refresh.mutate()}
-          >
-            <RefreshCw className={cn('mr-2 h-4 w-4', refresh.isPending && 'animate-spin')} />
-            Refresh
-          </Button>
-          {!isArchived ? (
-            <Button
-              variant="outline"
-              disabled={archive.isPending}
-              onClick={() => archive.mutate()}
-            >
-              <Archive className="mr-2 h-4 w-4" />
-              Archive
-            </Button>
-          ) : (
+        <section className="fixed bottom-20 left-0 right-0 z-30 border-t border-border bg-background/95 px-4 py-3 backdrop-blur supports-[backdrop-filter]:bg-background/80 md:static md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
+          <div className="mx-auto flex max-w-5xl flex-wrap gap-2">
             <Button
               variant="default"
-              disabled={restore.isPending}
-              onClick={() => restore.mutate()}
+              className="h-11 flex-1 sm:flex-none"
+              disabled={isRefreshing}
+              onClick={() => refresh.mutate()}
             >
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Restore
+              {isRefreshing ? 'Refreshing…' : 'Refresh'}
             </Button>
-          )}
-          <Button variant="outline" onClick={() => setDeleteOpen(true)}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            Delete
-          </Button>
+            {!isArchived ? (
+              <Button
+                variant="outline"
+                className="h-11 flex-1 sm:flex-none"
+                disabled={archive.isPending}
+                onClick={() => archive.mutate()}
+              >
+                <Archive className="mr-2 h-4 w-4" />
+                Archive
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                className="h-11 flex-1 sm:flex-none"
+                disabled={restore.isPending}
+                onClick={() => restore.mutate()}
+              >
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Restore
+              </Button>
+            )}
+            <Button
+              variant="outline"
+              className="h-11 flex-1 sm:flex-none"
+              onClick={() => setDeleteOpen(true)}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete
+            </Button>
+          </div>
         </section>
       </div>
 

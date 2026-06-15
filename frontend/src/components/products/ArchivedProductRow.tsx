@@ -22,17 +22,7 @@ export function ArchivedProductRow({ product }: ArchivedProductRowProps) {
   return (
     <>
       <div className="flex flex-col gap-4 rounded-lg border border-border p-4 sm:flex-row sm:items-center">
-        {product.image_url ? (
-          <img
-            src={product.image_url}
-            alt=""
-            className="h-16 w-16 shrink-0 rounded-md border border-border object-cover"
-          />
-        ) : (
-          <div className="h-16 w-16 shrink-0 rounded-md border border-border bg-muted" />
-        )}
-
-        <div className="min-w-0 flex-1">
+        <div className="min-w-0 flex-1 space-y-1">
           <Link
             to={`/products/${product.id}`}
             className="font-medium tracking-tight hover:underline"
@@ -42,12 +32,12 @@ export function ArchivedProductRow({ product }: ArchivedProductRowProps) {
           {product.brand ? (
             <p className="text-sm text-muted-foreground">{product.brand}</p>
           ) : null}
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-            <span>{formatPriceCents(product.best_price_cents)}</span>
+          <div className="flex flex-wrap items-center gap-2 text-sm">
+            <span className="tabular-nums">{formatPriceCents(product.best_price_cents)}</span>
             <TrendChip trend={product.trend} />
             <span className="text-muted-foreground">{categoryLabel(product.category)}</span>
           </div>
-          <p className="mt-1 text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {retailerLabel(product.best_retailer_slug)} · Archived{' '}
             {formatRelativeTime(product.updated_at)}
           </p>
@@ -57,13 +47,14 @@ export function ArchivedProductRow({ product }: ArchivedProductRowProps) {
           <Button
             variant="default"
             size="sm"
+            className="h-11"
             disabled={restore.isPending}
             onClick={() => restore.mutate()}
           >
             <RotateCcw className="mr-2 h-4 w-4" />
             Restore
           </Button>
-          <Button variant="outline" size="sm" onClick={() => setDeleteOpen(true)}>
+          <Button variant="outline" size="sm" className="h-11" onClick={() => setDeleteOpen(true)}>
             <Trash2 className="mr-2 h-4 w-4" />
             Delete
           </Button>

@@ -105,6 +105,11 @@ export function NotificationRow({
 
   const content = (
     <>
+      {!notification.is_read ? (
+        <p className="mb-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+          Unread
+        </p>
+      ) : null}
       <p className={notification.is_read ? 'text-muted-foreground' : 'font-medium'}>{copy}</p>
       <p className="mt-1 text-xs text-muted-foreground">
         {formatRelativeTime(notification.created_at)}

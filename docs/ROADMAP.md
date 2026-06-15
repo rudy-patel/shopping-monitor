@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-15 (T6.3 cron schedules; T5.5 local drift tooling; T6.2 production smoke).
+> **Last updated:** 2026-06-15 (T7.1 UI polish; T6.3 cron schedules; T5.5 local drift tooling; T6.2 production smoke).
 
 ---
 
@@ -53,7 +53,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
 | M4: MVP product workflows | done | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5), digest email (T3.6), settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
 | M5: V1 retailer coverage | done | Supported retailers have benchmark decisions, scraper modules, fixtures, and local drift checks (T5.1–T5.5). Deferred: `sportchek`, `footlocker_ca`, `costco_ca`, etc. | V1 success criteria can be tested end-to-end. |
-| M6: Production-ready V1 | in progress | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check. **Progress:** T6.3 cron schedules enabled (`0 8` scrape, `0 14` digest UTC); T6.2 production smoke done; T6.1/T3.5/T3.6 job code shipped. **Remaining:** T6.4 7-day reliability, T7.x quality gates. | Invite early friends for feedback. |
+| M6: Production-ready V1 | in progress | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check. **Progress:** T6.3 cron schedules; T6.2 production smoke; T7.1 UI polish shipped. **Remaining:** T6.4 7-day reliability, T7.2 Lighthouse, T7.3 checklist. | Invite early friends for feedback. |
 
 ---
 
@@ -713,19 +713,19 @@ Start after M3 proves the one-retailer architecture.
 
 ### T7.1 UI polish and accessibility
 
-**Status:** pending
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/46
 
 - **Owner:** agent.
 - **PR size:** frontend PR.
 - **Build:**
-  - Skeletons instead of spinners.
-  - Optimistic feedback within 100ms for mutations.
-  - Calm microcopy with no default exclamation marks.
-  - Color-coded chips always include text.
-  - Responsive layouts for mobile web.
+  - Text-only `ProductListRow` (no in-app images); category-grouped dashboard with sticky section headers.
+  - Skeletons instead of spinners; refresh shows shimmer + “Refreshing…”.
+  - Optimistic delete/archive/update; monochrome trend/stock chips with labels.
+  - Mobile bottom tab bar, responsive filters, listing cards on detail, axe vitest suite.
+  - Playwright Mobile Chrome project alongside Desktop Chrome.
 - **Verification:**
-  - Frontend tests.
-  - axe checks where available.
+  - `npm run lint`, `npm run test:run`, `npm run build`, `npm run test:e2e` (both projects).
+  - PRD U-VIEW-3/U-VIEW-4 updated for typography-first lists.
 
 ### T7.2 Lighthouse gate
 
@@ -793,7 +793,17 @@ Constraints:
 **Phase 3 through T3.6, Phase 4 through T4.3, deployment docs (T6.1), T5.1–T5.5 retailer expansion + drift tooling, T6.2 production smoke, and T6.3 cron schedules are complete.** Pick next from:
 
 1. **T6.4** Seven-day scrape reliability check.
-2. **T7.x** Quality gates and V1 acceptance checklist.
+2. **T7.2** Lighthouse gate.
+3. **T7.3** V1 success-criteria checklist.
+
+<details>
+<summary>Recently completed (M6 / T7)</summary>
+
+- ~~**T7.1** UI polish and accessibility~~ — typography-first lists, mobile tab bar, axe vitest, Playwright Mobile Chrome.
+- ~~**T6.3** Cron schedules~~ — scrape `0 8 * * *` UTC, digest `0 14 * * *` UTC.
+- ~~**T6.2** Production smoke~~ — done.
+
+</details>
 
 <details>
 <summary>Recently completed (M5 / M6)</summary>

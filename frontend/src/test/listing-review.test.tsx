@@ -105,7 +105,7 @@ describe('listing review UI', () => {
     expect(mockRejectMutate).toHaveBeenCalledWith('review-1')
   })
 
-  it('does not show needs_review rows in the main listings table', () => {
+  it('does not show needs_review rows in the main listings section', () => {
     renderApp(`/products/${productWithQueue.id}`, { authenticated: true })
 
     const listingsHeading = screen.getByRole('heading', { name: /^listings$/i })
@@ -113,7 +113,7 @@ describe('listing review UI', () => {
     expect(listingsSection).not.toBeNull()
     if (!listingsSection) return
     expect(within(listingsSection).queryByText(/candidate at dime mtl/i)).not.toBeInTheDocument()
-    expect(within(listingsSection).getByText(/best buy/i)).toBeInTheDocument()
+    expect(within(listingsSection).getByText(/^best buy canada$/i)).toBeInTheDocument()
   })
 
   it('shows fallback copy when review_reason is missing', () => {

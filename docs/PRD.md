@@ -3,7 +3,7 @@
 > **Status:** Draft v1.3 — clarified worker boundaries, fixed digest timing, data-model gaps, product-level price semantics, and first vertical-slice scope for AI-agent implementation.
 > **Implementation progress:** Task-level completion status and PR links live in [`docs/ROADMAP.md`](ROADMAP.md); chronological ship log in [`MEMORY.md`](../MEMORY.md).
 > **Owner:** Product (you). **Audience:** Engineering, AI agents implementing the prototype.
-> **Last updated:** 2026-06-14.
+> **Last updated:** 2026-06-15.
 
 ---
 
@@ -131,8 +131,8 @@ Each story below is a V1 commitment.
 
 - **U-VIEW-1.** My default dashboard shows all active products grouped by the 5 fixed categories.
 - **U-VIEW-2.** I can toggle to a flat list view and filter by category, retailer, or "has unreviewed matches."
-- **U-VIEW-3.** Each product card shows: image, title, brand, retailer of best current price, best current price (in display currency), 30-day trend chip, alternate retailers count, last-refreshed timestamp, manual refresh button, and a kebab menu.
-- **U-VIEW-4.** Clicking a card opens a product detail page showing every listing (one row per retailer) with its current price, stock state, last-refreshed timestamp, scrape status, and a link to the source URL.
+- **U-VIEW-3.** Each product row shows: title, brand, retailer of best current price, best current price (in display currency), 30-day trend chip, alternate retailers count, last-refreshed timestamp, manual refresh button, and a kebab menu. V1 list surfaces are typography-first — no in-app product images; users open the retailer PDP via listing links when they want to see photos.
+- **U-VIEW-4.** Clicking a row opens a product detail page showing every listing as a card with retailer, current price, stock state, last-refreshed timestamp, scrape status, and an external link to the source URL (no inline product images in-app).
 - **U-VIEW-5.** I can manually re-categorize a product into a different fixed bucket from its detail page.
 - **U-VIEW-6.** I can edit a product's notification threshold from its detail page (overriding my global default).
 - **U-VIEW-7.** I can manually refresh a product (forces a fresh scrape of every listing) with a 1-hour per-product cooldown.
@@ -591,11 +591,12 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 **Design principles (V1):**
 
 1. **Minimal and modern.** Monochrome base, generous whitespace, one accent color, shadcn's default radius and typography. Resist adding chrome.
-2. **Snappy by default.** Every user action surfaces visible feedback within 100ms. Mutations are optimistic; only roll back on server error. Skeleton loaders, never spinners, for first-paint and route changes.
+2. **Snappy by default.** Every user action surfaces visible feedback within 100ms. Mutations are optimistic; only roll back on server error. Skeleton loaders, never spinners, for first-paint and route changes. Refresh actions show inline skeleton shimmer and “Refreshing…” copy.
 3. **Calm voice.** Microcopy is playful and empathetic (see §7.10 revisit prompts). No exclamation marks in default UI strings, no robotic tone, no fake urgency.
-4. **Content over chrome.** The category-grouped dashboard is the hero surface; nav is a thin, persistent top bar.
-5. **Accessible.** Color-coded chips always pair with text. Lighthouse Performance and Accessibility ≥ 95 are hard targets (see §12).
-6. **No keyboard shortcuts / command palette in V1.** Deferred to V2 to keep scope tight; mouse and touch are first-class.
+4. **Content over chrome.** The category-grouped dashboard is the hero surface; nav is a thin, persistent top bar with a mobile bottom tab bar for primary routes.
+5. **Typography-first lists.** Product rows are text-only in-app (no scraped thumbnails). Monochrome trend and stock chips always include readable labels.
+6. **Accessible.** Color-coded chips always pair with text. Lighthouse Performance and Accessibility ≥ 95 are hard targets (see §12). Vitest axe checks on key routes.
+7. **No keyboard shortcuts / command palette in V1.** Deferred to V2 to keep scope tight; mouse and touch are first-class.
 
 ### 10.2 Backend
 

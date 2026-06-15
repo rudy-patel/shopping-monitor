@@ -207,16 +207,28 @@ export function useDeleteProduct({ redirectTo = '/' }: { redirectTo?: string | n
 
   return useMutation({
     mutationFn: deleteProduct,
+    onMutate: async (deletedId) => {
+      await queryClient.cancelQueries({
+        predicate: (query) => isProductListQueryKey(query.queryKey),
+      })
+      const previousLists = snapshotListCaches(queryClient)
+      updateListCache(queryClient, (items) => items.filter((item) => item.id !== deletedId))
+      return { previousLists, deletedId }
+    },
     onSuccess: (_result, deletedId) => {
       queryClient.removeQueries({ queryKey: productQueryKey(deletedId) })
-      updateListCache(queryClient, (items) => items.filter((item) => item.id !== deletedId))
       if (redirectTo !== null) {
         navigate(redirectTo)
       }
       toast('Product deleted')
     },
-    onError: () => {
+    onError: (_error, _deletedId, context) => {
+      rollbackListCaches(queryClient, context?.previousLists ?? [])
       toast.error('Could not delete product')
+    },
+    onSettled: (_result, _error, deletedId) => {
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+      queryClient.removeQueries({ queryKey: productQueryKey(deletedId) })
     },
   })
 }

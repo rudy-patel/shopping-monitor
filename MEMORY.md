@@ -4,6 +4,20 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] T7.1 UI polish and accessibility
+
+**What:** Shipped typography-first product UI: `ProductListRow` replaces image-heavy cards on dashboard, list, and history; product detail uses listing cards with external retailer links (no in-app images). Monochrome `TrendChip`/`StockBadge` with full text labels; refresh uses skeleton shimmer instead of spinners; optimistic delete via `onMutate`; mobile bottom tab bar (`MobileTabBar`); sticky category headers with counts; Framer Motion list animations with reduced-motion guard; vitest-axe on dashboard/detail; Playwright **Mobile Chrome** + Desktop Chrome projects.
+
+**Locked behavior:** Images remain in API/data model but are not rendered in-app. Category-grouped `/` unchanged; `/list` is flat filtered view. Notifications unread label shown explicitly. Sonner `richColors` disabled.
+
+**Files:** `frontend/src/components/products/ProductListRow.tsx`, `ProductListRowSkeleton.tsx`, `ListingCard.tsx`, `StockBadge.tsx`, `CategorySection.tsx`, `NeedsReviewQueue.tsx`, `ArchivedProductRow.tsx`, `TrendChip.tsx`, `frontend/src/components/layout/MobileTabBar.tsx`, `TopNav.tsx`, `RootLayout.tsx`, `frontend/src/pages/*`, `frontend/src/hooks/useProducts.ts`, `frontend/src/lib/motion.ts`, `frontend/src/test/a11y-pages.test.tsx`, `mobile-tab-bar.test.tsx`, `frontend/e2e/products.spec.ts`, `frontend/playwright.config.ts`, `docs/PRD.md`, `docs/ROADMAP.md`, `AGENTS.md`, `MEMORY.md`. Removed `ProductCard.tsx`, `ProductCardSkeleton.tsx`.
+
+**Verification:** `npm run lint`, `npm run test:run` (99 passed), `npm run build`, `make test-e2e` (Desktop + Mobile Chrome). PR https://github.com/rudy-patel/shopping-monitor/pull/46
+
+**Deferred:** T7.2 Lighthouse gate; T7.3 V1 checklist.
+
+---
+
 ## [2026-06-15] T6.3 Enable schedules
 
 **What:** Enabled production cron schedules for daily scrape (`0 8 * * *` UTC) and digest (`0 14 * * *` UTC) in GitHub Actions workflows. Fixed cron YAML to use `schedule: - cron:` syntax (commented placeholder was invalid). Added `backend/test/test_scheduled_workflows.py` to guard cron expressions, `workflow_dispatch`, and worker env wiring in CI.

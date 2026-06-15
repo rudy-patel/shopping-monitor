@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { AnimatePresence } from 'framer-motion'
 import { applyListFilters, ListFilters, type ListFilterState } from '@/components/products/ListFilters'
 import { EmptyState } from '@/components/products/EmptyState'
-import { ProductCard } from '@/components/products/ProductCard'
-import { ProductCardSkeleton } from '@/components/products/ProductCardSkeleton'
+import { ProductListRow } from '@/components/products/ProductListRow'
+import { ProductListRowSkeleton } from '@/components/products/ProductListRowSkeleton'
 import { useProducts } from '@/hooks/useProducts'
 import type { ProductSummary } from '@/lib/products'
 
@@ -29,13 +30,13 @@ export function ListPage() {
   )
 
   return (
-    <div className="container mx-auto max-w-5xl px-4 py-8">
-      <div className="mb-8">
+    <div className="container mx-auto max-w-5xl px-4 py-6 md:py-8">
+      <div className="mb-6 md:mb-8">
         <Link to="/" className="text-sm text-muted-foreground underline-offset-4 hover:underline">
           Back to dashboard
         </Link>
-        <h1 className="mt-2 text-2xl font-semibold tracking-tight">All products</h1>
-        <p className="text-muted-foreground">Flat list with filters.</p>
+        <h1 className="mt-2 text-xl font-semibold tracking-tight md:text-2xl">All products</h1>
+        <p className="text-sm text-muted-foreground md:text-base">Flat list with filters.</p>
       </div>
 
       <div className="mb-6">
@@ -44,8 +45,8 @@ export function ListPage() {
 
       {isLoading ? (
         <div className="space-y-3">
-          <ProductCardSkeleton />
-          <ProductCardSkeleton />
+          <ProductListRowSkeleton />
+          <ProductListRowSkeleton />
         </div>
       ) : null}
 
@@ -56,15 +57,17 @@ export function ListPage() {
       {!isLoading && !isError && filtered.length === 0 ? (
         <EmptyState
           title="No matching products"
-          description="Try changing filters or add a product from the header."
+          description="Try changing filters or add a product."
         />
       ) : null}
 
       {!isLoading && !isError && filtered.length > 0 ? (
         <div className="space-y-3">
-          {filtered.map((product) => (
-            <ProductCard key={product.id} product={product} compact />
-          ))}
+          <AnimatePresence initial={false}>
+            {filtered.map((product) => (
+              <ProductListRow key={product.id} product={product} compact />
+            ))}
+          </AnimatePresence>
         </div>
       ) : null}
     </div>
