@@ -10,7 +10,7 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Frontend:** `ListingCard` accepts `isBestPrice` and `priceDeltaVsBestCents` props; `ProductDetailPage` derives them via `listingComparisonHints()` in `frontend/src/lib/products.ts`. Comparison hints only appear when there are two or more active listings.
 
-**Locked behavior:** Single-listing products show no best-price badge or delta labels. Tied lowest prices each receive the best-price highlight. Null/unknown listing prices sort last and never receive comparison hints.
+**Locked behavior:** Single-listing products show no best-price badge or delta labels. Tied lowest prices each receive the best-price highlight. Null/unknown listing prices sort last and never receive comparison hints. `DiscoveryIndicator` renders nothing once discovery is `complete` (dashboard + product detail); in-flight and failed states still surface copy per PRD U-ADD-6.
 
 **Files:** `frontend/src/lib/products.ts`, `frontend/src/components/products/ListingCard.tsx`, `frontend/src/pages/ProductDetailPage.tsx`, `frontend/src/test/listing-card.test.tsx`, `frontend/src/test/product-detail.test.tsx`, `frontend/src/test/products-query-keys.test.ts`, `docs/PRD.md`, `docs/ROADMAP.md`, `MEMORY.md`.
 
