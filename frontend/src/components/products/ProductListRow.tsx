@@ -18,10 +18,10 @@ import { useArchiveProduct, useRefreshProduct } from '@/hooks/useProducts'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
 import { useJustAddedCategoryThinking } from '@/lib/just-added-product'
 import { listItemTransition, useMotionEnabled } from '@/lib/motion'
+import { RetailerIdentity } from '@/components/retailers/RetailerLogo'
 import {
   extraRetailerCount,
   formatRelativeTime,
-  retailerLabel,
 } from '@/lib/format'
 import type { ProductSummary } from '@/lib/products'
 import { cn } from '@/lib/utils'
@@ -136,7 +136,7 @@ export function ProductListRow({ product, compact = false }: ProductListRowProps
             </div>
 
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-              <span>{retailerLabel(product.best_retailer_slug)}</span>
+              <RetailerIdentity slug={product.best_retailer_slug} size="xs" />
               {extraRetailers ? <span>{extraRetailers}</span> : null}
               <span>
                 Updated {formatRelativeTime(product.last_refresh_at ?? product.last_scraped_at)}

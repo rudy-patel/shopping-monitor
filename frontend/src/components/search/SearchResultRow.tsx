@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useMotionEnabled } from '@/lib/motion'
 import { cn } from '@/lib/utils'
+import { RetailerLogo } from '@/components/retailers/RetailerLogo'
 import { retailerLabelFromUrl } from '@/lib/format'
 import type { SearchResultItem } from '@/lib/search'
 
@@ -49,11 +50,12 @@ export function SearchResultRow({
           <Badge
             variant={item.supported ? 'default' : 'outline'}
             className={cn(
-              'h-5 px-2 text-[10px] font-medium uppercase tracking-wide',
+              'h-5 gap-1 px-2 text-[10px] font-medium uppercase tracking-wide',
               !item.supported && 'border-dashed text-muted-foreground',
             )}
             data-testid="retailer-badge"
           >
+            {item.supported ? <RetailerLogo slug={item.retailer_slug} size="xs" /> : null}
             {retailerDisplay}
           </Badge>
           {item.brand_hint ? (

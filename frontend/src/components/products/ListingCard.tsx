@@ -3,6 +3,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { StockBadge } from '@/components/products/StockBadge'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
+import { RetailerIdentity } from '@/components/retailers/RetailerLogo'
 import { formatRelativeTime, retailerLabel } from '@/lib/format'
 import type { Listing } from '@/lib/products'
 import { cn } from '@/lib/utils'
@@ -60,7 +61,10 @@ export function ListingCard({
       </div>
 
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="text-sm font-medium">{retailerLabel(listing.retailer_slug)}</span>
+        <RetailerIdentity
+          slug={listing.retailer_slug}
+          labelClassName="text-sm font-medium"
+        />
         <StockBadge inStock={listing.is_in_stock} />
         <span className="text-xs text-muted-foreground">
           {formatRelativeTime(listing.last_scraped_at)}

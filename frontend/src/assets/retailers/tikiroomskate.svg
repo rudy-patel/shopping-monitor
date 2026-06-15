@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Tiki Room Skateboards">
+  <rect width="24" height="24" rx="4" fill="#EA580C"/>
+  <path fill="#FEF3C7" d="M12 5.5c-2.8 0-4.5 2.2-4.5 4.8 0 1.6.7 3 2 3.9V19h5v-4.8c1.3-.9 2-2.3 2-3.9 0-2.6-1.7-4.8-4.5-4.8z"/>
+  <circle cx="10" cy="11" r="0.9" fill="#EA580C"/>
+  <circle cx="14" cy="11" r="0.9" fill="#EA580C"/>
+  <path fill="none" stroke="#EA580C" stroke-width="1" stroke-linecap="round" d="M10.5 13.5c.8.6 2.2.6 3 0"/>
+</svg>

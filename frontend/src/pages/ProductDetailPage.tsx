@@ -22,7 +22,7 @@ import {
 } from '@/hooks/useProducts'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
 import { activeListings, listingComparisonHints } from '@/lib/products'
-import { retailerLabel } from '@/lib/format'
+import { RetailerIdentity } from '@/components/retailers/RetailerLogo'
 import { cn } from '@/lib/utils'
 
 export function ProductDetailPage() {
@@ -92,8 +92,9 @@ export function ProductDetailPage() {
                 {formatPriceCents(product.best_price_cents)}
               </span>
               {product.best_retailer_slug ? (
-                <span className="text-sm text-muted-foreground">
-                  at {retailerLabel(product.best_retailer_slug)}
+                <span className="inline-flex items-center gap-1 text-sm text-muted-foreground">
+                  <span>at</span>
+                  <RetailerIdentity slug={product.best_retailer_slug} size="xs" />
                 </span>
               ) : null}
             </div>
