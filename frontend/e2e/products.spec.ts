@@ -1,5 +1,10 @@
 import { expect, test } from '@playwright/test'
 import { devLogin } from './helpers/auth'
+import {
+  expectDashboardProductLink,
+  gotoDashboard,
+  returnToDashboard,
+} from './helpers/dashboard'
 
 const IN_STOCK_URL = 'https://fixtures.local/bestbuy_ca/in_stock'
 const API_BASE = process.env.PLAYWRIGHT_API_URL ?? 'http://localhost:8000'
@@ -75,10 +80,10 @@ test.describe('product vertical slice', () => {
     await expect(page.getByText(/best buy canada/i).first()).toBeVisible()
     await expect(page.getByText(/^in stock$/i).first()).toBeVisible()
 
-    await page.getByRole('link', { name: /back to dashboard/i }).click()
-    await expect(page).toHaveURL('/', { timeout: 10_000 })
-    await expect(productLink()).toContainText('Fixture Rename Test', { timeout: 10_000 })
-    await expect(productLink()).toBeVisible({ timeout: 15_000 })
+    await returnToDashboard(page, () =>
+      page.getByRole('link', { name: /back to dashboard/i }).click(),
+    )
+    await expectDashboardProductLink(page, 'Fixture Rename Test')
 
     await openDetailFromDashboard()
     await page.getByRole('button', { name: /^archive$/i }).click()
@@ -86,22 +91,22 @@ test.describe('product vertical slice', () => {
     await expect(page.getByRole('button', { name: /^restore$/i })).toBeVisible({ timeout: 15_000 })
     await expect(page.getByText(/this product is archived/i)).toBeVisible()
 
-    await page.goto('/')
+    await gotoDashboard(page)
     await expect(productLink()).toHaveCount(0)
 
     await page.goto('/history')
     await archivedRow().getByRole('button', { name: /^restore$/i }).click()
 
-    await page.goto('/')
-    await expect(productLink()).toBeVisible({ timeout: 15_000 })
+    await gotoDashboard(page)
+    await expectDashboardProductLink(page, 'Fixture Rename Test')
 
     await openDetailFromDashboard()
     await page.getByRole('button', { name: /^delete$/i }).click()
     const dialog = page.getByRole('alertdialog')
     await expect(dialog).toBeVisible()
-    await dialog.getByRole('button', { name: /^delete$/i }).click()
-
-    await expect(page).toHaveURL('/', { timeout: 10_000 })
+    await returnToDashboard(page, async () => {
+      await dialog.getByRole('button', { name: /^delete$/i }).click()
+    })
     await expect(productLink()).toHaveCount(0)
 
     await page.goto('/history')
