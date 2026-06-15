@@ -9,7 +9,7 @@ describe('App', () => {
   it('redirects unauthenticated users to login', async () => {
     renderApp('/', { authenticated: false })
 
-    expect(await screen.findByRole('heading', { name: /shopping monitor/i })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: /someday/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /continue with google/i })).toBeEnabled()
   })
 
@@ -17,7 +17,7 @@ describe('App', () => {
     renderApp('/', { authenticated: true })
 
     expect(await screen.findByRole('heading', { name: /your list/i })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /shopping monitor/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /someday/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /add product/i })).toBeInTheDocument()
   })
 })

@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Frontend rebrand to "Someday"
+
+**What:** Renamed all user-facing "Shopping Monitor" strings to **Someday** — `<title>`, meta description, TopNav logo link, and LoginPage `<h1>`. Added animated rotating taglines in three places: sign-in page subtitle (`loginTaglines`, 4 s interval), dashboard header whisper (`dashboardQuotes`, 6 s, `aria-hidden`, only when products exist), and a new desktop-only footer (`footerQuips`, 8 s, `aria-hidden`). All copy lives in a central `src/lib/copy.ts`. The `RotatingCopy` component uses Framer Motion `AnimatePresence`; accessibility: no `aria-live` (decorative copy should not auto-announce), `min-h-[1.5em]` prevents height flash between transitions. Internal package name, git repo, API paths, and backend are untouched.
+
+**Files:** `frontend/index.html`, `frontend/src/pages/LoginPage.tsx`, `frontend/src/components/layout/TopNav.tsx`, `frontend/src/components/layout/RootLayout.tsx`, `frontend/src/pages/DashboardPage.tsx`, `frontend/src/lib/copy.ts` (new), `frontend/src/components/layout/RotatingCopy.tsx` (new), `frontend/src/components/layout/Footer.tsx` (new), `frontend/src/test/rotating-copy.test.tsx` (new), `frontend/src/test/copy.test.ts` (new), `frontend/src/test/App.test.tsx`, `frontend/src/test/top-nav.test.tsx`, `MEMORY.md`.
+
+**Verification:** `npm run lint` clean, `npm run test:run` 186 passed + 2 skipped.
+
+---
+
 ## [2026-06-15] Dashboard collapsible categories + manual ordering
 
 **What:** Category-grouped dashboard (`/`) now behaves like a Notion toggle list: all five fixed categories always render (empty ones show · 0 and start collapsed), sections expand/collapse with chevron headers, and **Edit order** enables drag-reorder of category sections (localStorage) and products within a category (`dashboard_sort_order` via `PUT /api/products/dashboard-order`). Cross-category product moves remain on the product detail category field. Flat list view (`/list`) keeps `created_at` desc — manual order is dashboard-only.
