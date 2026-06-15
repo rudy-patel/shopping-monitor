@@ -1,6 +1,9 @@
 import {
   activeListings,
+  cheapestActivePriceCents,
+  isCheapestListing,
   isProductListQueryKey,
+  listingPriceDeltaVsBest,
   needsReviewListings,
   productQueryKey,
   productsQueryKey,
@@ -33,6 +36,18 @@ describe('listing partition helpers', () => {
       primary.id,
       expensive.id,
     ])
+  })
+
+  it('comparison helpers derive best price and deltas', () => {
+    const expensive = { ...autoAdded, last_known_price_cents: 15000 }
+    const active = activeListings([primary, expensive, autoAdded])
+    const best = cheapestActivePriceCents(active)
+    expect(best).toBe(5000)
+    expect(isCheapestListing(autoAdded, best, active.length)).toBe(true)
+    expect(isCheapestListing(primary, best, active.length)).toBe(false)
+    expect(listingPriceDeltaVsBest(primary, best)).toBe(7999)
+    expect(listingPriceDeltaVsBest(autoAdded, best)).toBeNull()
+    expect(isCheapestListing(primary, best, 1)).toBe(false)
   })
 })
 

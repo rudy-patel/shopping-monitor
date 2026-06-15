@@ -20,7 +20,12 @@ import {
   useRestoreProduct,
 } from '@/hooks/useProducts'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
-import { activeListings } from '@/lib/products'
+import {
+  activeListings,
+  cheapestActivePriceCents,
+  isCheapestListing,
+  listingPriceDeltaVsBest,
+} from '@/lib/products'
 import { retailerLabel } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -36,6 +41,8 @@ export function ProductDetailPage() {
   const isArchived = product?.status === 'archived'
   const isRefreshing = refresh.isPending
   const listings = product ? activeListings(product.listings) : []
+  const bestListingPriceCents = cheapestActivePriceCents(listings)
+  const showListingComparison = listings.length > 1
 
   if (isLoading) {
     return (
@@ -134,6 +141,16 @@ export function ProductDetailPage() {
               <ListingCard
                 key={listing.id}
                 listing={listing}
+                isBestPrice={isCheapestListing(
+                  listing,
+                  bestListingPriceCents,
+                  listings.length,
+                )}
+                priceDeltaVsBestCents={
+                  showListingComparison
+                    ? listingPriceDeltaVsBest(listing, bestListingPriceCents)
+                    : null
+                }
                 onRemove={(listingId) => removeListing.mutate(listingId)}
                 isRemoving={
                   removeListing.isPending && removeListing.variables === listing.id

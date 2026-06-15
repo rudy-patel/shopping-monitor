@@ -4,6 +4,20 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Product detail listings polish (Tier 2)
+
+**What:** Polished the product detail **Listings** section while keeping the typography-first aesthetic. Active listings stay sorted cheapest-first (primary no longer pinned above a cheaper discovered match). Each card leads with a larger price, puts retailer + stock badge + relative scrape time on one meta line, and demotes "Open on …" to a secondary link-style action. Scrape status (`ok`, etc.) is no longer rendered on listing cards. Multi-retailer products highlight the winning card with a subtle left accent plus a "Best price" badge, and show `+$N vs best` on every more expensive listing.
+
+**Frontend:** `ListingCard` accepts `isBestPrice` and `priceDeltaVsBestCents` props; `ProductDetailPage` derives them via new helpers in `frontend/src/lib/products.ts` (`cheapestActivePriceCents`, `listingPriceDeltaVsBest`, `isCheapestListing`). Comparison hints only appear when there are two or more active listings.
+
+**Locked behavior:** Single-listing products show no best-price badge or delta labels. Tied lowest prices each receive the best-price highlight. Null/unknown listing prices sort last and never receive comparison hints.
+
+**Files:** `frontend/src/lib/products.ts`, `frontend/src/components/products/ListingCard.tsx`, `frontend/src/pages/ProductDetailPage.tsx`, `frontend/src/test/listing-card.test.tsx`, `frontend/src/test/product-detail.test.tsx`, `frontend/src/test/products-query-keys.test.ts`, `docs/PRD.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** Frontend `npm run lint`, `npm run test:run`, `npm run build`.
+
+---
+
 ## [2026-06-15] Product detail hero + 30-day sparkline
 
 **What:** Refreshed the product detail page with a hero price block and a unified "price signal" row. Best price renders large (tinted by 30-day trend) next to the best retailer; the trend chip, a 30-day sparkline, and endpoint price labels sit on one horizontal band (stack on mobile). The sparkline uses the existing `trend-down/same/up` tokens, no axis ticks, and shows a desktop-only hover tooltip with the date + price for the nearest day. For products with < 7 days of real data or leading gaps, the line is backfilled at the current best price so new products render a flat "Same in the last 30 days" line that agrees with the chip.
