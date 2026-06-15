@@ -13,6 +13,7 @@ describe('ListingCard', () => {
 
     expect(screen.getByText('$129.99')).toBeInTheDocument()
     expect(screen.getByText('Best Buy Canada')).toBeInTheDocument()
+    expect(document.querySelector('img[src*="bestbuy"]')).toBeInTheDocument()
     expect(screen.getByText('In stock')).toBeInTheDocument()
     expect(screen.queryByText('ok')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /open on best buy canada/i })).toBeInTheDocument()

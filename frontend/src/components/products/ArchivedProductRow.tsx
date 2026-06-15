@@ -6,7 +6,8 @@ import { TrendChip, trendPriceClass } from '@/components/products/TrendChip'
 import { DeleteProductDialog } from '@/components/products/DeleteProductDialog'
 import { useRestoreProduct } from '@/hooks/useProducts'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
-import { formatRelativeTime, retailerLabel } from '@/lib/format'
+import { RetailerIdentity } from '@/components/retailers/RetailerLogo'
+import { formatRelativeTime } from '@/lib/format'
 import type { ProductSummary } from '@/lib/products'
 import { categoryLabel } from '@/lib/categories'
 import { cn } from '@/lib/utils'
@@ -42,9 +43,9 @@ export function ArchivedProductRow({ product }: ArchivedProductRowProps) {
             <TrendChip trend={product.trend} />
             <span className="text-muted-foreground">{categoryLabel(product.category)}</span>
           </div>
-          <p className="text-xs text-muted-foreground">
-            {retailerLabel(product.best_retailer_slug)} · Archived{' '}
-            {formatRelativeTime(product.updated_at)}
+          <p className="flex flex-wrap items-center gap-x-1.5 text-xs text-muted-foreground">
+            <RetailerIdentity slug={product.best_retailer_slug} size="xs" />
+            <span>· Archived {formatRelativeTime(product.updated_at)}</span>
           </p>
         </div>
 

@@ -724,6 +724,7 @@ Start after M3 proves the one-retailer architecture.
   - Optimistic delete/archive/update; monochrome trend/stock chips with labels.
   - Mobile bottom tab bar, responsive filters, listing cards on detail, axe vitest suite.
   - Playwright Mobile Chrome project alongside Desktop Chrome.
+  - Minimal bundled SVG retailer icons beside labels on list/detail/search surfaces (`frontend/src/assets/retailers/`, `RetailerLogo`); generic scraper listings stay text-only.
 - **Verification:**
   - `npm run lint`, `npm run test:run`, `npm run build`, `npm run test:e2e` (both projects).
   - PRD U-VIEW-3/U-VIEW-4 updated for typography-first lists.

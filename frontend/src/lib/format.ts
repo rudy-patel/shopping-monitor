@@ -15,6 +15,11 @@ const RETAILER_LABELS: Record<string, string> = {
   generic: 'Generic scraper — may be unreliable',
 }
 
+/** Slugs with human labels in `RETAILER_LABELS`, excluding the generic scraper. */
+export function knownRetailerSlugs(): string[] {
+  return Object.keys(RETAILER_LABELS).filter((slug) => slug !== 'generic')
+}
+
 export function formatCadCents(cents: number | null | undefined): string {
   if (cents == null) return '—'
   return CAD_FORMATTER.format(cents / 100)

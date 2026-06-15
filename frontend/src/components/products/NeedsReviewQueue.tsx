@@ -6,6 +6,7 @@ import {
   useRejectListing,
 } from '@/hooks/useProducts'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
+import { RetailerLogo } from '@/components/retailers/RetailerLogo'
 import { retailerLabel } from '@/lib/format'
 import type { Listing, ProductDetail } from '@/lib/products'
 import { needsReviewListings } from '@/lib/products'
@@ -55,7 +56,10 @@ export function NeedsReviewQueue({ product }: NeedsReviewQueueProps) {
               className="rounded-lg border border-border p-4"
             >
               <div className="space-y-2">
-                <p className="font-medium">{candidateTitle(listing)}</p>
+                <div className="inline-flex min-w-0 items-center gap-1.5">
+                  <RetailerLogo slug={listing.retailer_slug} />
+                  <p className="truncate font-medium">{candidateTitle(listing)}</p>
+                </div>
                 <div className="flex flex-wrap items-center gap-2 text-sm">
                   <span className="tabular-nums">
                     {formatPriceCents(listing.last_known_price_cents)}

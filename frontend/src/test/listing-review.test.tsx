@@ -83,6 +83,8 @@ describe('listing review UI', () => {
     expect(screen.getByRole('heading', { name: /needs review \(2\)/i })).toBeInTheDocument()
     expect(screen.getByText(/same laptop model/i)).toBeInTheDocument()
     expect(screen.getByText(/likely same sku/i)).toBeInTheDocument()
+    expect(screen.getByText(/candidate at dime mtl/i)).toBeInTheDocument()
+    expect(screen.getByText(/second candidate/i)).toBeInTheDocument()
   })
 
   it('calls accept mutate when Accept is clicked', async () => {

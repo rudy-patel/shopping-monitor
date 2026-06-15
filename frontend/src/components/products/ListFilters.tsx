@@ -3,7 +3,7 @@ import {
   categoryLabel,
   type ProductCategory,
 } from '@/lib/categories'
-import { retailerLabel } from '@/lib/format'
+import { RetailerIdentity } from '@/components/retailers/RetailerLogo'
 import {
   Select,
   SelectContent,
@@ -65,7 +65,7 @@ export function ListFilters({ filters, retailers, onChange }: ListFiltersProps) 
             <SelectItem value="all">All retailers</SelectItem>
             {retailers.map((retailer) => (
               <SelectItem key={retailer} value={retailer}>
-                {retailerLabel(retailer)}
+                <RetailerIdentity slug={retailer} size="xs" />
               </SelectItem>
             ))}
           </SelectContent>

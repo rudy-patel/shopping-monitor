@@ -4,6 +4,18 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Retailer logo icons (T7.1 follow-up)
+
+**What:** Added minimal bundled SVG marks for all supported retailer slugs (excludes `generic`) so list rows, listing cards, search badges, filters, and review queue cards are easier to scan visually. `RetailerLogo` / `RetailerIdentity` components map slug → asset; `knownRetailerSlugs()` in `format.ts` keeps logo coverage in sync with label slugs via Vitest.
+
+**Locked behavior:** No product images in-app (PRD unchanged). Review queue headings still prefer `review_title` when present; logo sits beside the title. Generic / unsupported retailers render label-only.
+
+**Files:** `frontend/src/assets/retailers/*.svg`, `frontend/src/lib/retailer-logos.ts`, `frontend/src/lib/format.ts` (`knownRetailerSlugs`), `frontend/src/components/retailers/RetailerLogo.tsx`, `ListingCard.tsx`, `ProductListRow.tsx`, `ProductDetailPage.tsx`, `SearchResultRow.tsx`, `ListFilters.tsx`, `NeedsReviewQueue.tsx`, `ArchivedProductRow.tsx`, `frontend/src/test/retailer-logo.test.tsx`, `listing-card.test.tsx`, `listing-review.test.tsx`, `product-detail.test.tsx`, `docs/PRD.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `npm run lint`, `npm run test:run`, `npm run build`.
+
+---
+
 ## [2026-06-15] Search prod outage — Gemini quota + transient-error resilience
 
 **Bug:** Production `/api/search` spun for ~30s and then surfaced "Search is temporarily unavailable." for every query — including ones with no cache hit. User reported never successfully completing a single live search since launch. Local dev was masking the issue because `SCRAPER_MODE=fixtures` short-circuits Gemini entirely.
