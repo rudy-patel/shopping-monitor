@@ -45,7 +45,7 @@ test.describe('product vertical slice', () => {
     await expect(page.getByText(/^in stock$/i).first()).toBeVisible()
 
     const categoryCombobox = page.getByRole('combobox', { name: /category/i })
-    await page.getByRole('button', { name: /^settings$/i }).click()
+    await expect(categoryCombobox).toBeVisible()
     const currentCategory = (await categoryCombobox.innerText()).toLowerCase()
     const targetCategory = currentCategory.includes('home') ? 'Clothing' : 'Home'
     await categoryCombobox.click()
