@@ -14,6 +14,7 @@ from routers.internal_jobs import router as internal_jobs_router
 from routers.notifications import router as notifications_router
 from routers.products import router as products_router
 from routers.profile import router as profile_router
+from routers.search import router as search_router
 import scrapers.bootstrap  # noqa: F401
 
 settings = get_settings()
@@ -34,5 +35,6 @@ app.include_router(account_router)
 app.include_router(profile_router)
 app.include_router(fx_router)
 app.include_router(products_router)
+app.include_router(search_router)
 app.include_router(notifications_router)
 app.include_router(internal_jobs_router)

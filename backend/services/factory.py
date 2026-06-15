@@ -8,6 +8,7 @@ from services.categorizer import DefaultCategorizer
 from services.fx_cache_service import CachedFxService
 from services.gemini import GeminiFlashLlmProvider
 from services.llm import LlmProvider, NoOpLlmProvider
+from services.llm_fixtures import FixtureLlmProvider
 from services.mail import MailService, NoOpMailService
 from services.resend_mail import ResendMailService
 
@@ -40,7 +41,13 @@ def get_llm_provider(settings: Settings | None = None) -> LlmProvider:
             model=settings.gemini_model,
             default_timeout_s=settings.gemini_categorize_timeout_s,
             discover_timeout_s=settings.gemini_discover_timeout_s,
+            search_timeout_s=settings.gemini_search_timeout_s,
         )
+    # No key: fixtures mode (local dev / CI) gets a fixture-backed provider so the
+    # search UI is exercisable without Gemini. live mode falls back to the no-op
+    # provider, which the search router maps to a friendly 503.
+    if settings.scraper_mode == "fixtures":
+        return FixtureLlmProvider()
     return NoOpLlmProvider()
 
 

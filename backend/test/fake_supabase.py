@@ -204,6 +204,10 @@ class FakeQuery:
             elif self._table == "fx_rates_cache":
                 pair = row["pair"]
                 self._store.fx_rates_cache[pair] = row
+            elif self._table == "search_cache":
+                query_hash = row["query_hash"]
+                row.setdefault("fetched_at", now)
+                self._store.search_cache[query_hash] = row
             else:
                 raise ValueError(f"insert not supported for table: {self._table}")
 
@@ -306,6 +310,7 @@ class FakeSupabaseClient:
         self.price_history: dict[int, dict] = {}
         self.notifications: dict[str, dict] = {}
         self.fx_rates_cache: dict[str, dict] = {}
+        self.search_cache: dict[str, dict] = {}
         self.auth_users: dict[str, object] = {}
         self.force_duplicate_on_insert = False
         self.force_delete_user_error = False
@@ -334,6 +339,8 @@ class FakeSupabaseClient:
             return self.notifications
         if table == "fx_rates_cache":
             return self.fx_rates_cache
+        if table == "search_cache":
+            return self.search_cache
         raise ValueError(f"unexpected table: {table}")
 
     def _cascade_delete_user(self, user_id: str) -> None:

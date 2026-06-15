@@ -1,0 +1,18 @@
+{
+  "candidates": [
+    {
+      "url": "https://wellca.com/products/handmade-soap-bar-lavender",
+      "title": "Handmade Lavender Soap Bar",
+      "retailer_hint": "Well.ca",
+      "brand_hint": "Crate 61",
+      "justification": "Well.ca PDP — small artisanal soap brand"
+    },
+    {
+      "url": "https://mec.ca/en/product/8025-913/handmade-rosemary-mint-soap",
+      "title": "MEC Handmade Rosemary Mint Soap",
+      "retailer_hint": "MEC",
+      "brand_hint": "MEC",
+      "justification": "MEC carries a comparable handmade Canadian soap"
+    }
+  ]
+}

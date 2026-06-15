@@ -232,6 +232,42 @@ def test_post_generic_blocked(products_client):
     assert len(fake.price_history) == 0
 
 
+def test_post_with_discovery_seed_payload_accepts(products_client):
+    """T8.4: search-flow seed is accepted on POST /api/products."""
+    client, _fake, _llm = products_client
+
+    response = client.post(
+        "/api/products",
+        json={
+            "url": IN_STOCK_URL,
+            "discovery_seed": [
+                {
+                    "retailer_slug": "indigo",
+                    "url": "https://fixtures.local/indigo/in_stock",
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 201
+    body = response.json()
+    assert body["status"] == "active"
+
+
+def test_post_discovery_seed_invalid_shape_returns_422(products_client):
+    client, _fake, _llm = products_client
+
+    response = client.post(
+        "/api/products",
+        json={
+            "url": IN_STOCK_URL,
+            "discovery_seed": [{"url": "https://example.ca/p"}],  # missing slug
+        },
+    )
+
+    assert response.status_code == 422
+
+
 def test_post_non_cad_rejected(products_client, fake_client):
     client, fake, _llm = products_client
 

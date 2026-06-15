@@ -1,15 +1,15 @@
 # Shopping Monitor — Product Requirements (V1)
 
-> **Status:** Draft v1.3 — clarified worker boundaries, fixed digest timing, data-model gaps, product-level price semantics, and first vertical-slice scope for AI-agent implementation.
+> **Status:** Draft v1.4 — adds search-based product addition (T8.x) as a primary entry point alongside URL paste.
 > **Implementation progress:** Task-level completion status and PR links live in [`docs/ROADMAP.md`](ROADMAP.md); chronological ship log in [`MEMORY.md`](../MEMORY.md).
 > **Owner:** Product (you). **Audience:** Engineering, AI agents implementing the prototype.
-> **Last updated:** 2026-06-15 (T7.4 auto-categorization UX).
+> **Last updated:** 2026-06-15 (T8.x search-based add).
 
 ---
 
 ## 1. Overview
 
-**Shopping Monitor** is a personal-use web app that gives a user **one organized home for everything they want to buy**. Paste a product URL, and the app slots the item into the right category for you, watches its price and stock over time, surfaces the same product at up to four other Canadian retailers, and nudges you when something is genuinely worth buying — or quietly suggests letting go of items you've outgrown.
+**Shopping Monitor** is a personal-use web app that gives a user **one organized home for everything they want to buy**. Search any product or paste a URL, and the app slots the item into the right category for you, watches its price and stock over time, surfaces the same product at up to four other Canadian retailers, and nudges you when something is genuinely worth buying — or quietly suggests letting go of items you've outgrown.
 
 The product's pitch is **practicing healthy consumerism**: consolidate every "I want this" thought into one calm list, wait for the right sale, and avoid impulse purchases. The app is not a coupon firehose; it's a wishlist with price intelligence wrapped around it.
 
@@ -21,11 +21,11 @@ V1 is a free, low-traffic prototype optimized for a single primary user plus a h
 
 ### 2.1 Vision
 
-A user pastes a URL for a thing they want. The app quietly takes care of the rest — sorting the item into the right bucket, watching its price across retailers, telling the user when it's genuinely on sale, and gently checking in on items that have been on the list a long time. The result is a clean, organized wishlist of everything they're tracking that practices healthy consumerism by default.
+A user searches for a thing they want (or pastes a URL if they already have one). The app quietly takes care of the rest — sorting the item into the right bucket, watching its price across retailers, telling the user when it's genuinely on sale, and gently checking in on items that have been on the list a long time. The result is a clean, organized wishlist of everything they're tracking that practices healthy consumerism by default.
 
 ### 2.2 V1 goals (in priority order)
 
-1. **One organized home for things you want.** A self-organizing wishlist where pasted URLs land in the right category automatically (with manual override) and are easy to scan and tend over time.
+1. **One organized home for things you want.** A self-organizing wishlist where searched or pasted products land in the right category automatically (with manual override) and are easy to scan and tend over time.
 2. **Reliable price tracking** for a curated set of Canadian retailers, plus best-effort tracking of any other pasted URL.
 3. **Multi-retailer comparison** on add: surface up to 4 alternates for the same product when they exist.
 4. **Honest sale signal**: a clear, color-coded indicator of whether a product's price has trended down, up, or stayed flat over the past 30 days, plus opt-in notifications when a price meaningfully drops.
@@ -39,7 +39,6 @@ The following are deliberately **out of scope** for V1. They are documented in �
 
 - Shipping, tax, or duty calculation/estimation of any kind.
 - A "price rating" that compares against MSRP or against prices at other retailers ("cheaper elsewhere"). V1 ships only a 30-day trend chip.
-- Search-based product addition (catalogs/indexes). URL paste only.
 - Browser extension, mobile app, push notifications, SMS notifications.
 - Sharing or collaborative lists between users.
 - Public registration / anti-abuse / terms of service / GDPR tooling beyond basic auth + delete-my-account.
@@ -68,7 +67,8 @@ There is **one product** in V1 — it serves both personas identically. There is
 | ------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- |
 | Google SSO sign-in via Supabase                                                                                                | Email/password, magic links, other SSO                              |
 | Per-user private shopping list                                                                                                 | Shared/collaborative lists                                          |
-| Add product by pasting URL                                                                                                     | Search, browser extension, share-sheet                              |
+| Add product by pasting URL or by typing a free-text search query (LLM-grounded)                                                | Browser extension, share-sheet                                      |
+| Search dialog: up to 5 candidate listings per query, supported + best-effort unsupported, 24h cache, Canadian-only             | Multi-page search, infinite scroll, saved searches                  |
 | Variant inference from URL/page                                                                                                | Variant family grouping                                             |
 | "Needs input" flag when variant unclear                                                                                        | Auto-guessing variants                                              |
 | Daily scheduled price + stock scrape                                                                                           | Real-time / sub-daily monitoring                                    |
@@ -118,6 +118,12 @@ Each story below is a V1 commitment.
 
 ### 5.2 Adding products
 
+- **U-ADD-0.** As a signed-in user, I can open a global search overlay (header search bar or ⌘K / Ctrl+K) and type a free-text query (e.g. "AirPods Pro", "Nintendo Switch 2") to find matching listings across Canadian retailers — no URL required.
+  - Up to 5 candidate listings are returned per query, ranked supported retailers first, then best-effort unsupported retailers.
+  - Each result shows retailer label, title, optional brand hint, a one-line justification, and **Open** / **Track** actions.
+  - Clicking **Track** uses the candidate URL as the primary listing and passes the remaining supported candidates as a `discovery_seed`, skipping the LLM `discover()` round-trip to stay within the Gemini free tier.
+  - Search results are cached server-side by normalized query for 24 hours (`search_cache` table) to keep daily Gemini usage well inside the free quota.
+  - An "Add by URL" fallback is always available from the dialog footer / empty state for users who already have a specific URL.
 - **U-ADD-1.** As a signed-in user, I can paste a product URL into a single input and submit it.
 - **U-ADD-2.** When I submit a URL from a natively supported retailer, the app extracts the title, image, current price, stock state, and variant attributes (size, color) and immediately creates a tracked product.
 - **U-ADD-3.** If the URL specifies a variant via path/query, that variant is selected automatically.
@@ -202,9 +208,9 @@ V1 frontend routes (all behind auth except `/login`):
 | `/settings`              | Global preferences (currency, threshold, digest, theme, revisit prompts) + delete account |
 
 
-A persistent top nav contains: app title/logo, "Add Product" CTA, bell icon (notifications), avatar menu (settings, sign out).
+A persistent top nav contains: app title/logo, a header **Search** trigger (⌘K / Ctrl+K, mobile: icon-only), "Add Product" CTA, bell icon (notifications), avatar menu (settings, sign out).
 
-The "Add Product" CTA opens a modal with a single URL input. On submit, the modal closes and the user is taken to the new product detail page in a loading state.
+The header **Search** trigger opens a command-palette-style overlay with a free-text input; results render inline with one-click **Track** per row and an "Add by URL" fallback. The "Add Product" CTA continues to open the URL-input modal for users who already have a specific URL.
 
 ---
 
@@ -220,16 +226,21 @@ The "Add Product" CTA opens a modal with a single URL input. On submit, the moda
 
 ### 7.2 Product addition
 
+**Two entry points (both end in the same backend pipeline):**
+
+- **URL paste** (header **Add Product** modal) — user already has a specific product URL.
+- **Free-text search** (header search bar / ⌘K command palette, §5.2 U-ADD-0) — user types a query; the LLM returns up to 5 ranked candidate listings; one click on **Track** posts the chosen URL plus the other supported candidates as `discovery_seed`. The seed lets the discovery job skip its own LLM call (cost control, see §10.7).
+
 **Adding flow (synchronous portion):**
 
-1. Frontend POSTs `{ url, category? }` to `POST /api/products`. `category` is optional — populated when the user explicitly picked a category in the Add modal; omitted (or `"auto"`) means defer to AI categorization.
+1. Frontend POSTs `{ url, category?, discovery_seed? }` to `POST /api/products`. `category` is optional — populated when the user explicitly picked a category in the Add modal; omitted (or `"auto"`) means defer to AI categorization. `discovery_seed` is optional — populated only by the search flow with up to 4 pre-vetted candidates `[{retailer_slug, url}, ...]` to short-circuit the discovery LLM call.
 2. Backend identifies the retailer by matching `url` against the supported-retailer registry (see §11). If no match, falls back to the `generic` scraper.
 3. Backend invokes the retailer's scraper to extract: `title`, `brand`, `image_url`, `current_price_cad`, `currency_seen`, `is_in_stock`, `available_variants` (list of `{attribute_name, attribute_value}`), `selected_variant` (if inferable from URL), and `breadcrumbs` (best-effort).
 4. **Categorization (§7.7)** runs synchronously: if the request supplied a category, use it (`category_source='manual'`); otherwise call the LLM categorizer with `title`/`brand`/`retailer_slug`/`breadcrumbs` under a 1.5s timeout, falling back to the heuristic (and ultimately `other`) if needed. The resolved `category` and `category_source` are set on the new product row.
 5. Backend creates one `products` row and one `product_listings` row (the user-pasted URL, marked `is_primary=true`).
 6. If `selected_variant` is unambiguous → product status = `active`. If multiple variants and URL is ambiguous → product status = `needs_input`; the variant picker route loads `available_variants` from the listing's stored snapshot.
 7. Backend records the first `price_history` snapshot.
-8. Backend enqueues the cross-retailer discovery job (see §7.3) and returns the new product to the client. The client navigates to `/products/:id`.
+8. Backend enqueues the cross-retailer discovery job (see §7.3) and returns the new product to the client. The client navigates to `/products/:id`. When a `discovery_seed` was provided, the discovery job uses the seed URLs directly and does **not** call the LLM `discover()` endpoint; the same scrape/score/auto-add/cap pipeline still runs.
 
 **Currency on add:**
 If the source page shows a non-CAD price (e.g., a US-only retailer URL), the scraper marks `currency_seen` and the listing is **rejected** with a friendly error to the user: "This product appears to be priced in USD. V1 only supports Canadian listings." This guards the user from accidentally tracking US store URLs.
@@ -533,6 +544,19 @@ Backend-only table; Pattern B (service-role-only).
 | `fetched_at` | `timestamptz`                |
 
 
+### 8.7 `search_cache`
+
+Backend-only table; Pattern B (service-role-only). Caches LLM search results by normalized query hash so the same query within the TTL window does not re-burn Gemini quota.
+
+
+| Column           | Type          | Notes                                                                                  |
+| ---------------- | ------------- | -------------------------------------------------------------------------------------- |
+| `query_hash`     | `text` PK     | SHA-256 of `normalize_query(query)`                                                    |
+| `query`          | `text`        | Original normalized query (lowercase, collapsed whitespace) for diagnostics            |
+| `result_payload` | `jsonb`       | Serialized `LlmSearchResult` (candidates + provider metadata)                          |
+| `fetched_at`     | `timestamptz` | Insert/refresh time; entries are considered expired after `SEARCH_CACHE_TTL_HOURS` (default 24h). Indexed |
+
+
 **Retailer config does not live in the DB** in V1 — it's a Python module so adding a retailer is a code change reviewed in PR (intentional; see §11).
 
 ---
@@ -544,7 +568,8 @@ REST under `/api`, all behind auth (Supabase JWT).
 
 | Method   | Path                                            | Purpose                                                                     |
 | -------- | ----------------------------------------------- | --------------------------------------------------------------------------- |
-| `POST`   | `/api/products`                                 | Add a new product from a URL                                                |
+| `POST`   | `/api/search`                                   | LLM-grounded free-text product search (24h server cache)                    |
+| `POST`   | `/api/products`                                 | Add a new product from a URL (optionally with `discovery_seed`)             |
 | `GET`    | `/api/products`                                 | List user's products with filters (`status`, `category`)                    |
 | `GET`    | `/api/products/:id`                             | Product detail (includes listings + recent history)                         |
 | `PATCH`  | `/api/products/:id`                             | Update category, threshold, notifications-enabled, status (archive/restore) |
@@ -596,7 +621,7 @@ Internal endpoints require a shared-secret header (`X-Worker-Token`).
 4. **Content over chrome.** The category-grouped dashboard is the hero surface; nav is a thin, persistent top bar with a mobile bottom tab bar for primary routes.
 5. **Typography-first lists.** Product rows are text-only in-app (no scraped thumbnails). Monochrome trend and stock chips always include readable labels.
 6. **Accessible.** Color-coded chips always pair with text. Lighthouse Performance and Accessibility ≥ 95 are hard targets (see §12). Vitest axe checks on key routes.
-7. **No keyboard shortcuts / command palette in V1.** Deferred to V2 to keep scope tight; mouse and touch are first-class.
+7. **One keyboard shortcut: ⌘K / Ctrl+K opens the global search overlay.** This is the single command-palette-style affordance in V1; everything else is mouse and touch first-class. Other keyboard shortcuts are deferred to V2.
 
 ### 10.2 Backend
 
@@ -645,10 +670,11 @@ V1 should optimize for a free, maintainable, Python-native scraping stack rather
 
 - **Provider:** Google Gemini API, using the current Flash-family model available on the free tier at implementation time, with Google Search as a grounding tool when available (discovery only).
 - **Use cases in V1:**
-  1. **Cross-retailer discovery** (§7.3) — one call per product creation, Search-grounded, returns up to 8 candidate URLs.
-  2. **Categorization** (§7.7) — one call per product creation when the user leaves the Add modal's category dropdown on "Auto". Plain Gemini call, no Search grounding, hard-capped at ~256 output tokens, instructed to return exactly one of the 5 fixed slugs as JSON.
-- **Free-tier guardrails:** prompts are bounded; discovery candidates are capped at 8; categorization is wrapped in a 1.5s hard timeout; if quota or the API itself is exhausted, both flows fall back gracefully (discovery: skip + notify user; categorization: heuristic).
-- **Pluggable interface:** a single `LlmProvider` abstraction (renamed from the earlier `DiscoveryProvider`) handles both discovery and categorization so we can swap LLMs later without rewriting either pipeline. Discovery and categorization are separate methods on the same interface.
+  1. **Free-text product search** (§5.2 U-ADD-0) — one Gemini call per user-submitted search query, Search-grounded, returns up to 8 candidate listings. Results are cached by normalized query for 24h (`search_cache`, §8.7) so repeated queries do not re-burn quota. When the user picks a search result and clicks **Track**, the remaining supported candidates are passed inline as `discovery_seed` and discovery skips its own LLM call.
+  2. **Cross-retailer discovery** (§7.3) — one call per product creation, Search-grounded, returns up to 8 candidate URLs. Skipped entirely when a `discovery_seed` is supplied (search-originated adds).
+  3. **Categorization** (§7.7) — one call per product creation when the user leaves the Add modal's category dropdown on "Auto". Plain Gemini call, no Search grounding, hard-capped at ~256 output tokens, instructed to return exactly one of the 5 fixed slugs as JSON.
+- **Free-tier guardrails:** prompts are bounded; search and discovery candidates are capped at 8; categorization is wrapped in a 1.5s hard timeout; search responses are cached server-side for 24h; if quota or the API itself is exhausted, all flows fall back gracefully (search: 503 with friendly copy; discovery: skip + notify user; categorization: heuristic).
+- **Pluggable interface:** a single `LlmProvider` abstraction handles search, discovery, and categorization so we can swap LLMs later without rewriting any pipeline. Each use case is a separate method on the same interface. A `FixtureLlmProvider` is used automatically when `SCRAPER_MODE=fixtures` and no `GEMINI_API_KEY` is set, returning canned JSON from `backend/test/fixtures/search/*.json` so local dev and CI never hit the live Gemini API.
 
 ### 10.8 Secrets & environment
 
@@ -670,7 +696,8 @@ Free-tier headroom check at that load:
 | GitHub Actions (private repo) | 2,000 min/mo included                | 30 runs × ~3 min × 30 days ≈ 2,700 min worst case                            | ⚠️ Tight at sustained ceiling. Workflows target ≤ 3 min and use job-level timeouts. If we exceed the monthly cap, move repo to public (unlimited minutes). Tracked in §13. |
 | Render web service            | 750 hrs/mo                           | Each wake ≈ 5 min ≪ 750 hrs                                                  | ✅                                                                                                                                                                          |
 | Supabase (DB / Auth)          | 500 MB DB, 50k MAU                   | Trivial volume in V1                                                         | ✅                                                                                                                                                                          |
-| Gemini Flash                  | ~1,500 RPD typical free-tier ceiling | 1 discovery + 1 categorization call per *add*. Even 100 adds/day = 200 calls | ✅ ~7× headroom over a heavy add day                                                                                                                                        |
+| Gemini Flash (generation)     | ~1,500 RPD typical free-tier ceiling | 1 categorization + ≤1 discovery call per *add*. 100 adds/day = ≤200 calls    | ✅ ~7× headroom over a heavy add day                                                                                                                                        |
+| Gemini Flash (search grounding) | ~500 grounded queries/day            | 1 per *user-submitted* search; cached 24h server-side                        | ✅ Cache makes typical day well under 100 calls                                                                                                                             |
 | Resend                        | 100 emails/day, 3,000/mo             | At most 1 digest/user/day                                                    | ✅                                                                                                                                                                          |
 | Frankfurter                   | Unlimited, no key                    | 1 cached call/day                                                            | ✅                                                                                                                                                                          |
 | Vercel                        | Generous static + edge               | Negligible                                                                   | ✅                                                                                                                                                                          |

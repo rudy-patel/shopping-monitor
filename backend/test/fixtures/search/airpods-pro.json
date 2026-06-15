@@ -1,0 +1,25 @@
+{
+  "candidates": [
+    {
+      "url": "https://fixtures.local/apple_ca/in_stock",
+      "title": "AirPods Pro (USB-C)",
+      "retailer_hint": "Apple Canada",
+      "brand_hint": "Apple",
+      "justification": "Apple Canada PDP for AirPods Pro with USB-C charging case"
+    },
+    {
+      "url": "https://fixtures.local/bestbuy_ca/in_stock",
+      "title": "Apple AirPods Pro 2nd Gen (USB-C)",
+      "retailer_hint": "Best Buy Canada",
+      "brand_hint": "Apple",
+      "justification": "Best Buy Canada carries the same AirPods Pro variant"
+    },
+    {
+      "url": "https://walmart.ca/en/ip/apple-airpods-pro-usb-c/6000204021345",
+      "title": "Apple AirPods Pro (2nd generation) with MagSafe Charging Case (USB-C)",
+      "retailer_hint": "Walmart Canada",
+      "brand_hint": "Apple",
+      "justification": "Walmart Canada PDP — not a natively supported retailer"
+    }
+  ]
+}

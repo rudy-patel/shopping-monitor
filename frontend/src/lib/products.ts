@@ -72,9 +72,15 @@ export interface ProductFilters {
   category?: ProductCategory
 }
 
+export interface DiscoverySeedEntry {
+  retailer_slug: string
+  url: string
+}
+
 export interface CreateProductInput {
   url: string
   category?: CategoryInput
+  discovery_seed?: DiscoverySeedEntry[]
 }
 
 export interface UpdateProductInput {

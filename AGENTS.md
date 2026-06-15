@@ -22,7 +22,9 @@ When opening a PR with `gh pr create`:
 Two `.env` files are needed (not committed). Backend secrets (`SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `GEMINI_API_KEY`, `RESEND_API_KEY`, `WORKER_TOKEN`) should be injected as environment variables in the Cursor Cloud secrets panel when using Cloud Agents.
 
 - `backend/.env` — Supabase credentials + `AUTH_BYPASS_ENABLED=true` for local dev (optional until auth is implemented), plus optional V1 service vars:
-  - `GEMINI_API_KEY` — LLM discovery/categorization provider key.
+  - `GEMINI_API_KEY` — LLM discovery / categorization / **search** provider key (fixture mode uses `FixtureLlmProvider` automatically when unset, see `backend/services/factory.py`).
+  - `GEMINI_SEARCH_TIMEOUT_S` — optional, defaults to `6.0`s for `/api/search` Gemini calls.
+  - `SEARCH_CACHE_TTL_HOURS` — optional, defaults to `24`h for the `search_cache` table.
   - `RESEND_API_KEY` — daily digest email provider key.
   - `WORKER_TOKEN` — shared secret required by `/internal/jobs/*` endpoints.
   - `APP_BASE_URL` — deployed frontend origin used in email links.
@@ -69,7 +71,7 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 
 CI and local automated tests must run scraper code with `SCRAPER_MODE=fixtures` so no test hits live retailer URLs. Use `live` only for explicit benchmark/drift tasks and `record` only when intentionally capturing fixtures.
 
-**Gemini:** pytest and CI never call the live Gemini API. `backend/test/conftest.py` clears `GEMINI_API_KEY` and mocks `genai.Client` for every test. Manual live verification uses `python scripts/smoke_gemini_categorize.py --live` or `python scripts/smoke_gemini_discover.py --live` only (H3); default smoke script paths are dry-run/no-op.
+**Gemini:** pytest and CI never call the live Gemini API. `backend/test/conftest.py` clears `GEMINI_API_KEY` and mocks `genai.Client` for every test. Manual live verification uses `python scripts/smoke_gemini_categorize.py --live`, `python scripts/smoke_gemini_discover.py --live`, or `python backend/scripts/smoke_search_live.py --live "<query>"` only (H3); default smoke script paths are dry-run/no-op. The fixture-mode search path reads canned candidates from `backend/test/fixtures/search/<slugified-query>.json`; new example chips in `SearchCommandDialog` must ship with matching fixtures (see `test_all_example_query_chips_have_fixtures`).
 
 ### Integration tests (Supabase RLS smoke)
 
@@ -117,6 +119,7 @@ make test-integration
 2. **Management API script (fallback):** Same token in `backend/.env`:
    ```bash
    python scripts/apply_supabase_migration.py 002_scrape_job_advisory_lock.sql
+   python scripts/apply_supabase_migration.py 003_search_cache.sql
    ```
 
 **Setup once:** Add `SUPABASE_ACCESS_TOKEN=sbp_...` to `backend/.env` from [Supabase Access Tokens](https://supabase.com/dashboard/account/tokens) (not the service-role key).

@@ -1,0 +1,18 @@
+{
+  "candidates": [
+    {
+      "url": "https://fixtures.local/bestbuy_ca/in_stock",
+      "title": "Lenovo Yoga Slim 7x 14.5\" Touchscreen Copilot+ PC Laptop - Cosmic Blue (Snapdragon X Elite/16GB RAM/1TB SSD)",
+      "retailer_hint": "Best Buy Canada",
+      "brand_hint": "Lenovo",
+      "justification": "Best Buy Canada PDP for Lenovo Yoga Slim 7x Copilot+ laptop"
+    },
+    {
+      "url": "https://www.staples.ca/products/lenovo-yoga-9i-2-in-1-laptop-83a30000us",
+      "title": "Lenovo Yoga 9i 2-in-1 Laptop",
+      "retailer_hint": "Staples Canada",
+      "brand_hint": "Lenovo",
+      "justification": "Staples Canada carries Lenovo Yoga 9i 2-in-1 — not natively supported"
+    }
+  ]
+}

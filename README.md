@@ -61,7 +61,16 @@ See `AGENTS.md` for lint/test commands and environment details.
 
 ### Implementation status (2026-06-15)
 
-Milestones **M0–M5** are **done**. **M6** in progress: **T6.2** production smoke, **T6.3** cron schedules, **T7.1** UI polish, and **T7.4** auto-categorization UX **done**; **T6.4** reliability and **T7.2–T7.3** quality gates remain. Human setup **H1–H5** and deployment docs (**T6.1**) are **done** — production URLs in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). See [`docs/ROADMAP.md`](docs/ROADMAP.md) §15 for next tasks.
+Milestones **M0–M5** and **M8** are **done**. **M6** in progress: **T6.2** production smoke, **T6.3** cron schedules, **T7.1** UI polish, **T7.4** auto-categorization UX, and **T8.1** search-based product addition (⌘K command palette, `/api/search`, 24h cache, `discovery_seed` plumbing) **done**; **T6.4** reliability and **T7.2–T7.3** quality gates remain. Human setup **H1–H5** and deployment docs (**T6.1**) are **done** — production URLs in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). See [`docs/ROADMAP.md`](docs/ROADMAP.md) §15 for next tasks.
+
+### Adding products
+
+Two complementary paths:
+
+- **Search (⌘K / Ctrl+K)** — type any product name; the app searches Canadian retailers via Gemini Flash + Google Search grounding, ranks supported retailers first, then offers best-effort tracking for unsupported retailers. One click on **Track** creates the product and seeds cross-retailer discovery without re-burning LLM quota.
+- **Add by URL** — header **Add Product** button still accepts a direct product URL when the user already has one.
+
+Both paths share the same scrape / discovery / categorization pipeline. Search results are cached server-side for 24h (`SEARCH_CACHE_TTL_HOURS`).
 
 ## Documentation
 
