@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-15 (T8.2 search timeout second pass).
+> **Last updated:** 2026-06-15 (T8.5 LLM-cleaned product titles on add).
 
 ---
 
@@ -824,6 +824,19 @@ Start after M3 proves the one-retailer architecture.
 - **Docs:** PRD §10.7 grounded-JSON note + timeout guardrails + risk rows; `DEPLOYMENT.md` migration 003 + timeout; `AGENTS.md`, `.env.example`, `MEMORY.md`.
 - **Deploy:** backend Render redeploy required for fixes to reach production.
 
+### T8.5 LLM-cleaned product titles on add (M8)
+
+**Status:** ✅ done (combined with categorize call; zero added Gemini requests).
+
+- **Backend:** `LlmCategorizationResult.clean_title` (4-80 chars, validated and silently dropped on bad output); `_GeminiCategoryPayload` extended; `categorize` prompt updated with three concrete shortening examples; `DefaultCategorizer` propagates `clean_title` only on the LLM path; fixture provider runs deterministic separator-split shortening so fixture-mode dev sees the same UX. `product_service._pick_display_title` adopts the cleaned title only when strictly shorter than the scraped title (and not equal case-insensitive). Original scraped title preserved verbatim in `product_listings.scrape_snapshot.title`.
+- **Frontend:** No code change — `product.title` flows through unchanged into all surfaces.
+- **Tests:** `test_services_gemini.py` (clean_title parsing + length-bound rejection + inclusive-boundary lock), `test_services_categorizer.py` (propagation + manual-override / heuristic skipping), `test_llm_fixtures.py` (separator-split + already-concise pass-through), `test_products_router.py` (router-level adoption + scraped-title equality short-circuit), new `test_product_service_clean_title.py` for the `_pick_display_title` policy.
+- **Docs:** PRD §5.2 U-ADD-9, §7.7 categorization waterfall, §10.7 LLM use case 3 retitled "Categorization + title cleanup"; `backend/services/README.md`; `MEMORY.md`.
+- **Free-tier guardrail:** zero added Gemini requests per add — both `category` and `clean_title` ride a single structured-JSON `gemini-2.5-flash` call. Validated against ~1,500 RPD non-grounded free-tier ceiling and PRD §10.9's ~30 adds/day budget.
+- **Second-pass cleanup:** centralized `MIN_CLEAN_TITLE_LEN`/`MAX_CLEAN_TITLE_LEN` in `services/llm.py` (single source of truth, removed dupes from `gemini.py` + `llm_fixtures.py`); collapsed `test_product_service_clean_title.py` to two parametrized tests; added inclusive-boundary lock for the 4 / 80 char limits; updated `scripts/smoke_gemini_categorize.py` to print `clean_title` and use a verbose seed title that exercises the live-LLM shortening path.
+
+**Deferred:** retroactive backfill of cleaned titles for existing products (would require an opt-in worker that re-calls categorize per row, ≈1 Gemini request per backfilled product). Not blocking V1 — users can manually re-add or rename products if needed.
+
 ---
 
 ## 13. Suggested parallel agent lanes
@@ -875,6 +888,7 @@ Constraints:
 <details>
 <summary>Recently completed (M8)</summary>
 
+- ~~**T8.5** LLM-cleaned product titles on add~~ — `clean_title` returned alongside `category` from the same Gemini Flash structured-JSON call (zero added requests). Adopted only when strictly shorter than the scraped title; original scraped title preserved on the listing. Fixture-mode shortener mirrors the live UX for local dev.
 - ~~**T8.4** Search quota + transient-error resilience~~ — switched grounded calls to `gemini-2.5-flash-lite` (separate free-tier RPD pool from Flash), split error mapping (quota → 429, transient → 503, timeout → 504), retry only on transient errors / empty responses, never on quota; non-leaking executor shutdown; graceful refusal handling; distinct frontend copy for quota vs transient with Add-by-URL fallback; new `/health/llm` diagnostic endpoint.
 - ~~**T8.2** Search production hotfix~~ — Gemini grounded JSON parsing fix (#49), `SearchThinking` loading UX, 30s search timeout + `asyncio.to_thread` second pass.
 - ~~**T8.1** Search-based product addition~~ — `POST /api/search` + 24h cache, `discovery_seed` plumbing, ⌘K command palette dialog, fixture-mode LLM provider.

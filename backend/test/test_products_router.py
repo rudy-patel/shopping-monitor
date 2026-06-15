@@ -192,6 +192,111 @@ def test_post_manual_category_skips_llm(products_client, fake_llm):
     assert llm.categorize_calls == []
 
 
+def _post_product_with_llm(
+    *,
+    fake_llm: FakeLlmProvider,
+    auth_env,
+    fake_client,
+    monkeypatch,
+    url: str,
+):
+    """POST /api/products with a custom fake LLM patched into product_service.
+
+    `product_service.create_product` calls `get_categorizer()` directly (not via
+    FastAPI's Depends), so we patch the function at the import site instead of
+    using `app.dependency_overrides`.
+    """
+    from scrapers.bestbuy_ca import register_bestbuy_ca
+    from scrapers.generic import register_generic
+
+    register_generic()
+    register_bestbuy_ca()
+    monkeypatch.setenv("AUTH_BYPASS_ENABLED", "true")
+    clear_settings_cache()
+
+    categorizer = DefaultCategorizer(
+        fake_llm,
+        retailer_defaults={"bestbuy_ca": "tech", "generic": "other"},
+    )
+    monkeypatch.setattr(
+        "services.product_service.get_categorizer", lambda: categorizer
+    )
+
+    app = make_app(fake_llm)
+    with TestClient(app) as client:
+        return client.post("/api/products", json={"url": url})
+
+
+def test_post_uses_llm_clean_title_when_strictly_shorter(
+    auth_env, fake_client, monkeypatch
+):
+    """A meaningfully shorter `clean_title` overrides the verbose scraped title."""
+    fake_llm = FakeLlmProvider(
+        categorize_result=LlmCategorizationResult(
+            category="tech",
+            clean_title="Lenovo Yoga Slim 7x",
+        )
+    )
+    response = _post_product_with_llm(
+        fake_llm=fake_llm,
+        auth_env=auth_env,
+        fake_client=fake_client,
+        monkeypatch=monkeypatch,
+        url=IN_STOCK_URL,
+    )
+    assert response.status_code == 201
+    assert response.json()["title"] == "Lenovo Yoga Slim 7x"
+
+
+def test_post_keeps_scraped_title_when_clean_title_absent(
+    auth_env, fake_client, monkeypatch
+):
+    """No `clean_title` from LLM → product keeps the scraped title verbatim."""
+    fake_llm = FakeLlmProvider(
+        categorize_result=LlmCategorizationResult(category="tech")
+    )
+    response = _post_product_with_llm(
+        fake_llm=fake_llm,
+        auth_env=auth_env,
+        fake_client=fake_client,
+        monkeypatch=monkeypatch,
+        url=IN_STOCK_URL,
+    )
+
+    assert response.status_code == 201
+    title = response.json()["title"]
+    assert "Lenovo" in title
+    assert len(title) > len("Lenovo Yoga Slim 7x")
+
+
+def test_post_ignores_clean_title_that_matches_scraped(
+    auth_env, fake_client, monkeypatch
+):
+    """An LLM that just echoes the scraped title back is a no-op (no rename)."""
+    # Using the in_stock fixture's scraped title verbatim — the override should
+    # be skipped (case-insensitive equality short-circuit) so we keep the
+    # canonical scraped form for traceability.
+    scraped_title = (
+        'Lenovo Yoga Slim 7x 14.5" Touchscreen Copilot+ PC Laptop - '
+        "Cosmic Blue (Snapdragon X Elite/16GB RAM/1TB SSD)"
+    )
+    fake_llm = FakeLlmProvider(
+        categorize_result=LlmCategorizationResult(
+            category="tech",
+            clean_title=scraped_title.lower(),
+        )
+    )
+    response = _post_product_with_llm(
+        fake_llm=fake_llm,
+        auth_env=auth_env,
+        fake_client=fake_client,
+        monkeypatch=monkeypatch,
+        url=IN_STOCK_URL,
+    )
+    assert response.status_code == 201
+    assert response.json()["title"] == scraped_title
+
+
 def test_post_multi_variant_needs_input(products_client):
     client, fake, _llm = products_client
 

@@ -9,6 +9,14 @@ from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 LlmCategory = Literal["clothing", "shoes", "home", "tech", "other"]
 
+# Inclusive bounds on `LlmCategorizationResult.clean_title`. Lower bound rejects
+# obviously-truncated single-token outputs ("AirPods", "Hoodie"); upper bound
+# keeps dashboard rows tidy. Providers enforce these bounds when validating LLM
+# output; `product_service._pick_display_title` then decides whether the cleaned
+# title is a strict improvement over the scraped title.
+MIN_CLEAN_TITLE_LEN = 4
+MAX_CLEAN_TITLE_LEN = 80
+
 
 class LlmDiscoveryCandidate(BaseModel):
     url: HttpUrl
@@ -60,6 +68,7 @@ class LlmSearchResult(BaseModel):
 
 class LlmCategorizationResult(BaseModel):
     category: LlmCategory
+    clean_title: str | None = None
     raw_response: str | None = None
 
 

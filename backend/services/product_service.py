@@ -269,7 +269,7 @@ def _resolve_category(
     snapshot: ProductSnapshot,
     entry: RetailerEntry,
     category_input: str | None,
-) -> tuple[ProductCategory, CategorySource]:
+) -> tuple[ProductCategory, CategorySource, str | None]:
     manual_override: ProductCategory | None = None
     if category_input is not None:
         if category_input not in VALID_MANUAL_CATEGORIES:
@@ -285,7 +285,36 @@ def _resolve_category(
             manual_override=manual_override,
         )
     )
-    return result.category, result.source  # type: ignore[return-value]
+    return (
+        result.category,  # type: ignore[return-value]
+        result.source,
+        _pick_display_title(scraped=snapshot.title, cleaned=result.clean_title),
+    )
+
+
+def _pick_display_title(*, scraped: str, cleaned: str | None) -> str | None:
+    """Return the cleaned title only when it's a strict improvement.
+
+    "Strict improvement" means:
+    - non-empty after strip
+    - shorter than the scraped title (otherwise the LLM didn't actually clean it)
+    - not identical to the scraped title (case-insensitive)
+
+    Returning ``None`` keeps the scraped title as ``products.title``. Length
+    bounds are already enforced by the LLM provider; this is the post-bound
+    guard that prevents overrides that don't actually shorten anything.
+    """
+    if cleaned is None:
+        return None
+    candidate = cleaned.strip()
+    if not candidate:
+        return None
+    scraped_stripped = scraped.strip()
+    if candidate.casefold() == scraped_stripped.casefold():
+        return None
+    if len(candidate) >= len(scraped_stripped):
+        return None
+    return candidate
 
 
 def _listing_eligible_for_best_price(listing: dict[str, Any]) -> bool:
@@ -503,7 +532,7 @@ def create_product(
 
     snapshot = outcome.snapshot
     profile = get_or_create_profile(user_id)
-    category_value, category_source = _resolve_category(
+    category_value, category_source, display_title = _resolve_category(
         snapshot=snapshot,
         entry=outcome.entry,
         category_input=category,
@@ -516,7 +545,7 @@ def create_product(
         .insert(
             {
                 "user_id": str(user_id),
-                "title": snapshot.title,
+                "title": display_title or snapshot.title,
                 "brand": snapshot.brand,
                 "image_url": str(snapshot.image_url) if snapshot.image_url else None,
                 "category": category_value,

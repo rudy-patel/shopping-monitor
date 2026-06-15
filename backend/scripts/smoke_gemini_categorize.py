@@ -52,9 +52,14 @@ def main() -> int:
         )
         mode = "dry_run"
 
+    # Use a verbose retailer-style title so the LLM's clean_title (U-ADD-9)
+    # has something to actually shorten on --live runs.
     ctx = CategorizationContext(
-        title="Sony WH-1000XM5",
-        brand="Sony",
+        title=(
+            "Apple AirPods Pro 3 Noise Cancelling True Wireless Earbuds with "
+            "MagSafe Charging Case"
+        ),
+        brand="Apple",
         retailer_slug="bestbuy_ca",
         breadcrumbs=["Electronics", "Headphones"],
     )
@@ -66,6 +71,7 @@ def main() -> int:
     print(f"mode={mode}")
     print(f"category={result.category}")
     print(f"source={result.source}")
+    print(f"clean_title={result.clean_title!r}")
     print(f"elapsed_ms={elapsed_ms}")
 
     if args.expect_heuristic and result.source == "llm":
