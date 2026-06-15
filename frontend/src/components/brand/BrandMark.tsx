@@ -1,10 +1,24 @@
 import { cn } from '@/lib/utils'
 
+type BrandMarkSize = 'hero' | 'nav' | 'compact'
+
 interface BrandMarkProps {
-  /** `hero` for sign-in splash; `compact` for in-app empty states. */
-  size?: 'hero' | 'compact'
+  /** `hero` for sign-in splash; `nav` for header; `compact` for in-app empty states. */
+  size?: BrandMarkSize
   showWings?: boolean
   className?: string
+}
+
+const PILL_CLASS: Record<BrandMarkSize, string> = {
+  hero: 'px-8 py-4 sm:px-12 sm:py-5',
+  nav: 'px-2.5 py-0.5',
+  compact: 'px-4 py-2',
+}
+
+const TEXT_CLASS: Record<BrandMarkSize, string> = {
+  hero: 'text-4xl sm:text-5xl md:text-6xl',
+  nav: 'text-sm',
+  compact: 'text-lg',
 }
 
 function WingFlourish({
@@ -43,27 +57,27 @@ function WingFlourish({
   )
 }
 
-export function BrandMark({ size = 'hero', showWings = true, className }: BrandMarkProps) {
-  const isHero = size === 'hero'
+export function BrandMark({ size = 'hero', showWings, className }: BrandMarkProps) {
+  const wingsVisible = showWings ?? size === 'hero'
+  const wingSize = size === 'nav' ? 'compact' : size
+  const labelClass = cn('font-semibold tracking-tight text-foreground', TEXT_CLASS[size])
 
   return (
     <div className={cn('relative inline-block', className)}>
-      {showWings ? <WingFlourish side="left" size={size} /> : null}
+      {wingsVisible ? <WingFlourish side="left" size={wingSize} /> : null}
       <div
         className={cn(
           'rounded-full border-2 border-dashed border-foreground/35 bg-background/95 shadow-sm backdrop-blur-sm',
-          isHero ? 'px-8 py-4 sm:px-12 sm:py-5' : 'px-4 py-2',
+          PILL_CLASS[size],
         )}
       >
-        {isHero ? (
-          <h1 className="font-semibold tracking-tight text-foreground text-4xl sm:text-5xl md:text-6xl">
-            Someday.
-          </h1>
+        {size === 'hero' ? (
+          <h1 className={labelClass}>Someday.</h1>
         ) : (
-          <span className="text-lg font-semibold tracking-tight text-foreground">Someday.</span>
+          <span className={labelClass}>Someday.</span>
         )}
       </div>
-      {showWings ? <WingFlourish side="right" size={size} /> : null}
+      {wingsVisible ? <WingFlourish side="right" size={wingSize} /> : null}
     </div>
   )
 }

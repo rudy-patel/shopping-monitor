@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Brand assets, header logo, and share previews
+
+**What:** Extended splash **`BrandMark`** with a `nav` size for `TopNav` (compact dashed pill, no wings). Added `frontend/public/` assets: SVG favicon, 180×180 Apple touch icon, 1200×630 OG image (warm gradient + winged pill + tagline), and `site.webmanifest`. `index.html` now ships Open Graph / Twitter meta tags with absolute production URLs for iMessage/Slack link previews. **`copy.ts`** exports `SITE_NAME`, `SITE_DESCRIPTION`, `SITE_ORIGIN` as the single source of truth; **`site-meta.test.ts`** asserts `index.html` stays aligned.
+
+**Files:** `frontend/src/components/brand/BrandMark.tsx`, `frontend/src/components/layout/TopNav.tsx`, `frontend/src/lib/copy.ts`, `frontend/index.html`, `frontend/public/*`, `frontend/src/test/brand-mark.test.tsx`, `frontend/src/test/copy.test.ts`, `frontend/src/test/site-meta.test.ts`, `docs/PRD.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `npm run lint`; `npm run test:run` (brand-mark, top-nav, copy, site-meta).
+
+---
+
 ## [2026-06-15] Production demo seed script (friend demo catalog)
 
 **What:** Manual service-role script seeds a production Supabase user with a varied catalog — 12 products (active/archived/needs_input), synthetic 30-day `price_history` for trend chips, multi-retailer listings, and 8 in-app notifications. Uses real retailer HTTPS URLs (no `fixtures.local`); manifest file (`.demo_seed_manifest.json`, gitignored) enables `--cleanup` without title prefixes. Notifications get `email_sent_at` set so digest cron does not email demo rows. `--apply` refused in CI.

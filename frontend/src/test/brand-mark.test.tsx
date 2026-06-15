@@ -15,4 +15,11 @@ describe('BrandMark', () => {
     expect(screen.queryByRole('heading')).not.toBeInTheDocument()
     expect(screen.getByText('Someday.')).toBeInTheDocument()
   })
+
+  it('renders nav size without wings for the header', () => {
+    render(<BrandMark size="nav" />)
+
+    expect(screen.queryByRole('heading')).not.toBeInTheDocument()
+    expect(screen.getByText('Someday.')).toBeInTheDocument()
+  })
 })

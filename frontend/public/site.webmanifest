@@ -1,0 +1,20 @@
+{
+  "name": "Someday",
+  "short_name": "Someday",
+  "description": "Everything you want — when the price is right.",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#fff7ed",
+  "background_color": "#fff7ed",
+  "display": "standalone"
+}
