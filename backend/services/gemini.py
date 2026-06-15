@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import time
 from collections.abc import Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeoutError
@@ -69,14 +70,50 @@ def _extract_json_text(raw_text: str) -> str:
     return stripped
 
 
+_GROUNDED_MAX_ATTEMPTS = 3
+_GROUNDED_RETRY_BACKOFF_S = 2.0
+
+
+def _is_rate_limit_error(exc: Exception) -> bool:
+    if isinstance(exc, genai_errors.APIError) and exc.code == 429:
+        return True
+    message = str(exc).lower()
+    return "rate limit" in message or "too many requests" in message
+
+
+def _extract_grounded_response_text(response: object) -> str | None:
+    """Best-effort text from a grounded response; SDK `text` can be None."""
+    text = getattr(response, "text", None)
+    if isinstance(text, str) and text.strip():
+        return text
+    candidates = getattr(response, "candidates", None) or []
+    if not candidates:
+        return None
+    content = getattr(candidates[0], "content", None)
+    parts = getattr(content, "parts", None) or []
+    chunks: list[str] = []
+    for part in parts:
+        part_text = getattr(part, "text", None)
+        if isinstance(part_text, str) and part_text:
+            chunks.append(part_text)
+    joined = "".join(chunks).strip()
+    return joined or None
+
+
 def _is_quota_error(exc: Exception) -> bool:
+    if _is_rate_limit_error(exc):
+        return True
     if isinstance(exc, genai_errors.APIError):
-        if exc.code == 429:
-            return True
         if exc.status == "RESOURCE_EXHAUSTED":
             return True
     message = str(exc).lower()
     return "quota" in message or "resource_exhausted" in message
+
+
+def _raise_gemini_call_error(exc: Exception) -> None:
+    if _is_quota_error(exc):
+        raise LlmQuotaExhaustedError(str(exc)) from exc
+    raise LlmProviderError(str(exc)) from exc
 
 
 def _supported_retailer_lines() -> list[str]:
@@ -214,9 +251,7 @@ class GeminiFlashLlmProvider:
         except (LlmTimeoutError, LlmInvalidResponseError, LlmQuotaExhaustedError):
             raise
         except Exception as exc:
-            if _is_quota_error(exc):
-                raise LlmQuotaExhaustedError(str(exc)) from exc
-            raise LlmProviderError(str(exc)) from exc
+            _raise_gemini_call_error(exc)
 
         return self._parse_search_response(raw_text)
 
@@ -259,9 +294,7 @@ class GeminiFlashLlmProvider:
         except (LlmTimeoutError, LlmInvalidResponseError, LlmQuotaExhaustedError):
             raise
         except Exception as exc:
-            if _is_quota_error(exc):
-                raise LlmQuotaExhaustedError(str(exc)) from exc
-            raise LlmProviderError(str(exc)) from exc
+            _raise_gemini_call_error(exc)
 
         return self._parse_discover_response(raw_text)
 
@@ -296,9 +329,7 @@ class GeminiFlashLlmProvider:
         except (LlmTimeoutError, LlmInvalidResponseError, LlmQuotaExhaustedError):
             raise
         except Exception as exc:
-            if _is_quota_error(exc):
-                raise LlmQuotaExhaustedError(str(exc)) from exc
-            raise LlmProviderError(str(exc)) from exc
+            _raise_gemini_call_error(exc)
 
         return self._parse_categorize_response(raw_text)
 
@@ -319,17 +350,31 @@ class GeminiFlashLlmProvider:
     def _call_gemini_grounded(self, prompt: str, *, empty_message: str) -> str:
         # Gemini 2.5 rejects controlled JSON schema alongside google_search grounding.
         # Prompt for JSON and parse/validate locally instead.
-        response = self._client.models.generate_content(
-            model=self._model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                tools=[types.Tool(google_search=types.GoogleSearch())],
-            ),
-        )
-        raw_text = response.text
-        if not raw_text:
-            raise LlmInvalidResponseError(empty_message)
-        return raw_text
+        last_error: Exception | None = None
+        for attempt in range(_GROUNDED_MAX_ATTEMPTS):
+            try:
+                response = self._client.models.generate_content(
+                    model=self._model,
+                    contents=prompt,
+                    config=types.GenerateContentConfig(
+                        tools=[types.Tool(google_search=types.GoogleSearch())],
+                    ),
+                )
+                raw_text = _extract_grounded_response_text(response)
+                if raw_text:
+                    return raw_text
+                raise LlmInvalidResponseError(empty_message)
+            except LlmInvalidResponseError:
+                raise
+            except Exception as exc:
+                last_error = exc
+                if _is_rate_limit_error(exc) and attempt < _GROUNDED_MAX_ATTEMPTS - 1:
+                    time.sleep(_GROUNDED_RETRY_BACKOFF_S * (attempt + 1))
+                    continue
+                _raise_gemini_call_error(exc)
+        if last_error is not None:
+            _raise_gemini_call_error(last_error)
+        raise LlmInvalidResponseError(empty_message)
 
     def _parse_categorize_response(self, raw_text: str) -> LlmCategorizationResult:
         try:

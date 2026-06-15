@@ -8,6 +8,7 @@ from scrapers.bestbuy_ca import register_bestbuy_ca
 from scrapers.generic import register_generic
 from scrapers.indigo import register_indigo
 from scrapers.registry import reset_registry
+from core.settings import Settings
 from services.llm import FakeLlmProvider, LlmSearchCandidate, LlmSearchResult
 from services.search_cache_service import SearchCacheService
 from services.search_service import (
@@ -146,7 +147,7 @@ def test_run_search_calls_llm_then_caches():
         )
     )
     client = FakeSupabaseClient()
-    cache = SearchCacheService(client)
+    cache = SearchCacheService(client, settings=Settings(scraper_mode="live"))
 
     first = run_search("widget", client=client, llm=llm, cache=cache)
     assert first.cache_hit is False
@@ -171,7 +172,7 @@ def test_run_search_empty_query_filters_out_non_canadian():
         )
     )
     client = FakeSupabaseClient()
-    cache = SearchCacheService(client)
+    cache = SearchCacheService(client, settings=Settings(scraper_mode="live"))
 
     response = run_search("widget", client=client, llm=llm, cache=cache)
     assert response.results == []

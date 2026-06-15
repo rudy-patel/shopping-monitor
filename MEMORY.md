@@ -29,6 +29,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] T8.3 Search cache poison + grounded retry hardening
+
+**Bug:** Prod "AirPods Pro" returned instantly but "patagonia" returned 503 "Search is temporarily unavailable." Root cause: local `SCRAPER_MODE=fixtures` dev against prod Supabase wrote `fixtures.local` URLs into `search_cache` (`airpods pro`, `nintendo switch 2`). Cached hits bypassed Gemini entirely; uncached queries hit live Gemini (503 on rate limit/quota).
+
+**Fix:** `SearchCacheService` skips read/write in fixtures mode; rejects poisoned payloads containing `fixtures.local`; deleted poisoned prod rows. Grounded Gemini calls retry once on 429 with backoff and extract text from candidate parts when `response.text` is empty. Added `patagonia.json` search fixture for local dev.
+
+**Files:** `backend/services/search_cache_service.py`, `backend/services/gemini.py`, `backend/test/test_search_cache_service.py`, `backend/test/test_services_gemini.py`, `backend/test/test_search_router.py`, `backend/test/test_llm_fixtures.py`, `backend/test/fixtures/search/patagonia.json`, `MEMORY.md`.
+
+---
+
 ## [2026-06-15] T8.2 Search production fix — second pass (timeout alignment)
 
 **Bug:** After #49 fixed the Gemini `response_schema` + `google_search` 502, production search still returned **504** "Search took too long" when grounded Gemini exceeded the interim `12.0`s default.

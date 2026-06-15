@@ -256,9 +256,13 @@ describe('SearchCommandDialog', () => {
     await user.type(screen.getByPlaceholderText(/search any product/i), 'anything')
     await user.click(screen.getByRole('button', { name: /^search$/i }))
 
-    await waitFor(() => {
-      expect(screen.getByTestId('search-error')).toHaveTextContent(/temporarily unavailable/i)
-    })
+    // useSearch retries transient 503s twice with backoff before surfacing the error.
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('search-error')).toHaveTextContent(/temporarily unavailable/i)
+      },
+      { timeout: 8000 },
+    )
   })
 
   it('Track failure clears the pending state so the user can retry', async () => {
