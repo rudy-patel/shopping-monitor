@@ -229,3 +229,75 @@ entries:
       image: true
       variants: true
     notes: All primary SKUs unavailable
+
+  - slug: amazon_ca
+    scenario: in_stock
+    url: https://fixtures.local/amazon_ca/in_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: false
+      variants: true
+    notes: Echo Dot 1P JSON-LD/price; twister color variants
+
+  - slug: amazon_ca
+    scenario: multi_variant
+    url: https://fixtures.local/amazon_ca/multi_variant
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: false
+      variants: true
+    notes: Amazon Basics HDMI length/pack twister matrix
+
+  - slug: amazon_ca
+    scenario: out_of_stock
+    url: https://fixtures.local/amazon_ca/out_of_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: false
+      variants: true
+    notes: 1P Echo Dot fixture with availability set to unavailable
+
+  - slug: nike_ca
+    scenario: in_stock
+    url: https://fixtures.local/nike_ca/in_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: false
+      variants: true
+    notes: Nike __NEXT_DATA__ buyable AF1 with size matrix
+
+  - slug: nike_ca
+    scenario: multi_variant
+    url: https://fixtures.local/nike_ca/multi_variant
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: false
+      variants: true
+    notes: AF1 colorway group with multiple style codes
+
+  - slug: nike_ca
+    scenario: out_of_stock
+    url: https://fixtures.local/nike_ca/out_of_stock
+    mode: fixture
+    expect:
+      title: true
+      price: true
+      stock: true
+      image: false
+      variants: true
+    notes: AF1 fixture with all sizes inactive

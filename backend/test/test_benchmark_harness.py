@@ -38,10 +38,10 @@ def _entry(slug: str, scenario: str, **expect_kwargs) -> CatalogEntry:
     )
 
 
-def test_catalog_loads_nineteen_entries():
+def test_catalog_loads_twenty_five_entries():
     version, entries = load_catalog()
     assert version == "1"
-    assert len(entries) == 19
+    assert len(entries) == 25
     slugs = {entry.slug for entry in entries}
     assert slugs == {
         "generic",
@@ -51,6 +51,8 @@ def test_catalog_loads_nineteen_entries():
         "indigo",
         "apple_ca",
         "abercrombie",
+        "amazon_ca",
+        "nike_ca",
     }
     for entry in entries:
         assert entry.url.startswith("https://fixtures.local/")
@@ -90,6 +92,18 @@ def test_structured_data_shopify_scenarios():
 
 def test_structured_data_t53_retailers():
     _, entries = load_catalog(slugs=["indigo", "apple_ca", "abercrombie"])
+    for entry in entries:
+        result = run_structured_data(entry, live=False, retries=0)
+        assert result.status == "success", f"{entry.slug}/{entry.scenario} failed"
+        assert result.fields.title.ok
+        assert result.fields.price.ok
+        assert result.fields.stock.ok
+        if entry.expect.variants:
+            assert result.fields.variants.ok
+
+
+def test_structured_data_t54_retailers():
+    _, entries = load_catalog(slugs=["amazon_ca", "nike_ca"])
     for entry in entries:
         result = run_structured_data(entry, live=False, retries=0)
         assert result.status == "success", f"{entry.slug}/{entry.scenario} failed"
@@ -186,7 +200,7 @@ def test_bestbuy_advisory_http_parse_fallback():
 
 def test_report_summaries_cover_catalog_slugs():
     report = run_benchmark()
-    assert len(report.summaries) == 7
+    assert len(report.summaries) == 9
     assert {summary.slug for summary in report.summaries} == {
         "generic",
         "bestbuy_ca",
@@ -195,6 +209,8 @@ def test_report_summaries_cover_catalog_slugs():
         "indigo",
         "apple_ca",
         "abercrombie",
+        "amazon_ca",
+        "nike_ca",
     }
 
 

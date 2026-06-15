@@ -8,6 +8,8 @@ const RETAILER_LABELS: Record<string, string> = {
   indigo: 'Indigo',
   apple_ca: 'Apple Canada',
   abercrombie: 'Abercrombie & Fitch',
+  amazon_ca: 'Amazon.ca',
+  nike_ca: 'Nike Canada',
   palmisleskate: 'Palm Isle Skate Shop',
   tikiroomskate: 'Tiki Room Skateboards',
   generic: 'Generic scraper — may be unreliable',

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-06-14T21:53:38.421276Z",
+  "generated_at": "2026-06-14T22:40:32.672768Z",
   "scraper_mode": "fixtures",
   "playwright_available": false,
   "catalog_version": "1",
@@ -46,7 +46,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 0.76,
+          "runtime_ms": 2.04,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -174,7 +174,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 0.7,
+          "runtime_ms": 1.94,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -302,7 +302,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 131.7,
+          "runtime_ms": 147.6,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -430,7 +430,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 117.07,
+          "runtime_ms": 134.11,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -558,7 +558,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 64.67,
+          "runtime_ms": 74.2,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -686,7 +686,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 36.53,
+          "runtime_ms": 44.78,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -814,7 +814,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 40.03,
+          "runtime_ms": 42.01,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -942,7 +942,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 27.98,
+          "runtime_ms": 30.8,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -1070,7 +1070,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 30.24,
+          "runtime_ms": 33.92,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -1198,7 +1198,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 27.68,
+          "runtime_ms": 30.95,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -1326,7 +1326,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 44.84,
+          "runtime_ms": 77.01,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -1454,7 +1454,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 70.71,
+          "runtime_ms": 51.38,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -1582,7 +1582,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 75.13,
+          "runtime_ms": 79.12,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -1710,7 +1710,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 46.83,
+          "runtime_ms": 52.33,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -1838,7 +1838,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 47.88,
+          "runtime_ms": 50.75,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -1966,7 +1966,7 @@
               "reason": "not_required"
             }
           },
-          "runtime_ms": 67.08,
+          "runtime_ms": 77.91,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -2094,7 +2094,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 77.84,
+          "runtime_ms": 84.77,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -2222,7 +2222,7 @@
               "reason": null
             }
           },
-          "runtime_ms": 77.78,
+          "runtime_ms": 88.98,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -2350,7 +2350,775 @@
               "reason": null
             }
           },
-          "runtime_ms": 95.03,
+          "runtime_ms": 115.19,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "amazon_ca",
+      "scenario": "in_stock",
+      "url": "https://fixtures.local/amazon_ca/in_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": false,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Amazon Echo Dot (newest model), Vibrant sounding Alexa speaker, Great for bedrooms, dining rooms and offices, Charcoal, with Alexa+ Early Access",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 6999,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://m.media-amazon.com/images/I/71Tm9ZWZ5LL._AC_SY300_SX300_QL70_ML2_.jpg",
+              "reason": "not_required"
+            },
+            "variants": {
+              "ok": true,
+              "value": 3,
+              "reason": null
+            }
+          },
+          "runtime_ms": 16.82,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "amazon_ca",
+      "scenario": "multi_variant",
+      "url": "https://fixtures.local/amazon_ca/multi_variant",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": false,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Amazon Basics High-Speed HDMI Cable (18 Gbps, 4K/60Hz) - 6 Feet, Black",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 778,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://m.media-amazon.com/images/I/41GfmFS-kuL._SX342_SY445_QL70_ML2_.jpg",
+              "reason": "not_required"
+            },
+            "variants": {
+              "ok": true,
+              "value": 11,
+              "reason": null
+            }
+          },
+          "runtime_ms": 20.92,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "amazon_ca",
+      "scenario": "out_of_stock",
+      "url": "https://fixtures.local/amazon_ca/out_of_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": false,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Amazon Echo Dot (newest model), Vibrant sounding Alexa speaker, Great for bedrooms, dining rooms and offices, Charcoal, with Alexa+ Early Access",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 6999,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": false,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": "https://m.media-amazon.com/images/I/71Tm9ZWZ5LL._AC_SY300_SX300_QL70_ML2_.jpg",
+              "reason": "not_required"
+            },
+            "variants": {
+              "ok": true,
+              "value": 3,
+              "reason": null
+            }
+          },
+          "runtime_ms": 11.07,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "nike_ca",
+      "scenario": "in_stock",
+      "url": "https://fixtures.local/nike_ca/in_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": false,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Nike Air Force 1 '07 Men's Shoes",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 15000,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "not_required"
+            },
+            "variants": {
+              "ok": true,
+              "value": 2,
+              "reason": null
+            }
+          },
+          "runtime_ms": 2.45,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "nike_ca",
+      "scenario": "multi_variant",
+      "url": "https://fixtures.local/nike_ca/multi_variant",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": false,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Nike Air Force 1 '07 Men's Shoes",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 15000,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": true,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "not_required"
+            },
+            "variants": {
+              "ok": true,
+              "value": 2,
+              "reason": null
+            }
+          },
+          "runtime_ms": 2.01,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": null,
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "http_parse",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "skipped_in_fixture_mode"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "skipped_in_fixture_mode",
+          "http_parse_attempts": []
+        },
+        {
+          "strategy": "playwright",
+          "status": "skipped",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "price": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "stock": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            },
+            "variants": {
+              "ok": true,
+              "value": null,
+              "reason": "playwright_not_requested"
+            }
+          },
+          "runtime_ms": 0.0,
+          "retry_count": 0,
+          "blocked": false,
+          "blocked_markers": [],
+          "http_status": null,
+          "reason": "playwright_not_requested",
+          "http_parse_attempts": []
+        }
+      ]
+    },
+    {
+      "slug": "nike_ca",
+      "scenario": "out_of_stock",
+      "url": "https://fixtures.local/nike_ca/out_of_stock",
+      "expect": {
+        "title": true,
+        "price": true,
+        "stock": true,
+        "image": false,
+        "variants": true
+      },
+      "strategies": [
+        {
+          "strategy": "structured_data",
+          "status": "success",
+          "fields": {
+            "title": {
+              "ok": true,
+              "value": "Nike Air Force 1 '07 Men's Shoes",
+              "reason": null
+            },
+            "price": {
+              "ok": true,
+              "value": 15000,
+              "reason": null
+            },
+            "stock": {
+              "ok": true,
+              "value": false,
+              "reason": null
+            },
+            "image": {
+              "ok": true,
+              "value": null,
+              "reason": "not_required"
+            },
+            "variants": {
+              "ok": true,
+              "value": 2,
+              "reason": null
+            }
+          },
+          "runtime_ms": 1.85,
           "retry_count": 0,
           "blocked": false,
           "blocked_markers": [],
@@ -2446,6 +3214,13 @@
       "notes": "JSON-LD title/stock plus embedded productPrices and scoped SKU inventory on fixtures."
     },
     {
+      "slug": "amazon_ca",
+      "default_strategy": "structured_data",
+      "fallback_strategies": [],
+      "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
+      "notes": "Amazon.ca 1P HTML parser on curl_cffi; twister variants and first-party seller verification on fixtures."
+    },
+    {
       "slug": "apple_ca",
       "default_strategy": "structured_data",
       "fallback_strategies": [],
@@ -2474,6 +3249,13 @@
       "fallback_strategies": [],
       "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
       "notes": "Shopify meta plus ProductGroup JSON-LD for format-level stock on fixtures."
+    },
+    {
+      "slug": "nike_ca",
+      "default_strategy": "structured_data",
+      "fallback_strategies": [],
+      "registry_snippet": "default_strategy=ScrapeSource.STRUCTURED_DATA, fallback_strategies=()",
+      "notes": "Nike.ca __NEXT_DATA__ parser on curl_cffi; color/size variants on fixtures. Live HTTP only (no Render Playwright)."
     },
     {
       "slug": "palmisleskate",

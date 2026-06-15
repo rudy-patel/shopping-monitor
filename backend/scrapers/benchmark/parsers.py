@@ -6,8 +6,10 @@ from collections.abc import Callable
 
 from scrapers.bestbuy_ca import extract_bestbuy_html
 from scrapers.extraction.abercrombie import extract_abercrombie_html
+from scrapers.extraction.amazon import extract_amazon_html
 from scrapers.extraction.apple import extract_apple_html
 from scrapers.extraction.indigo import merge_indigo_extraction
+from scrapers.extraction.nike import extract_nike_html
 from scrapers.extraction.shopify import merge_shopify_extraction
 from scrapers.extraction.types import ExtractedFields
 from scrapers.structured_data import extract_from_html
@@ -35,6 +37,8 @@ PARSER_BY_SLUG: dict[str, ParserFn] = {
     "indigo": merge_indigo_extraction,
     "apple_ca": extract_apple_html,
     "abercrombie": extract_abercrombie_html,
+    "amazon_ca": extract_amazon_html,
+    "nike_ca": extract_nike_html,
 }
 
 

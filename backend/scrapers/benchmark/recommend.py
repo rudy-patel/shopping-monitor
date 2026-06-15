@@ -38,6 +38,14 @@ _DEFAULT_NOTES: dict[str, str] = {
         "Fixture HTML succeeds via structured_data; live HTML likely blocked — "
         "http_parse retailer_api sub-probe expected in production."
     ),
+    "amazon_ca": (
+        "Amazon.ca 1P HTML parser on curl_cffi; twister variants and first-party "
+        "seller verification on fixtures."
+    ),
+    "nike_ca": (
+        "Nike.ca __NEXT_DATA__ parser on curl_cffi; color/size variants on fixtures. "
+        "Live HTTP only (no Render Playwright)."
+    ),
 }
 
 

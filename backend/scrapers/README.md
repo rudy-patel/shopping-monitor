@@ -70,7 +70,25 @@ Rules: host must be `fixtures.local`; path must be `/<retailer_slug>/<scenario>`
 
 `lookup_by_url()` also resolves `fixtures.local/<retailer_slug>/...` URLs to the matching registry entry (used by the Product API in fixture mode).
 
-Production retailer modules are registered via `scrapers.bootstrap` (import for side effects in `main.py`). That module registers `generic` (unknown-domain fallback), `bestbuy_ca`, `palmisleskate`, `tikiroomskate` (T5.2), `indigo`, `apple_ca`, and `abercrombie` (T5.3 structured-data retailers).
+Production retailer modules are registered via `scrapers.bootstrap` (import for side effects in `main.py`). That module registers `generic`, `bestbuy_ca`, Shopify retailers (T5.2), structured-data retailers (T5.3), and bot-protected retailers `amazon_ca` / `nike_ca` (T5.4).
+
+## Bot-protected retailers (T5.4)
+
+Shared HTTP-only factory in `scrapers/bot_protected_retailer.py` (`curl_cffi` via `scraper_fetch`; optional API probe fallback; **no production Playwright**). Retailer parsers live under `scrapers/extraction/`.
+
+- `amazon_ca` — price/title/twister variants + strict first-party seller check (`Sold by Amazon.ca` / `Ships from and sold by Amazon.ca`).
+- `nike_ca` — `__NEXT_DATA__` / `selectedProduct` parser with color/size variants.
+
+Record live fixtures:
+
+```bash
+cd backend && source venv/bin/activate
+SCRAPER_MODE=record python ../scripts/record_retailer_fixtures.py \
+  --slug amazon_ca --scenario in_stock \
+  --url "https://www.amazon.ca/Echo-Dot-5th-Gen-2022-release/dp/B09B8V1LZ3"
+```
+
+**Deferred (T5.4):** `sportchek`, `footlocker_ca` — live HTTP returns Akamai/JS shell HTML without extractable product data from `curl_cffi` alone; Playwright intentionally excluded from V1 production.
 
 ## Structured-data retailers (T5.3)
 
