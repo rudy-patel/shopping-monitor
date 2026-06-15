@@ -2,7 +2,8 @@ name: Daily digest
 
 on:
   workflow_dispatch:
-  # schedule: "0 14 * * *"  # T6.3 — enable only after production validation
+  schedule:
+    - cron: '0 14 * * *'
 
 jobs:
   digest:

@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-14 (T5.5 local drift tooling; T5.4 bot-protected retailers; T6.2 production smoke).
+> **Last updated:** 2026-06-15 (T6.3 cron schedules; T5.5 local drift tooling; T6.2 production smoke).
 
 ---
 
@@ -53,7 +53,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
 | M4: MVP product workflows | done | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5), digest email (T3.6), settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
 | M5: V1 retailer coverage | done | Supported retailers have benchmark decisions, scraper modules, fixtures, and local drift checks (T5.1–T5.5). Deferred: `sportchek`, `footlocker_ca`, `costco_ca`, etc. | V1 success criteria can be tested end-to-end. |
-| M6: Production-ready V1 | in progress | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check. **Progress:** T6.2 production smoke done (Google OAuth, live `bestbuy_ca` + `palmisleskate` add/refresh on Render, digest suppression, disposable account delete); T6.1/T3.5/T3.6 job code shipped (`workflow_dispatch` only). **Remaining:** T6.3 cron enablement, T6.4 7-day reliability, T7.x quality gates. | Invite early friends for feedback. |
+| M6: Production-ready V1 | in progress | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check. **Progress:** T6.3 cron schedules enabled (`0 8` scrape, `0 14` digest UTC); T6.2 production smoke done; T6.1/T3.5/T3.6 job code shipped. **Remaining:** T6.4 7-day reliability, T7.x quality gates. | Invite early friends for feedback. |
 
 ---
 
@@ -113,7 +113,7 @@ Needed before digest delivery verification.
 
 ### H5. Render, Vercel, and GitHub Actions secrets
 
-**Status:** done (2026-06-14) — Render backend (`https://shopping-monitor-api.onrender.com`), Vercel frontend (`https://shopping-monitor-nine.vercel.app`), Supabase Auth redirect URLs, and GitHub Actions secrets (`BACKEND_BASE_URL`, `WORKER_TOKEN`) are configured. **Do not** enable scrape/digest cron schedules until T6.3 and explicit human confirmation.
+**Status:** done (2026-06-14) — Render backend (`https://shopping-monitor-api.onrender.com`), Vercel frontend (`https://shopping-monitor-nine.vercel.app`), Supabase Auth redirect URLs, and GitHub Actions secrets (`BACKEND_BASE_URL`, `WORKER_TOKEN`) are configured. Scrape/digest cron schedules enabled in T6.3 (2026-06-15).
 
 Needed before M6 production validation and T3.5 `workflow_dispatch` smoke against the deployed backend.
 
@@ -121,7 +121,7 @@ Needed before M6 production validation and T3.5 `workflow_dispatch` smoke agains
 - Create Vercel frontend project.
 - Add deployed URLs to Supabase Auth redirects.
 - Add GitHub Actions secrets: `BACKEND_BASE_URL`, `WORKER_TOKEN`.
-- Enable scheduled workflows only after manual `workflow_dispatch` verification.
+- Enable scheduled workflows after manual `workflow_dispatch` verification (done — T6.3).
 
 ---
 
@@ -492,7 +492,7 @@ These can proceed after the local vertical slice lands.
 **Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/31.
 
 - **Owner:** agent.
-- **Human setup:** H5 done for deployed `workflow_dispatch` smoke; defer cron `schedule` to T6.3.
+- **Human setup:** H5 done for deployed `workflow_dispatch` smoke; cron `schedule` enabled in T6.3.
 - **PR size:** backend PR plus thin workflow/scripts if ready.
 - **Build:**
   - `POST /internal/jobs/scrape-all` (worker-token protected).
@@ -500,7 +500,7 @@ These can proceed after the local vertical slice lands.
   - Retry each listing up to 2 times with exponential backoff (`1s`, `2s`).
   - Write `price_history` (`source='scheduled'`), update listing status, invoke scrape-triggered evaluators for touched products only, then revisit-only evaluators per user active products.
   - Thin `backend/workers/scrape_all.py` script.
-  - `.github/workflows/scrape.yml` with `workflow_dispatch` only.
+  - `.github/workflows/scrape.yml` with `workflow_dispatch`; cron enabled in T6.3.
 - **Verification:**
   - `ruff check .`, `pytest -m "not integration"` with `SCRAPER_MODE=fixtures`.
   - Worker script test/mocked HTTP call.
@@ -520,7 +520,7 @@ These can proceed after the local vertical slice lands.
   - `POST /internal/jobs/send-digests`.
   - Mark included notifications with `email_sent_at`.
   - Thin `backend/workers/send_digests.py`.
-  - `.github/workflows/digest.yml` with `workflow_dispatch`; add `schedule` only when production is ready.
+  - `.github/workflows/digest.yml` with `workflow_dispatch`; cron `schedule` enabled in T6.3.
 - **Verification:**
   - Unit tests for no-unread suppression, email-disabled suppression, noop skip counting, rendered template contents, marking sent.
   - Sandbox live send smoke with H4 complete (`scripts/smoke_resend_digest.py --live`); production digest `workflow_dispatch` verified in T6.2 ([run #27513581095](https://github.com/rudy-patel/shopping-monitor/actions/runs/27513581095)).
@@ -682,17 +682,19 @@ Start after M3 proves the one-retailer architecture.
 
 ### T6.3 Enable schedules
 
-**Status:** pending
+**Status:** done — 2026-06-15
 
 - **Owner:** agent with explicit human confirmation.
-- **PR size:** workflow PR if schedules were deferred.
+- **PR size:** workflow PR.
 - **Build:**
-  - Enable scrape cron `0 8 * * *` UTC.
-  - Enable digest cron `0 14 * * *` UTC.
+  - Enabled scrape cron `0 8 * * *` UTC in `.github/workflows/scrape.yml`.
+  - Enabled digest cron `0 14 * * *` UTC in `.github/workflows/digest.yml`.
+  - Workflow YAML guard tests in `backend/test/test_scheduled_workflows.py`.
 - **Verification:**
-  - First scheduled run completes.
-  - No duplicate price history from advisory lock.
-  - No email when zero unread notifications.
+  - `workflow_dispatch` scrape/digest smoke (T6.2 runs #27509008501, #27513581095).
+  - Advisory lock skip on concurrent scrape (`lock_not_acquired` — `test_run_scrape_all_skipped_when_lock_not_acquired`).
+  - Digest zero-unread suppression (`users_skipped_no_unread` — T6.2 + `test_digest_job_service`).
+  - `pytest backend/test/test_scheduled_workflows.py`.
 
 ### T6.4 Seven-day reliability check
 
@@ -761,7 +763,7 @@ Use these lanes after the foundation tasks land. Keep each lane on separate file
 | Product UI | T1.3/T2.5 | Dashboard, list, detail, add modal | Settings and notifications routes |
 | Discovery | T2.5/T2.8 | LLM discovery and review queue | Retailer modules except through registry |
 | Notifications/jobs | T2.5 | evaluators, internal jobs, digest | Product API helpers and notification UI contracts |
-| Deployment | M4 | Render/Vercel/GitHub Actions docs and smoke | Workflow scheduling until explicit enablement |
+| Deployment | M4 | Render/Vercel/GitHub Actions docs and smoke | T6.4 reliability monitoring |
 
 ---
 
@@ -788,9 +790,9 @@ Constraints:
 
 ## 15. Near-term recommended execution order
 
-**Phase 3 through T3.6, Phase 4 through T4.3, deployment docs (T6.1), T5.1–T5.5 retailer expansion + drift tooling, and T6.2 production smoke are complete.** Pick next from:
+**Phase 3 through T3.6, Phase 4 through T4.3, deployment docs (T6.1), T5.1–T5.5 retailer expansion + drift tooling, T6.2 production smoke, and T6.3 cron schedules are complete.** Pick next from:
 
-1. **T6.3** Enable scrape/digest cron schedules — requires explicit human confirmation.
+1. **T6.4** Seven-day scrape reliability check.
 2. **T7.x** Quality gates and V1 acceptance checklist.
 
 <details>
@@ -802,6 +804,7 @@ Constraints:
 - ~~**T5.2** Easy Shopify retailers~~ — `palmisleskate`, `tikiroomskate`.
 - ~~**T5.1** Benchmark harness~~ — done.
 - ~~**T6.2** Production smoke~~ — done.
+- ~~**T6.3** Cron schedules~~ — scrape `0 8 * * *` UTC, digest `0 14 * * *` UTC.
 
 </details>
 

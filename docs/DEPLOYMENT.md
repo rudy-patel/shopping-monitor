@@ -168,7 +168,7 @@ Add these repository secrets:
 
 `.github/workflows/scrape.yml`:
 
-- **Trigger:** `workflow_dispatch` only (cron `0 8 * * *` commented — enable in T6.3 after human confirmation)
+- **Trigger:** `workflow_dispatch` and cron `0 8 * * *` UTC (≈ 04:00 America/Toronto; enabled T6.3)
 - **Worker:** `backend/workers/scrape_all.py`
 - **Deploy-wait (PR #32):** If `/internal/jobs/scrape-all` is missing from `/openapi.json`, polls up to 600s (15s interval) before POST — handles Render auto-deploy lag after push to `main`
 - **Verified:** [GitHub Actions run #27509008501](https://github.com/rudy-patel/shopping-monitor/actions/runs/27509008501) (2026-06-14) returned `status: "completed"`
@@ -190,13 +190,13 @@ Prior failures ([run #27507830386](https://github.com/rudy-patel/shopping-monito
 
 `.github/workflows/digest.yml`:
 
-- **Trigger:** `workflow_dispatch` only (cron `0 14 * * *` commented — enable in T6.3 after human confirmation)
+- **Trigger:** `workflow_dispatch` and cron `0 14 * * *` UTC (fixed Pacific-morning send per PRD §10.3)
 - **Worker:** `backend/workers/send_digests.py`
 - **Deploy-wait:** Same 600s OpenAPI poll pattern as scrape worker (waits for `/internal/jobs/send-digests`)
 
 Manual run: GitHub → Actions → **Daily digest** → **Run workflow**.
 
-**Post-merge:** Set `RESEND_API_KEY` on Render (same value as local sandbox key). Confirm `APP_BASE_URL=https://shopping-monitor-nine.vercel.app`. Dispatch once and verify inbox delivery before enabling cron (T6.3).
+**Production:** `RESEND_API_KEY` and `APP_BASE_URL=https://shopping-monitor-nine.vercel.app` confirmed on Render. Digest live send with unread notifications verified via manual `workflow_dispatch` (T6.2); zero-unread suppression verified in [run #27513581095](https://github.com/rudy-patel/shopping-monitor/actions/runs/27513581095). Cron enabled T6.3 (2026-06-15).
 
 **Troubleshooting:**
 
@@ -256,5 +256,5 @@ Playwright e2e runs in the `playwright-e2e` job when Supabase secrets are config
 | Task | Relationship |
 | --- | --- |
 | T6.2 | ~~Full production smoke~~ — **done** (2026-06-14) |
-| T6.3 | Enable scrape/digest cron schedules — requires explicit human OK |
+| T6.3 | ~~Enable scrape/digest cron schedules~~ — **done** (2026-06-15) |
 | T6.4 | 7-day reliability check |
