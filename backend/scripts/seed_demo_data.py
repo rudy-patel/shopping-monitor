@@ -21,10 +21,12 @@ if str(_BACKEND_DIR) not in sys.path:
 from dotenv import load_dotenv  # noqa: E402
 
 from scripts.demo_seed_helpers import (  # noqa: E402
+    DEFAULT_DEMO_SCRAPE_DAYS_AGO,
     build_price_history_rows,
     history_days_for_product,
     listing_is_primary,
     load_catalog,
+    resolve_demo_seed_scope,
     scrape_snapshot,
 )
 
@@ -33,9 +35,9 @@ load_dotenv(_BACKEND_DIR / ".env")
 MANIFEST_PATH = Path(__file__).with_name(".demo_seed_manifest.json")
 
 
-def _refuse_apply_in_ci() -> None:
+def _refuse_prod_writes_in_ci() -> None:
     if os.environ.get("CI"):
-        raise RuntimeError("Refusing --apply in CI. Demo seed is manual-only.")
+        raise RuntimeError("Refusing production demo writes in CI.")
 
 
 def _service_client():
@@ -138,7 +140,7 @@ def _seed_product(
         "notification_threshold_pct": None,
         "notifications_enabled": True,
         "discovery_status": "complete",
-        "last_refresh_at": _iso_at(max(1, created_days_ago - 3)),
+        "last_refresh_at": _iso_at(DEFAULT_DEMO_SCRAPE_DAYS_AGO),
         "last_user_interaction_at": last_user_interaction_at,
         "dashboard_sort_order": spec.get("dashboard_sort_order"),
         "created_at": created_at,
@@ -150,7 +152,7 @@ def _seed_product(
         listing_id = str(uuid4())
         listing_ids.append(listing_id)
         price_cents = int(listing_spec["price_cents"])
-        scraped_at = _iso_at(1)
+        scraped_at = _iso_at(DEFAULT_DEMO_SCRAPE_DAYS_AGO)
         listing_row = {
             "id": listing_id,
             "product_id": product_id,
@@ -275,6 +277,75 @@ def _apply_seed(*, email: str, dry_run: bool, catalog_path: Path | None = None) 
     return {"manifest": manifest, "summary": summary, "user_id": user_id}
 
 
+def _refresh_timestamps(
+    *,
+    email: str,
+    dry_run: bool,
+    days_ago: int = DEFAULT_DEMO_SCRAPE_DAYS_AGO,
+) -> dict[str, Any]:
+    catalog = load_catalog()
+    admin = _service_client()
+    user_id = _resolve_user_id(admin, email)
+    manifest = _load_manifest()
+
+    user_products = (
+        admin.table("products")
+        .select("id,title")
+        .eq("user_id", user_id)
+        .execute()
+        .data
+        or []
+    )
+    product_ids, manifest_listing_ids = resolve_demo_seed_scope(
+        manifest=manifest,
+        email=email,
+        user_products=user_products,
+        catalog=catalog,
+    )
+    if not product_ids:
+        raise RuntimeError(
+            f"No demo seed products found for {email!r}. "
+            "Run --apply first or ensure catalog titles match existing products."
+        )
+
+    product_id_set = set(product_ids)
+    if manifest_listing_ids is not None:
+        listing_ids = [str(listing_id) for listing_id in manifest_listing_ids]
+    else:
+        rows = (
+            admin.table("product_listings")
+            .select("id")
+            .in_("product_id", product_ids)
+            .execute()
+            .data
+            or []
+        )
+        listing_ids = [str(row["id"]) for row in rows]
+
+    scraped_at = _iso_at(days_ago)
+    titles_by_id = {
+        row["id"]: row["title"] for row in user_products if row["id"] in product_id_set
+    }
+
+    if not dry_run:
+        for product_id in product_ids:
+            admin.table("products").update({"last_refresh_at": scraped_at}).eq(
+                "id", product_id
+            ).eq("user_id", user_id).execute()
+        for listing_id in listing_ids:
+            admin.table("product_listings").update(
+                {"last_scraped_at": scraped_at, "updated_at": scraped_at}
+            ).eq("id", listing_id).execute()
+
+    return {
+        "user_id": user_id,
+        "product_ids": product_ids,
+        "listing_ids": listing_ids,
+        "timestamp": scraped_at,
+        "titles": sorted(titles_by_id[pid] for pid in product_ids),
+    }
+
+
 def _cleanup(*, email: str) -> None:
     manifest = _load_manifest()
     if manifest is None:
@@ -307,10 +378,43 @@ def main() -> int:
         action="store_true",
         help="Cleanup existing manifest then apply",
     )
+    parser.add_argument(
+        "--refresh-timestamps",
+        action="store_true",
+        help="Update last_refresh_at / last_scraped_at for seeded demo products only",
+    )
+    parser.add_argument(
+        "--days-ago",
+        type=int,
+        default=DEFAULT_DEMO_SCRAPE_DAYS_AGO,
+        help="Days ago for refresh timestamps (default: 1)",
+    )
     args = parser.parse_args()
 
     if args.cleanup:
         _cleanup(email=args.email)
+        return 0
+
+    if args.refresh_timestamps:
+        if args.days_ago < 0:
+            parser.error("--days-ago must be >= 0")
+        if not args.dry_run:
+            _refuse_prod_writes_in_ci()
+        result = _refresh_timestamps(
+            email=args.email,
+            dry_run=args.dry_run,
+            days_ago=args.days_ago,
+        )
+        mode = "DRY RUN" if args.dry_run else "APPLIED"
+        print(
+            f"[{mode}] Refreshed demo timestamps for {args.email} "
+            f"(user_id={result['user_id']}, at={result['timestamp']})"
+        )
+        for title in result["titles"]:
+            print(f"  - {title}")
+        print(f"  products={len(result['product_ids'])} listings={len(result['listing_ids'])}")
+        if args.dry_run:
+            print("Re-run with --refresh-timestamps (no --dry-run) to write to Supabase.")
         return 0
 
     if args.force:
@@ -318,10 +422,10 @@ def main() -> int:
             _cleanup(email=args.email)
 
     if not args.dry_run and not args.apply:
-        parser.error("Specify --dry-run or --apply (or --cleanup)")
+        parser.error("Specify --dry-run or --apply (or --cleanup / --refresh-timestamps)")
 
     if args.apply:
-        _refuse_apply_in_ci()
+        _refuse_prod_writes_in_ci()
 
     result = _apply_seed(email=args.email, dry_run=args.dry_run)
     mode = "DRY RUN" if args.dry_run else "APPLIED"

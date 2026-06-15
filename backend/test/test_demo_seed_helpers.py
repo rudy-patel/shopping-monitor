@@ -19,6 +19,7 @@ from scripts.demo_seed_helpers import (
     listing_is_primary,
     load_catalog,
     price_for_day,
+    resolve_demo_seed_scope,
     trend_direction_for_series,
     validate_catalog,
 )
@@ -88,6 +89,82 @@ def test_history_days_meets_trend_minimum():
     )
 
 
+def test_resolve_demo_seed_scope_prefers_manifest():
+    catalog = load_catalog()
+    manifest = {
+        "email": "demo@example.com",
+        "product_ids": ["p1", "p2"],
+        "listing_ids": ["l1", "l2"],
+    }
+    user_products = [
+        {"id": "p1", "title": "iPhone 16"},
+        {"id": "p3", "title": "User-added product"},
+    ]
+    product_ids, listing_ids = resolve_demo_seed_scope(
+        manifest=manifest,
+        email="demo@example.com",
+        user_products=user_products,
+        catalog=catalog,
+    )
+    assert product_ids == ["p1", "p2"]
+    assert listing_ids == ["l1", "l2"]
+
+
+def test_resolve_demo_seed_scope_falls_back_to_catalog_titles():
+    catalog = load_catalog()
+    user_products = [
+        {"id": "p1", "title": "iPhone 16"},
+        {"id": "p2", "title": "User-added product"},
+    ]
+    product_ids, listing_ids = resolve_demo_seed_scope(
+        manifest=None,
+        email="demo@example.com",
+        user_products=user_products,
+        catalog=catalog,
+    )
+    assert product_ids == ["p1"]
+    assert listing_ids is None
+
+
+def test_resolve_demo_seed_scope_ignores_manifest_for_other_email():
+    catalog = load_catalog()
+    manifest = {
+        "email": "other@example.com",
+        "product_ids": ["p9"],
+        "listing_ids": ["l9"],
+    }
+    user_products = [{"id": "p1", "title": "iPhone 16"}]
+    product_ids, listing_ids = resolve_demo_seed_scope(
+        manifest=manifest,
+        email="demo@example.com",
+        user_products=user_products,
+        catalog=catalog,
+    )
+    assert product_ids == ["p1"]
+    assert listing_ids is None
+
+
+def test_seed_script_refuses_refresh_timestamps_in_ci():
+    env = os.environ.copy()
+    env["CI"] = "true"
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(_SEED_SCRIPT),
+            "--email",
+            "demo@example.com",
+            "--refresh-timestamps",
+        ],
+        cwd=_BACKEND_DIR,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 1
+    assert "Refusing production demo writes in CI" in proc.stderr
+
+
 def test_seed_script_dry_run_without_credentials(monkeypatch):
     monkeypatch.delenv("SUPABASE_URL", raising=False)
     monkeypatch.delenv("SUPABASE_SERVICE_ROLE_KEY", raising=False)
@@ -125,7 +202,7 @@ def test_seed_script_refuses_apply_in_ci():
         check=False,
     )
     assert proc.returncode == 1
-    assert "Refusing --apply in CI" in proc.stderr
+    assert "Refusing production demo writes in CI" in proc.stderr
 
 
 def test_catalog_json_is_valid_on_disk():
