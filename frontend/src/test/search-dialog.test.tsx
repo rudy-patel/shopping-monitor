@@ -93,6 +93,36 @@ describe('SearchCommandDialog', () => {
     expect(screen.getAllByTestId('example-query').length).toBeGreaterThan(0)
   })
 
+  it('shows a loading state while the search request is in flight', async () => {
+    let resolveSearch: ((value: SearchResponse) => void) | undefined
+    vi.spyOn(apiModule, 'apiFetch').mockImplementation(
+      () =>
+        new Promise<SearchResponse>((resolve) => {
+          resolveSearch = resolve
+        }),
+    )
+    const user = userEvent.setup()
+
+    renderWithProviders(
+      <SearchCommandDialog open onOpenChange={vi.fn()} onRequestUrlAdd={vi.fn()} />,
+      { authenticated: true },
+    )
+
+    await user.type(screen.getByPlaceholderText(/search any product/i), 'airpods')
+    await user.click(screen.getByRole('button', { name: /^search$/i }))
+
+    await waitFor(() => {
+      expect(screen.getByTestId('search-loading')).toBeInTheDocument()
+    })
+    expect(screen.getByText(/searching for/i)).toBeInTheDocument()
+
+    resolveSearch?.(baseResponse)
+
+    await waitFor(() => {
+      expect(screen.getByTestId('search-results')).toBeInTheDocument()
+    })
+  })
+
   it('runs a search when the user submits a query and renders results', async () => {
     mockFetchOk(baseResponse)
     const user = userEvent.setup()

@@ -29,7 +29,17 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
-## [2026-06-15] T7.4 Auto-categorization UX polish
+## [2026-06-15] Search production fix — Gemini grounded + structured output incompatibility
+
+**Bug:** Production `/api/search` returned `502` with "Search provider error — please try again." for queries like "airpods". Root cause: `_call_gemini_search` (and `_call_gemini_discover`) passed both `response_schema`/`response_mime_type` **and** `google_search` to `gemini-2.5-flash`. Gemini rejects that combo with `400 INVALID_ARGUMENT` ("controlled generation is not supported with google_search tool"), which the router maps to `LlmProviderError`.
+
+**Fix:** Consolidated grounded calls into `_call_gemini_grounded`; drop controlled JSON schema on grounded paths; prompt for JSON explicitly and parse/validate locally (`_extract_json_text` strips optional markdown fences). Added regression tests for search + discover config and fence stripping. Bumped default `GEMINI_SEARCH_TIMEOUT_S` from `6` → `12` for slower grounded responses. Frontend: `SearchThinking` — rotating status copy + shimmer rows while `isFetching`.
+
+**Deploy note:** Backend must be redeployed to Render for the Gemini fix to reach production. `003_search_cache.sql` was already applied on Supabase.
+
+**Files:** `backend/services/gemini.py`, `backend/core/settings.py`, `backend/test/test_services_gemini.py`, `frontend/src/components/search/SearchThinking.tsx`, `frontend/src/components/search/SearchCommandDialog.tsx`, `frontend/src/test/search-thinking.test.tsx`, `frontend/src/test/search-dialog.test.tsx`, `docs/DEPLOYMENT.md`, `MEMORY.md`.
+
+---
 
 **What:** Frontend-only polish for self-organizing lists: URL-first Add Product modal with optional manual category disclosure; modal stays open with "Adding…" until success; product detail category field shows ~2.5s "Sorting into your list…" shimmer after add plus brief "Sorted by AI" hint; dashboard row "Sorting…" badge for the same session window via `frontend/src/lib/just-added-product.ts`. **No extra Gemini calls** — animation is client-side only.
 

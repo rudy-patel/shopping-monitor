@@ -15,6 +15,7 @@ import { useMotionEnabled } from '@/lib/motion'
 import { isSearchableQuery, type SearchResultItem } from '@/lib/search'
 import { cn } from '@/lib/utils'
 import { SearchResultRow } from './SearchResultRow'
+import { SearchThinking } from './SearchThinking'
 
 const EXAMPLE_QUERIES = [
   'AirPods Pro',
@@ -114,8 +115,10 @@ export function SearchCommandDialog({
     window.setTimeout(onRequestUrlAdd, 180)
   }
 
+  const isSearching = isSearchableQuery(submittedQuery) && isFetching
+
   const renderStateView = () => {
-    if (!isSearchableQuery(submittedQuery) && !isFetching) {
+    if (!isSearchableQuery(submittedQuery) && !isSearching) {
       return (
         <IdleState
           onExampleClick={handleExampleClick}
@@ -123,8 +126,8 @@ export function SearchCommandDialog({
         />
       )
     }
-    if (isFetching) {
-      return <LoadingState motionEnabled={motionEnabled} />
+    if (isSearching) {
+      return <SearchThinking query={submittedQuery} />
     }
     if (isError) {
       return <ErrorState error={error} motionEnabled={motionEnabled} />
@@ -180,7 +183,7 @@ export function SearchCommandDialog({
             <Sparkles
               className={cn(
                 'h-4 w-4 shrink-0 text-muted-foreground',
-                motionEnabled && isFetching && 'animate-pulse text-foreground',
+                motionEnabled && isSearching && 'animate-pulse text-foreground',
               )}
               aria-hidden
             />
@@ -229,13 +232,13 @@ export function SearchCommandDialog({
           className="max-h-[60vh] min-h-[200px] overflow-y-auto px-4 py-4"
           role="region"
           aria-label="Search results"
-          aria-busy={isFetching}
+          aria-busy={isSearching}
           aria-live="polite"
         >
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={
-                isFetching
+                isSearching
                   ? 'loading'
                   : isError
                     ? 'error'
@@ -310,23 +313,6 @@ function IdleState({
         Have a specific URL instead? Add by URL
       </button>
     </div>
-  )
-}
-
-function LoadingState({ motionEnabled }: { motionEnabled: boolean }) {
-  return (
-    <ul className="space-y-2" data-testid="search-loading">
-      {[0, 1, 2].map((i) => (
-        <li
-          key={i}
-          className={cn(
-            'h-[88px] rounded-xl border border-border/40 bg-muted/30',
-            motionEnabled && 'animate-pulse',
-          )}
-          style={{ animationDelay: `${i * STAGGER_DELAY_MS}ms` }}
-        />
-      ))}
-    </ul>
   )
 }
 

@@ -1,7 +1,8 @@
-"""Gemini Flash LLM provider for categorization and discovery (PRD §7.7, §10.7)."""
+"""Gemini Flash LLM provider for categorization, discovery, and search (PRD §7.7, §10.7)."""
 
 from __future__ import annotations
 
+import re
 from collections.abc import Mapping, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from concurrent.futures import TimeoutError as FuturesTimeoutError
@@ -55,6 +56,17 @@ class _GeminiSearchCandidatePayload(BaseModel):
 
 class _GeminiSearchPayload(BaseModel):
     candidates: list[_GeminiSearchCandidatePayload] = Field(default_factory=list)
+
+
+_JSON_FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.IGNORECASE | re.MULTILINE)
+
+
+def _extract_json_text(raw_text: str) -> str:
+    """Strip optional markdown fences before parsing grounded-search JSON."""
+    stripped = raw_text.strip()
+    if stripped.startswith("```"):
+        stripped = _JSON_FENCE_RE.sub("", stripped).strip()
+    return stripped
 
 
 def _is_quota_error(exc: Exception) -> bool:
@@ -115,7 +127,9 @@ def _build_search_prompt(query: str) -> str:
         "Supported retailers (prefer these):\n"
         f"{retailers}\n"
         f"User query: {query}\n"
-        "Return JSON: candidates[]: {url, title, retailer_hint, brand_hint, justification}.\n"
+        "Return ONLY valid JSON (no markdown fences or commentary) with this shape:\n"
+        '{"candidates":[{"url":"https://...","title":"...","retailer_hint":"...","brand_hint":"...","justification":"..."}]}\n'
+        "Field notes:\n"
         '- title: the actual product name (not the page title with site suffix)\n'
         '- retailer_hint: human label e.g. "Best Buy Canada", "Walmart Canada"\n'
         '- brand_hint: best-effort brand name if you can identify it, else null\n'
@@ -152,13 +166,14 @@ def _build_discover_prompt(
         f"Reference image URL: {image_line}\n"
         "Supported retailers:\n"
         f"{retailers}\n"
-        "Return JSON with up to 8 candidates ordered by confidence.\n"
-        'Each candidate: {"url": "https://...", "justification": "one line why it matches"}'
+        "Return ONLY valid JSON (no markdown fences or commentary) with up to 8 candidates "
+        "ordered by confidence:\n"
+        '{"candidates":[{"url":"https://...","justification":"one line why it matches"}]}'
     )
 
 
 class GeminiFlashLlmProvider:
-    """Gemini Flash structured-output categorization and discovery."""
+    """Gemini Flash provider: structured categorization; prompt-parsed JSON for grounded search/discovery."""
 
     def __init__(
         self,
@@ -185,7 +200,11 @@ class GeminiFlashLlmProvider:
 
         try:
             with ThreadPoolExecutor(max_workers=1) as pool:
-                future = pool.submit(self._call_gemini_search, prompt)
+                future = pool.submit(
+                    self._call_gemini_grounded,
+                    prompt,
+                    empty_message="Gemini returned empty search response",
+                )
                 try:
                     raw_text = future.result(timeout=effective_timeout)
                 except FuturesTimeoutError as exc:
@@ -226,7 +245,11 @@ class GeminiFlashLlmProvider:
 
         try:
             with ThreadPoolExecutor(max_workers=1) as pool:
-                future = pool.submit(self._call_gemini_discover, prompt)
+                future = pool.submit(
+                    self._call_gemini_grounded,
+                    prompt,
+                    empty_message="Gemini returned empty discovery response",
+                )
                 try:
                     raw_text = future.result(timeout=effective_timeout)
                 except FuturesTimeoutError as exc:
@@ -293,34 +316,19 @@ class GeminiFlashLlmProvider:
             raise LlmInvalidResponseError("Gemini returned empty categorization response")
         return raw_text
 
-    def _call_gemini_discover(self, prompt: str) -> str:
+    def _call_gemini_grounded(self, prompt: str, *, empty_message: str) -> str:
+        # Gemini 2.5 rejects controlled JSON schema alongside google_search grounding.
+        # Prompt for JSON and parse/validate locally instead.
         response = self._client.models.generate_content(
             model=self._model,
             contents=prompt,
             config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=_GeminiDiscoverPayload,
                 tools=[types.Tool(google_search=types.GoogleSearch())],
             ),
         )
         raw_text = response.text
         if not raw_text:
-            raise LlmInvalidResponseError("Gemini returned empty discovery response")
-        return raw_text
-
-    def _call_gemini_search(self, prompt: str) -> str:
-        response = self._client.models.generate_content(
-            model=self._model,
-            contents=prompt,
-            config=types.GenerateContentConfig(
-                response_mime_type="application/json",
-                response_schema=_GeminiSearchPayload,
-                tools=[types.Tool(google_search=types.GoogleSearch())],
-            ),
-        )
-        raw_text = response.text
-        if not raw_text:
-            raise LlmInvalidResponseError("Gemini returned empty search response")
+            raise LlmInvalidResponseError(empty_message)
         return raw_text
 
     def _parse_categorize_response(self, raw_text: str) -> LlmCategorizationResult:
@@ -343,7 +351,7 @@ class GeminiFlashLlmProvider:
 
     def _parse_discover_response(self, raw_text: str) -> LlmDiscoveryResult:
         try:
-            payload = _GeminiDiscoverPayload.model_validate_json(raw_text)
+            payload = _GeminiDiscoverPayload.model_validate_json(_extract_json_text(raw_text))
         except Exception as exc:
             raise LlmInvalidResponseError(
                 f"Gemini discovery response was not valid JSON: {raw_text!r}"
@@ -370,7 +378,7 @@ class GeminiFlashLlmProvider:
 
     def _parse_search_response(self, raw_text: str) -> LlmSearchResult:
         try:
-            payload = _GeminiSearchPayload.model_validate_json(raw_text)
+            payload = _GeminiSearchPayload.model_validate_json(_extract_json_text(raw_text))
         except Exception as exc:
             raise LlmInvalidResponseError(
                 f"Gemini search response was not valid JSON: {raw_text!r}"

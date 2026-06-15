@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-15 (T8.x search-based add).
+> **Last updated:** 2026-06-15 (T8.2 search production hotfix).
 
 ---
 
@@ -790,6 +790,19 @@ Start after M3 proves the one-retailer architecture.
 - **Docs:** PRD v1.4 (§4 scope, §5.2 U-ADD-0, §6 IA, §8.7 `search_cache`, §9 API surface, §10.7 LLM use cases + free-tier table); MEMORY.md entry.
 - **Verification (local, in-Cursor browser):** Dashboard → ⌘K opens overlay → example query → results render with supported + unsupported badges → Track adds product and navigates to detail with thinking shimmer + listing populated.
 
+### T8.2 Search production hotfix (M8)
+
+**Status:** done — 2026-06-15
+
+- **Owner:** agent.
+- **Scope:** fix production `/api/search` 502 ("Search provider error") and improve in-flight search UX.
+- **Root cause:** `gemini-2.5-flash` rejects `response_schema` + `google_search` together (`400 INVALID_ARGUMENT`); same pattern affected `discover()`.
+- **Backend:** grounded search/discovery now prompt for JSON and parse locally (`_call_gemini_grounded`); default `GEMINI_SEARCH_TIMEOUT_S` raised to `12.0`.
+- **Frontend:** `SearchThinking` component — rotating status copy + skeleton rows while `isFetching`.
+- **Tests:** `test_search_grounded_call_omits_structured_output_config`, `test_discover_grounded_call_omits_structured_output_config`, `test_extract_json_text_strips_markdown_fence`, `search-thinking.test.tsx`, loading-state test in `search-dialog.test.tsx`.
+- **Docs:** PRD §10.7 grounded-JSON note + risk row; `DEPLOYMENT.md` migration 003 + timeout; `AGENTS.md`, `.env.example`, `MEMORY.md`.
+- **Deploy:** backend Render redeploy required for Gemini fix to reach production.
+
 ---
 
 ## 13. Suggested parallel agent lanes
@@ -839,6 +852,14 @@ Constraints:
 3. **T7.3** V1 success-criteria checklist.
 
 <details>
+<summary>Recently completed (M8)</summary>
+
+- ~~**T8.2** Search production hotfix~~ — Gemini grounded JSON parsing fix, `SearchThinking` loading UX, timeout/docs sync.
+- ~~**T8.1** Search-based product addition~~ — `POST /api/search` + 24h cache, `discovery_seed` plumbing, ⌘K command palette dialog, fixture-mode LLM provider.
+
+</details>
+
+<details>
 <summary>Recently completed (M6 / T7)</summary>
 
 - ~~**T7.4** Auto-categorization UX polish~~ — URL-first add modal, category thinking shimmer (~2.5s), dashboard sorting badge; client-side only (no extra Gemini calls).
@@ -858,11 +879,10 @@ Constraints:
 - ~~**T5.1** Benchmark harness~~ — done.
 - ~~**T6.2** Production smoke~~ — done.
 - ~~**T6.3** Cron schedules~~ — scrape `0 8 * * *` UTC, digest `0 14 * * *` UTC.
-- ~~**T8.1** Search-based product addition~~ — `POST /api/search` + 24h cache, `discovery_seed` plumbing, ⌘K command palette dialog, fixture-mode LLM provider.
 
 </details>
 
-M4 validated in production (T6.2 done). M5 complete through T5.5. M8 search shipped as a single bundled PR.
+M4 validated in production (T6.2 done). M5 complete through T5.5. M8 search shipped; **T8.2 hotfix** ready for Render deploy.
 
 <details>
 <summary>Historical bootstrap order (M0–M3, completed)</summary>
