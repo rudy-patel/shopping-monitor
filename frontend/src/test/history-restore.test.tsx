@@ -38,7 +38,7 @@ describe('HistoryPage restore', () => {
     const user = userEvent.setup()
     renderWithProviders(<HistoryPage />, { authenticated: true })
 
-    expect(screen.getByRole('heading', { name: /archived products/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /^archived$/i })).toBeInTheDocument()
     expect(screen.getByText('Archived Keyboard')).toBeInTheDocument()
 
     await user.click(screen.getByRole('button', { name: /^restore$/i }))

@@ -104,7 +104,7 @@ describe('ProductDetailPage', () => {
     renderApp(`/products/${product.id}`, { authenticated: true })
 
     expect(screen.getByText(/this product is archived/i)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /back to archived products/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /back to archived/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^restore$/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^archive$/i })).not.toBeInTheDocument()
   })

@@ -88,7 +88,7 @@ export function TopNav() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem onSelect={() => navigate('/history')}>Archived products</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => navigate('/history')}>Archived</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => navigate('/settings')}>Settings</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleSignOut}>Sign out</DropdownMenuItem>
@@ -104,7 +104,7 @@ export function TopNav() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuItem onSelect={() => navigate('/history')}>Archived products</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => navigate('/history')}>Archived</DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={handleSignOut}>Sign out</DropdownMenuItem>
       </DropdownMenuContent>

@@ -17,7 +17,7 @@ export function HistoryPage() {
       </Link>
 
       <div className="mt-6 mb-8">
-        <h1 className="text-2xl font-semibold tracking-tight">Archived products</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">Archived</h1>
         <p className="mt-2 text-muted-foreground">
           Products you archived are kept here with their price history. Restore any item to track it
           again.

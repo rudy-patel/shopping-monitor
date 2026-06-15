@@ -80,7 +80,7 @@ describe('routes', () => {
         } as ReturnType<typeof useNotifications>)
       },
     },
-    { path: '/history', heading: /archived products/i },
+    { path: '/history', heading: /^archived$/i },
     { path: '/settings', heading: /^settings$/i },
   ]
 
