@@ -201,7 +201,7 @@ V1 frontend routes (all behind auth except `/login`):
 
 | Route                    | Purpose                                                                                              |
 | ------------------------ | ---------------------------------------------------------------------------------------------------- |
-| `/login`                 | Google SSO landing                                                                                   |
+| `/login`                 | Google SSO landing — warm splash with dashed **Someday.** pill, rotating taglines, and desktop-only decorative price/wishlist stickers |
 | `/`                      | Dashboard, default = grouped by category                                                             |
 | `/list`                  | Flat list + filters                                                                                  |
 | `/products/:id`          | Product detail (listings, history, settings, needs-review queue)                                     |
