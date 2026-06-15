@@ -25,6 +25,7 @@ vi.mock('@/hooks/useProducts', () => ({
   useAcceptListing: vi.fn(),
   useRejectListing: vi.fn(),
   useDeleteListing: vi.fn(),
+  useReorderDashboardProducts: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }))
 
 import {

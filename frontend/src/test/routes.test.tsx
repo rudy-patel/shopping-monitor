@@ -19,6 +19,7 @@ vi.mock('@/hooks/useProducts', () => ({
   useAcceptListing: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   useRejectListing: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
   useDeleteListing: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
+  useReorderDashboardProducts: vi.fn(() => ({ mutate: vi.fn(), isPending: false })),
 }))
 
 vi.mock('@/hooks/useNotifications', () => ({

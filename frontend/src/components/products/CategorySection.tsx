@@ -38,25 +38,24 @@ export function CategorySection({
               <GripVertical className="h-4 w-4" />
             </button>
           ) : null}
-          <button
-            type="button"
-            id={headingId}
-            className="flex min-w-0 flex-1 items-center gap-2 text-left"
-            aria-expanded={expanded}
-            onClick={onToggle}
-          >
-            <ChevronRight
-              className={cn(
-                'h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200',
-                expanded && 'rotate-90',
-              )}
-              aria-hidden
-            />
-            <span className="truncate text-lg font-semibold tracking-tight">
-              {categoryLabel(category)}
-            </span>
-            <span className="shrink-0 text-sm font-normal text-muted-foreground">· {count}</span>
-          </button>
+          <h2 id={headingId} className="min-w-0 flex-1 text-lg font-semibold tracking-tight">
+            <button
+              type="button"
+              className="flex w-full items-center gap-2 text-left"
+              aria-expanded={expanded}
+              onClick={onToggle}
+            >
+              <ChevronRight
+                className={cn(
+                  'h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200',
+                  expanded && 'rotate-90',
+                )}
+                aria-hidden
+              />
+              <span className="truncate">{categoryLabel(category)}</span>
+              <span className="shrink-0 text-sm font-normal text-muted-foreground">· {count}</span>
+            </button>
+          </h2>
         </div>
       </div>
       {expanded ? (
