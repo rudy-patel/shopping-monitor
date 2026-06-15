@@ -173,7 +173,7 @@ Each story below is a V1 commitment.
 
 ### 5.8 Archiving & purchase history
 
-- **U-ARC-1.** I can archive a product from its detail page or card kebab menu (e.g., after buying it).
+- **U-ARC-1.** I can archive a product from its detail page or card kebab menu (e.g., after buying it). Archiving shows a success toast and keeps me on the current page (dashboard or product detail); I can open **History** from nav when I want to browse archived items.
 - **U-ARC-2.** Archived products move to a separate **History** view; they retain all stored price history and listings.
 - **U-ARC-3.** I can restore an archived product to "active."
 - **U-ARC-4.** I can permanently delete a product (irreversible).
@@ -775,7 +775,7 @@ Each natively supported retailer needs a scraper module exposing a `scrape(url) 
 ## 12. Non-Functional Requirements
 
 - **Performance:** product list page loads in < 2s with up to 200 products. Manual refresh of one product should complete in < 30s for non-Playwright retailers; Playwright-backed retailers may be slower because browser cold start dominates.
-- **Perceived performance:** every user action surfaces visible feedback within 100ms. All mutations (add, archive, re-categorize, accept/reject discovered match, mark-read) render optimistically and only roll back on server error. After add, the product detail category field (and matching dashboard row) show a brief sorting shimmer for at least ~2.5s before revealing the server-resolved category (§7.7); the Add modal stays open with an inline spinner until the add request completes.
+- **Perceived performance:** every user action surfaces visible feedback within 100ms. All mutations (add, archive, re-categorize, accept/reject discovered match, mark-read) render optimistically and only roll back on server error. Archive confirms with a success toast without leaving the current route (§5.8 U-ARC-1). After add, the product detail category field (and matching dashboard row) show a brief sorting shimmer for at least ~2.5s before revealing the server-resolved category (§7.7); the Add modal stays open with an inline spinner until the add request completes.
 - **Design quality:** dashboard and product detail routes target **Lighthouse Performance ≥ 95** and **Accessibility ≥ 95** on a desktop run with throttled CPU. Visual style follows §10.1 design principles.
 - **Reliability:** daily scrape job retries each listing up to 2 times with exponential backoff. A run is considered successful if at least 80% of listings scrape successfully.
 - **Cost:** $0/month for V1 even while engineers iterate at ~30 manual job triggers/day across parallel agents (see §10.9). All providers used in the core product (Supabase, Vercel, Render, GitHub Actions, Gemini, Resend, Frankfurter) have free tiers that accommodate that load. The core plan excludes hosted scraping APIs such as Firecrawl because one-time credits or paid monthly quotas are incompatible with indefinite free operation.

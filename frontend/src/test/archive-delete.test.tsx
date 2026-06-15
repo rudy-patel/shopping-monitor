@@ -8,20 +8,11 @@ import { renderWithProviders } from './test-utils'
 
 const mockArchiveMutate = vi.fn()
 const mockDeleteMutate = vi.fn()
-const mockNavigate = vi.fn()
 
 vi.mock('sonner', () => ({
-  toast: Object.assign(vi.fn(), { error: vi.fn() }),
+  toast: Object.assign(vi.fn(), { error: vi.fn(), success: vi.fn() }),
   Toaster: () => null,
 }))
-
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom')
-  return {
-    ...actual,
-    useNavigate: () => mockNavigate,
-  }
-})
 
 vi.mock('@/hooks/useProducts', () => ({
   useProducts: vi.fn(),
@@ -56,7 +47,6 @@ describe('archive and delete flows', () => {
   beforeEach(() => {
     mockArchiveMutate.mockClear()
     mockDeleteMutate.mockClear()
-    mockNavigate.mockClear()
     vi.mocked(toast).mockClear()
 
     vi.mocked(useProducts).mockReturnValue({
@@ -118,8 +108,7 @@ describe('archive and delete flows', () => {
         isLoading: false,
         isError: false,
       } as ReturnType<typeof useProducts>)
-      mockNavigate('/history')
-      toast('Product archived')
+      toast.success('Product archived')
     })
 
     const user = userEvent.setup()

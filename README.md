@@ -46,7 +46,7 @@ make update-drift-snapshots  # regen drift baselines from fixtures (T5.5; CI-saf
 
 ### E2E tests
 
-Playwright covers the full fixture-backed `bestbuy_ca` vertical slice (add → category thinking shimmer → detail → refresh → category/threshold → archive → restore → delete). Runs on **Desktop Chrome** and **Mobile Chrome** (Pixel 5).
+Playwright covers the full fixture-backed `bestbuy_ca` vertical slice (add → category thinking shimmer → detail → refresh → category/threshold → archive with success toast → restore → delete). Runs on **Desktop Chrome** and **Mobile Chrome** (Pixel 5).
 
 **Prerequisites:** Supabase credentials in `backend/.env` (run `make setup-integration-env`), dev auth user `00000000-0000-0000-0000-000000000001` in Supabase Auth, `AUTH_BYPASS_ENABLED=true`, `SCRAPER_MODE=fixtures`.
 
