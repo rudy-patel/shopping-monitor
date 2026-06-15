@@ -1,0 +1,25 @@
+{
+  "candidates": [
+    {
+      "url": "https://fixtures.local/bestbuy_ca/in_stock",
+      "title": "Nintendo Switch 2 Console",
+      "retailer_hint": "Best Buy Canada",
+      "brand_hint": "Nintendo",
+      "justification": "Best Buy Canada PDP for the Switch 2 console"
+    },
+    {
+      "url": "https://fixtures.local/indigo/in_stock",
+      "title": "Nintendo Switch 2 — Indigo Exclusive Bundle",
+      "retailer_hint": "Indigo",
+      "brand_hint": "Nintendo",
+      "justification": "Indigo carries the Switch 2 with an exclusive bundle"
+    },
+    {
+      "url": "https://fixtures.local/palmisleskate/in_stock",
+      "title": "Switch 2 Hard Case",
+      "retailer_hint": "Palm Isle Skate Shop",
+      "brand_hint": null,
+      "justification": "Aftermarket accessory carrier (loosely matching)"
+    }
+  ]
+}

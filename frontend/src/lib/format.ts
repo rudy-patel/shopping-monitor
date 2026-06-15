@@ -44,6 +44,25 @@ export function retailerLabel(slug: string | null | undefined): string {
   return RETAILER_LABELS[slug] ?? slug.replace(/_/g, ' ')
 }
 
+/** Derive a friendly retailer label from a URL hostname (used for search results
+ *  that resolve to the generic scraper, where the slug doesn't carry the retailer
+ *  identity). Mirrors `services/retailer_labels.label_from_url`. */
+export function retailerLabelFromUrl(url: string, fallback?: string | null): string {
+  const trimmed = fallback?.trim()
+  if (trimmed) return trimmed
+  let host = ''
+  try {
+    host = new URL(url).hostname.toLowerCase()
+  } catch {
+    return 'Unknown retailer'
+  }
+  if (host.startsWith('www.')) host = host.slice(4)
+  if (!host) return 'Unknown retailer'
+  const primary = host.split('.')[0]
+  if (!primary) return host
+  return primary.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())
+}
+
 export function extraRetailerCount(listingCount: number): string | null {
   const extra = listingCount - 1
   if (extra <= 0) return null

@@ -84,9 +84,17 @@ class ProductDetail(ProductSummary):
     listings: list[ListingResponse]
 
 
+class DiscoverySeedEntry(BaseModel):
+    """One pre-vetted candidate from the search flow that should skip the LLM discover() call."""
+
+    retailer_slug: str
+    url: str
+
+
 class ProductCreateRequest(BaseModel):
     url: str
     category: CategoryInput | None = "auto"
+    discovery_seed: list[DiscoverySeedEntry] | None = None
 
 
 class ProductUpdateRequest(BaseModel):
@@ -110,7 +118,16 @@ async def post_product(
 ) -> ProductDetail:
     category = None if body.category in (None, "auto") else body.category
     detail = create_product(user_id=user.user_id, url=body.url, category=category)
-    background_tasks.add_task(run_discovery_for_product, UUID(detail["id"]))
+    seed = (
+        [(entry.retailer_slug, entry.url) for entry in body.discovery_seed]
+        if body.discovery_seed
+        else None
+    )
+    background_tasks.add_task(
+        run_discovery_for_product,
+        UUID(detail["id"]),
+        seed=seed,
+    )
     return ProductDetail.model_validate(detail)
 
 

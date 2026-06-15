@@ -22,11 +22,14 @@ from services.llm import (
     LlmInvalidResponseError,
     LlmProviderError,
     LlmQuotaExhaustedError,
+    LlmSearchCandidate,
+    LlmSearchResult,
     LlmTimeoutError,
 )
 
 _VALID_CATEGORIES = frozenset({"clothing", "shoes", "home", "tech", "other"})
 _MAX_DISCOVER_CANDIDATES = 8
+_MAX_SEARCH_CANDIDATES = 8
 
 
 class _GeminiCategoryPayload(BaseModel):
@@ -40,6 +43,18 @@ class _GeminiDiscoverCandidatePayload(BaseModel):
 
 class _GeminiDiscoverPayload(BaseModel):
     candidates: list[_GeminiDiscoverCandidatePayload] = Field(default_factory=list)
+
+
+class _GeminiSearchCandidatePayload(BaseModel):
+    url: str
+    title: str = Field(min_length=1, max_length=280)
+    retailer_hint: str | None = Field(default=None, max_length=120)
+    brand_hint: str | None = Field(default=None, max_length=120)
+    justification: str = Field(max_length=200)
+
+
+class _GeminiSearchPayload(BaseModel):
+    candidates: list[_GeminiSearchCandidatePayload] = Field(default_factory=list)
 
 
 def _is_quota_error(exc: Exception) -> bool:
@@ -79,6 +94,32 @@ def _build_categorize_prompt(
         f"Retailer: {retailer_slug}\n"
         f"Breadcrumbs: {breadcrumb_text}\n"
         'Return JSON with a single "category" field containing one allowed slug.'
+    )
+
+
+def _build_search_prompt(query: str) -> str:
+    """Free-text user query → ranked Canadian product page candidates."""
+    retailers = "\n".join(_supported_retailer_lines())
+    return (
+        "Find Canadian product pages for the user's search query.\n"
+        "Constraints:\n"
+        "- Return product detail page URLs only (PDPs), not category/search pages.\n"
+        "- Canadian listings only: prefer .ca domains or each retailer's Canadian storefront.\n"
+        "- Do NOT include US-only listings, marketplace third-party sellers, eBay, or AliExpress.\n"
+        "- Prefer the supported retailers below when they carry the product; you may also include\n"
+        "  other reputable Canadian retailers (e.g. walmart.ca, well.ca, londondrugs.com, mec.ca,\n"
+        "  staples.ca, structube.com, hbc.com, etc.) when supported retailers don't carry it.\n"
+        "- Each retailer should appear at most once. Pick the most canonical PDP per retailer.\n"
+        "- Order results by how confident you are it matches the user's query.\n"
+        "- Up to 8 candidates. Fewer is better than padding with low-confidence guesses.\n"
+        "Supported retailers (prefer these):\n"
+        f"{retailers}\n"
+        f"User query: {query}\n"
+        "Return JSON: candidates[]: {url, title, retailer_hint, brand_hint, justification}.\n"
+        '- title: the actual product name (not the page title with site suffix)\n'
+        '- retailer_hint: human label e.g. "Best Buy Canada", "Walmart Canada"\n'
+        '- brand_hint: best-effort brand name if you can identify it, else null\n'
+        '- justification: one short line explaining why this matches the query (max 200 chars)'
     )
 
 
@@ -126,13 +167,39 @@ class GeminiFlashLlmProvider:
         model: str,
         default_timeout_s: float = 1.5,
         discover_timeout_s: float = 30.0,
+        search_timeout_s: float = 5.0,
     ) -> None:
         if not api_key.strip():
             raise LlmQuotaExhaustedError("GEMINI_API_KEY not configured")
         self._model = model
         self._default_timeout_s = default_timeout_s
         self._discover_timeout_s = discover_timeout_s
+        self._search_timeout_s = search_timeout_s
         self._client = genai.Client(api_key=api_key)
+
+    def search(self, *, query: str, timeout_s: float | None = None) -> LlmSearchResult:
+        prompt = _build_search_prompt(query)
+        effective_timeout = (
+            self._search_timeout_s if timeout_s is None else timeout_s
+        )
+
+        try:
+            with ThreadPoolExecutor(max_workers=1) as pool:
+                future = pool.submit(self._call_gemini_search, prompt)
+                try:
+                    raw_text = future.result(timeout=effective_timeout)
+                except FuturesTimeoutError as exc:
+                    raise LlmTimeoutError(
+                        f"Gemini search timed out after {effective_timeout}s"
+                    ) from exc
+        except (LlmTimeoutError, LlmInvalidResponseError, LlmQuotaExhaustedError):
+            raise
+        except Exception as exc:
+            if _is_quota_error(exc):
+                raise LlmQuotaExhaustedError(str(exc)) from exc
+            raise LlmProviderError(str(exc)) from exc
+
+        return self._parse_search_response(raw_text)
 
     def discover(
         self,
@@ -241,6 +308,21 @@ class GeminiFlashLlmProvider:
             raise LlmInvalidResponseError("Gemini returned empty discovery response")
         return raw_text
 
+    def _call_gemini_search(self, prompt: str) -> str:
+        response = self._client.models.generate_content(
+            model=self._model,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=_GeminiSearchPayload,
+                tools=[types.Tool(google_search=types.GoogleSearch())],
+            ),
+        )
+        raw_text = response.text
+        if not raw_text:
+            raise LlmInvalidResponseError("Gemini returned empty search response")
+        return raw_text
+
     def _parse_categorize_response(self, raw_text: str) -> LlmCategorizationResult:
         try:
             payload = _GeminiCategoryPayload.model_validate_json(raw_text)
@@ -285,3 +367,33 @@ class GeminiFlashLlmProvider:
             )
 
         return LlmDiscoveryResult(candidates=filtered)
+
+    def _parse_search_response(self, raw_text: str) -> LlmSearchResult:
+        try:
+            payload = _GeminiSearchPayload.model_validate_json(raw_text)
+        except Exception as exc:
+            raise LlmInvalidResponseError(
+                f"Gemini search response was not valid JSON: {raw_text!r}"
+            ) from exc
+
+        if len(payload.candidates) > _MAX_SEARCH_CANDIDATES:
+            raise LlmInvalidResponseError(
+                f"Gemini returned more than {_MAX_SEARCH_CANDIDATES} search candidates"
+            )
+
+        candidates: list[LlmSearchCandidate] = []
+        for item in payload.candidates:
+            try:
+                candidates.append(
+                    LlmSearchCandidate(
+                        url=item.url,
+                        title=item.title.strip(),
+                        retailer_hint=(item.retailer_hint or None),
+                        brand_hint=(item.brand_hint or None),
+                        justification=item.justification,
+                    )
+                )
+            except Exception:
+                continue
+
+        return LlmSearchResult(candidates=candidates)

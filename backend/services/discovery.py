@@ -1,7 +1,8 @@
-"""Cross-retailer discovery orchestrator (PRD §7.3, T3.1)."""
+"""Cross-retailer discovery orchestrator (PRD §7.3, T3.1; seed path T8.4)."""
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 from uuid import UUID
 
@@ -10,6 +11,7 @@ from db.supabase_client import get_service_role_client, response_first_row
 from scrapers.exceptions import RetailerNotSupportedError
 from scrapers.registry import lookup_by_url
 from services.factory import get_llm_provider
+from services.llm import LlmDiscoveryCandidate, LlmDiscoveryResult
 from services.matching import classify_match, compute_match_confidence
 from services.product_service import (
     _build_scrape_snapshot,
@@ -136,8 +138,32 @@ def _insert_discovered_listing(
     return listing
 
 
-def run_discovery_for_product(product_id: UUID) -> None:
-    """Background job: discover cross-retailer listings for one product."""
+def _seed_to_candidates(
+    seed: Sequence[tuple[str, str]],
+) -> list[LlmDiscoveryCandidate]:
+    """Convert search-flow seed (retailer_slug, url) pairs into discovery candidates."""
+    candidates: list[LlmDiscoveryCandidate] = []
+    for _retailer_slug, url in seed:
+        try:
+            candidates.append(
+                LlmDiscoveryCandidate(url=url, justification="Found via search")
+            )
+        except Exception:
+            continue
+    return candidates
+
+
+def run_discovery_for_product(
+    product_id: UUID,
+    *,
+    seed: Sequence[tuple[str, str]] | None = None,
+) -> None:
+    """Background job: discover cross-retailer listings for one product.
+
+    When ``seed`` is provided (search-based add, T8.4) the LLM ``discover()`` call is
+    skipped and the seed URLs are used directly as candidates. The same scoring,
+    auto-add, needs-review, and cap pipeline runs regardless of source.
+    """
     client = get_service_role_client()
 
     try:
@@ -159,12 +185,23 @@ def run_discovery_for_product(product_id: UUID) -> None:
             _set_discovery_status(client, product_id, "complete")
             return
 
+        # Generic primary listings (link-only or best-effort) don't produce reliable
+        # reference snapshots, so we skip cross-retailer discovery entirely.
+        if primary["retailer_slug"] == "generic":
+            logger.info(
+                "discovery_skip_generic_primary",
+                extra={"product_id": str(product_id)},
+            )
+            _set_discovery_status(client, product_id, "complete")
+            return
+
         _set_discovery_status(client, product_id, "running")
         logger.info(
             "discovery_started",
             extra={
                 "product_id": str(product_id),
                 "listing_count": len(listings),
+                "source": "seed" if seed else "llm",
             },
         )
 
@@ -175,23 +212,35 @@ def run_discovery_for_product(product_id: UUID) -> None:
         image_url = product.get("image_url")
         reference_price_cents = primary.get("last_known_price_cents")
 
-        llm = get_llm_provider()
-        try:
-            discover_result = llm.discover(
-                title=reference_title,
-                brand=reference_brand,
-                retailer_slug=primary_retailer,
-                variant_attributes=reference_variants,
-                image_url=image_url,
-                reference_price_cents=reference_price_cents,
+        if seed:
+            discover_result = LlmDiscoveryResult(
+                candidates=_seed_to_candidates(seed)
             )
-        except Exception as exc:
-            logger.warning(
-                "discovery_llm_failed",
-                extra={"product_id": str(product_id), "error": str(exc)},
+            logger.info(
+                "discovery_using_seed",
+                extra={
+                    "product_id": str(product_id),
+                    "seed_count": len(discover_result.candidates),
+                },
             )
-            _set_discovery_status(client, product_id, "complete")
-            return
+        else:
+            llm = get_llm_provider()
+            try:
+                discover_result = llm.discover(
+                    title=reference_title,
+                    brand=reference_brand,
+                    retailer_slug=primary_retailer,
+                    variant_attributes=reference_variants,
+                    image_url=image_url,
+                    reference_price_cents=reference_price_cents,
+                )
+            except Exception as exc:
+                logger.warning(
+                    "discovery_llm_failed",
+                    extra={"product_id": str(product_id), "error": str(exc)},
+                )
+                _set_discovery_status(client, product_id, "complete")
+                return
 
         candidates = discover_result.candidates[:MAX_LLM_CANDIDATES]
         if not candidates:

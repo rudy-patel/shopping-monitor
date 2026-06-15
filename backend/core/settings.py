@@ -19,6 +19,8 @@ DEFAULT_SCRAPER_MODE = "fixtures"  # pragma: allowlist secret
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
 DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S = 1.5
 DEFAULT_GEMINI_DISCOVER_TIMEOUT_S = 30.0
+DEFAULT_GEMINI_SEARCH_TIMEOUT_S = 6.0
+DEFAULT_SEARCH_CACHE_TTL_HOURS = 24
 DEFAULT_FX_CACHE_TTL_HOURS = 24
 DEFAULT_FRANKFURTER_BASE_URL = "https://api.frankfurter.dev"
 DEFAULT_EXCHANGERATE_API_OPEN_URL = "https://open.er-api.com/v6/latest"
@@ -44,6 +46,8 @@ class Settings(BaseSettings):
     gemini_model: str = DEFAULT_GEMINI_MODEL
     gemini_categorize_timeout_s: float = DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S
     gemini_discover_timeout_s: float = DEFAULT_GEMINI_DISCOVER_TIMEOUT_S
+    gemini_search_timeout_s: float = DEFAULT_GEMINI_SEARCH_TIMEOUT_S
+    search_cache_ttl_hours: int = DEFAULT_SEARCH_CACHE_TTL_HOURS
     fx_cache_ttl_hours: int = DEFAULT_FX_CACHE_TTL_HOURS
     frankfurter_base_url: str = DEFAULT_FRANKFURTER_BASE_URL
     exchangerate_api_open_url: str = DEFAULT_EXCHANGERATE_API_OPEN_URL

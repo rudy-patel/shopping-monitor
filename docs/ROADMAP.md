@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-15 (T7.4 auto-categorization UX).
+> **Last updated:** 2026-06-15 (T8.x search-based add).
 
 ---
 
@@ -54,6 +54,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M4: MVP product workflows | done | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5), digest email (T3.6), settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
 | M5: V1 retailer coverage | done | Supported retailers have benchmark decisions, scraper modules, fixtures, and local drift checks (T5.1–T5.5). Deferred: `sportchek`, `footlocker_ca`, `costco_ca`, etc. | V1 success criteria can be tested end-to-end. |
 | M6: Production-ready V1 | in progress | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check. **Progress:** T6.3 cron schedules; T6.2 production smoke; T7.1 UI polish; T7.4 auto-categorization UX shipped. **Remaining:** T6.4 7-day reliability, T7.2 Lighthouse, T7.3 checklist. | Invite early friends for feedback. |
+| M8: Search-based product addition | done | Header search trigger (⌘K), `/api/search` LLM-grounded endpoint with 24h cache, `discovery_seed` plumbed through product creation, fixture-mode LLM provider, command-palette dialog with link-only unsupported-retailer support. | Lowers friction for new adds; supersedes "URL paste only" non-goal in PRD v1.4. |
 
 ---
 
@@ -764,6 +765,31 @@ Start after M3 proves the one-retailer architecture.
   - Link tests, workflows, manual smoke notes, and known limitations.
 - **Verification:** checklist review.
 
+### T8.1 Search-based product addition (M8)
+
+**Status:** done — 2026-06-15
+
+- **Owner:** agent (single bundled PR per user request).
+- **Branch:** `cursor/auto-categorization-ux-f127`.
+- **Scope:** flip the add-product experience from URL-paste-only to search-first while keeping URL paste available.
+- **Backend:**
+  - Extended `LlmProvider` with a `search(query)` method (Gemini Flash + Google Search grounding); `NoOpLlmProvider`, `FakeLlmProvider`, and `FixtureLlmProvider` all implement it.
+  - Added `search_cache` table (`backend/db/migrations/003_search_cache.sql`) + `SearchCacheService` with normalized query hashing and `SEARCH_CACHE_TTL_HOURS` (default 24h).
+  - `POST /api/search` endpoint + `search_service` orchestrator: dedupe + Canadian-host filtering + supported-retailer classification + caching.
+  - `POST /api/products` accepts optional `discovery_seed`; `run_discovery_for_product` skips the LLM when a seed is provided, and short-circuits for generic primary listings.
+  - `FixtureLlmProvider` ships canned search responses (`backend/test/fixtures/search/*.json`) for fixtures mode so CI/local agents never hit Gemini.
+- **Frontend:**
+  - `SearchTrigger` + `SearchTriggerMobile` in the top nav; global ⌘K / Ctrl+K shortcut.
+  - `SearchCommandDialog` (Radix dialog + Framer Motion staggered entry, skeleton loader, idle examples, link-only unsupported-retailer variant, inline Track action).
+  - `useSearch` hook with TanStack Query keyed cache that matches the 24h server TTL.
+  - `useCreateProduct` mutation passes `discovery_seed` straight through.
+- **Tests:**
+  - Backend: `test_services_gemini.py` (search method), `test_search_service.py`, `test_search_cache_service.py`, `test_search_router.py`, `test_migration_003_search_cache.py`, `test_llm_fixtures.py`; `test_discovery.py` + `test_products_router.py` covering `discovery_seed`.
+  - Frontend: `search-trigger.test.tsx`, `search-dialog.test.tsx`, and `top-nav.test.tsx` updates.
+  - Manual: `python backend/scripts/smoke_search_live.py --live "AirPods Pro"` (gated by `GEMINI_API_KEY`).
+- **Docs:** PRD v1.4 (§4 scope, §5.2 U-ADD-0, §6 IA, §8.7 `search_cache`, §9 API surface, §10.7 LLM use cases + free-tier table); MEMORY.md entry.
+- **Verification (local, in-Cursor browser):** Dashboard → ⌘K opens overlay → example query → results render with supported + unsupported badges → Track adds product and navigates to detail with thinking shimmer + listing populated.
+
 ---
 
 ## 13. Suggested parallel agent lanes
@@ -832,10 +858,11 @@ Constraints:
 - ~~**T5.1** Benchmark harness~~ — done.
 - ~~**T6.2** Production smoke~~ — done.
 - ~~**T6.3** Cron schedules~~ — scrape `0 8 * * *` UTC, digest `0 14 * * *` UTC.
+- ~~**T8.1** Search-based product addition~~ — `POST /api/search` + 24h cache, `discovery_seed` plumbing, ⌘K command palette dialog, fixture-mode LLM provider.
 
 </details>
 
-M4 validated in production (T6.2 done). M5 complete through T5.5.
+M4 validated in production (T6.2 done). M5 complete through T5.5. M8 search shipped as a single bundled PR.
 
 <details>
 <summary>Historical bootstrap order (M0–M3, completed)</summary>

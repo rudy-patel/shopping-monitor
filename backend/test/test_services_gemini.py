@@ -29,6 +29,7 @@ def _make_provider(**kwargs) -> GeminiFlashLlmProvider:
         "model": "gemini-2.5-flash",
         "default_timeout_s": 1.5,
         "discover_timeout_s": 30.0,
+        "search_timeout_s": 5.0,
     }
     defaults.update(kwargs)
     return GeminiFlashLlmProvider(**defaults)
@@ -282,6 +283,126 @@ def test_discover_quota_error(mock_client_cls: MagicMock):
         )
 
 
+@patch("services.gemini.genai.Client")
+def test_search_valid_json(mock_client_cls: MagicMock):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.return_value = _mock_response(
+        json.dumps(
+            {
+                "candidates": [
+                    {
+                        "url": "https://www.bestbuy.ca/en-ca/product/widget/12345",
+                        "title": "Widget Pro",
+                        "retailer_hint": "Best Buy Canada",
+                        "brand_hint": "WidgetCo",
+                        "justification": "Best Buy Canada PDP for the Widget Pro",
+                    }
+                ]
+            }
+        )
+    )
+
+    result = _make_provider().search(query="widget pro")
+    assert len(result.candidates) == 1
+    candidate = result.candidates[0]
+    assert candidate.title == "Widget Pro"
+    assert candidate.retailer_hint == "Best Buy Canada"
+    assert candidate.brand_hint == "WidgetCo"
+
+
+@patch("services.gemini.genai.Client")
+def test_search_skips_invalid_candidate(mock_client_cls: MagicMock):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.return_value = _mock_response(
+        json.dumps(
+            {
+                "candidates": [
+                    {
+                        "url": "not-a-url",
+                        "title": "Bad",
+                        "retailer_hint": None,
+                        "brand_hint": None,
+                        "justification": "bad",
+                    },
+                    {
+                        "url": "https://www.indigo.ca/en-ca/p/good",
+                        "title": "Good Product",
+                        "retailer_hint": "Indigo",
+                        "brand_hint": None,
+                        "justification": "valid candidate",
+                    },
+                ]
+            }
+        )
+    )
+
+    result = _make_provider().search(query="something")
+    assert len(result.candidates) == 1
+    assert str(result.candidates[0].url).endswith("/p/good")
+
+
+@patch("services.gemini.genai.Client")
+def test_search_rejects_more_than_eight(mock_client_cls: MagicMock):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    candidates = [
+        {
+            "url": f"https://example-{i}.ca/p",
+            "title": f"Product {i}",
+            "retailer_hint": None,
+            "brand_hint": None,
+            "justification": "match",
+        }
+        for i in range(9)
+    ]
+    mock_client.models.generate_content.return_value = _mock_response(
+        json.dumps({"candidates": candidates})
+    )
+
+    with pytest.raises(LlmInvalidResponseError, match="more than 8"):
+        _make_provider().search(query="too many")
+
+
+@patch("services.gemini.genai.Client")
+def test_search_timeout(mock_client_cls: MagicMock):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+
+    def slow_generate_content(**_kwargs):
+        time.sleep(0.2)
+        return _mock_response('{"candidates":[]}')
+
+    mock_client.models.generate_content.side_effect = slow_generate_content
+
+    with pytest.raises(LlmTimeoutError, match="search timed out"):
+        _make_provider(search_timeout_s=0.05).search(query="something", timeout_s=0.05)
+
+
+@patch("services.gemini.genai.Client")
+def test_search_quota_error(mock_client_cls: MagicMock):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.side_effect = genai_errors.APIError(
+        429,
+        {"error": {"status": "RESOURCE_EXHAUSTED", "message": "quota"}},
+    )
+
+    with pytest.raises(LlmQuotaExhaustedError):
+        _make_provider().search(query="something")
+
+
+@patch("services.gemini.genai.Client")
+def test_search_empty_response_raises(mock_client_cls: MagicMock):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.return_value = _mock_response("")
+
+    with pytest.raises(LlmInvalidResponseError, match="empty search response"):
+        _make_provider().search(query="something")
+
+
 def test_build_retailer_default_categories_includes_registered_retailers():
     defaults = build_retailer_default_categories()
     assert defaults["generic"] == "other"
@@ -293,11 +414,22 @@ def test_build_retailer_default_categories_includes_registered_retailers():
     assert defaults["abercrombie"] == "clothing"
 
 
-def test_get_llm_provider_no_key(monkeypatch):
+def test_get_llm_provider_no_key_live_mode_returns_noop(monkeypatch):
     monkeypatch.setattr("core.settings._env_file_path", lambda: None)
     clear_settings_cache()
-    provider = get_llm_provider(Settings(gemini_api_key=""))
+    provider = get_llm_provider(Settings(gemini_api_key="", scraper_mode="live"))
     assert isinstance(provider, NoOpLlmProvider)
+
+
+def test_get_llm_provider_no_key_fixtures_mode_returns_fixture_provider(monkeypatch):
+    """T8.10: SCRAPER_MODE=fixtures swaps in FixtureLlmProvider so the search UI works
+    without a Gemini API key (local dev, CI)."""
+    from services.llm_fixtures import FixtureLlmProvider
+
+    monkeypatch.setattr("core.settings._env_file_path", lambda: None)
+    clear_settings_cache()
+    provider = get_llm_provider(Settings(gemini_api_key="", scraper_mode="fixtures"))
+    assert isinstance(provider, FixtureLlmProvider)
 
 
 def test_get_llm_provider_with_key(monkeypatch):

@@ -449,3 +449,71 @@ def test_discovery_status_transitions_pending_to_running_to_complete(discovery_e
     run_discovery_for_product(product["id"])
 
     assert fake.products[product["id"]]["discovery_status"] == "complete"
+
+
+def test_seed_skips_llm_and_uses_provided_urls(discovery_env):
+    """T8.4: when run_discovery_for_product receives a seed, the LLM is not called."""
+    fake, llm = discovery_env
+    product = _seed_product(fake)
+    # Seed sentinel; llm.discover would raise if called.
+    llm.raise_on_discover = LlmProviderError("must not be called")
+
+    run_discovery_for_product(
+        product["id"],
+        seed=[("discovery_a", DISCOVERY_A_HIGH)],
+    )
+
+    assert llm.discover_calls == []
+    discovered = [
+        row
+        for row in fake.product_listings.values()
+        if row["product_id"] == product["id"] and not row["is_primary"]
+    ]
+    assert len(discovered) == 1
+    assert discovered[0]["retailer_slug"] == "discovery_a"
+    assert discovered[0]["review_status"] == "auto_added"
+
+
+def test_seed_with_invalid_url_falls_through(discovery_env):
+    """Bad URLs in the seed are ignored; remaining seed entries still run."""
+    fake, llm = discovery_env
+    product = _seed_product(fake)
+    llm.raise_on_discover = LlmProviderError("must not be called")
+
+    run_discovery_for_product(
+        product["id"],
+        seed=[("garbage", "not-a-url"), ("discovery_a", DISCOVERY_A_HIGH)],
+    )
+
+    discovered = [
+        row
+        for row in fake.product_listings.values()
+        if row["product_id"] == product["id"] and not row["is_primary"]
+    ]
+    assert len(discovered) == 1
+
+
+def test_generic_primary_skips_discovery_entirely(discovery_env):
+    """Generic (link-only) primary listings don't run cross-retailer discovery."""
+    fake, llm = discovery_env
+    product = _seed_product(fake)
+    # Flip the primary listing's retailer to generic.
+    primary = next(
+        row
+        for row in fake.product_listings.values()
+        if row["product_id"] == product["id"] and row["is_primary"]
+    )
+    primary["retailer_slug"] = "generic"
+    primary["url"] = "https://walmart.ca/some-page"
+    llm.discover_result = LlmDiscoveryResult(candidates=[_candidate(DISCOVERY_A_HIGH)])
+
+    run_discovery_for_product(product["id"])
+
+    assert fake.products[product["id"]]["discovery_status"] == "complete"
+    assert llm.discover_calls == []
+    discovered = [
+        row
+        for row in fake.product_listings.values()
+        if row["product_id"] == product["id"] and not row["is_primary"]
+    ]
+    assert discovered == []
