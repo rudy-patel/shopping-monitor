@@ -12,7 +12,7 @@ from google.genai import errors as genai_errors
 from core.settings import Settings, clear_settings_cache
 from services.categorizer import CategorizationContext
 from services.factory import build_retailer_default_categories, get_categorizer, get_llm_provider
-from services.gemini import GeminiFlashLlmProvider
+from services.gemini import GeminiFlashLlmProvider, _extract_json_text
 from services.llm import (
     LlmCategorizationResult,
     LlmInvalidResponseError,
@@ -281,6 +281,82 @@ def test_discover_quota_error(mock_client_cls: MagicMock):
             variant_attributes={},
             image_url=None,
         )
+
+
+@patch("services.gemini.genai.Client")
+def test_discover_grounded_call_omits_structured_output_config(mock_client_cls: MagicMock):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.return_value = _mock_response(
+        '{"candidates":[{"url":"https://fixtures.local/bestbuy_ca/in_stock","justification":"same product"}]}'
+    )
+
+    from scrapers.bestbuy_ca import register_bestbuy_ca
+    from scrapers.generic import register_generic
+
+    register_generic()
+    register_bestbuy_ca()
+
+    _make_provider().discover(
+        title="Lenovo Yoga Slim 7x",
+        brand="Lenovo",
+        retailer_slug="bestbuy_ca",
+        variant_attributes={},
+        image_url=None,
+    )
+
+    config = mock_client.models.generate_content.call_args.kwargs["config"]
+    assert config.tools is not None
+    assert config.response_mime_type is None
+    assert config.response_schema is None
+
+
+def test_extract_json_text_strips_markdown_fence():
+    fenced = '```json\n{"candidates":[]}\n```'
+    assert _extract_json_text(fenced) == '{"candidates":[]}'
+
+
+@patch("services.gemini.genai.Client")
+def test_search_grounded_call_omits_structured_output_config(mock_client_cls: MagicMock):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.return_value = _mock_response(
+        json.dumps(
+            {
+                "candidates": [
+                    {
+                        "url": "https://www.bestbuy.ca/en-ca/product/widget/12345",
+                        "title": "Widget Pro",
+                        "retailer_hint": "Best Buy Canada",
+                        "brand_hint": "WidgetCo",
+                        "justification": "Best Buy Canada PDP for the Widget Pro",
+                    }
+                ]
+            }
+        )
+    )
+
+    _make_provider().search(query="widget pro")
+
+    config = mock_client.models.generate_content.call_args.kwargs["config"]
+    assert config.tools is not None
+    assert config.response_mime_type is None
+    assert config.response_schema is None
+
+
+@patch("services.gemini.genai.Client")
+def test_search_parses_markdown_fenced_json(mock_client_cls: MagicMock):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.return_value = _mock_response(
+        """```json
+{"candidates":[{"url":"https://www.bestbuy.ca/en-ca/product/widget/12345","title":"Widget Pro","retailer_hint":"Best Buy Canada","brand_hint":"WidgetCo","justification":"match"}]}
+```"""
+    )
+
+    result = _make_provider().search(query="widget pro")
+    assert len(result.candidates) == 1
+    assert result.candidates[0].title == "Widget Pro"
 
 
 @patch("services.gemini.genai.Client")

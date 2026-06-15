@@ -9,7 +9,7 @@ Host **shopping-monitor** using **Vercel** (frontend) and **Render** (backend). 
 | Frontend | `https://shopping-monitor-nine.vercel.app` |
 | Backend | `https://shopping-monitor-api.onrender.com` |
 | GitHub repo | `https://github.com/rudy-patel/shopping-monitor` |
-| Migrations | `001_core_schema.sql` + `002_scrape_job_advisory_lock.sql` — **applied** |
+| Migrations | `001_core_schema.sql` + `002_scrape_job_advisory_lock.sql` + `003_search_cache.sql` — **applied** |
 
 Secrets live in **Render**, **Vercel**, and **GitHub Actions** only — never committed to the repository.
 
@@ -48,6 +48,7 @@ Both migrations are applied on the production Supabase project:
 | --- | --- | --- |
 | 1 | `001_core_schema.sql` | Core tables + RLS |
 | 2 | `002_scrape_job_advisory_lock.sql` | Advisory-lock RPCs for scrape-all job |
+| 3 | `003_search_cache.sql` | Global 24h search-result cache for `/api/search` |
 
 For **new** environments (staging, fresh project), apply in order using one of:
 
@@ -136,6 +137,7 @@ The free tier sleeps after ~15 minutes idle with a ~30s cold start on wake (PRD 
 | `GEMINI_MODEL` | `gemini-2.5-flash` |
 | `GEMINI_CATEGORIZE_TIMEOUT_S` | `1.5` |
 | `GEMINI_DISCOVER_TIMEOUT_S` | `30.0` |
+| `GEMINI_SEARCH_TIMEOUT_S` | `12.0` (grounded search; bump if slow in prod) |
 | `LOG_LEVEL` | `INFO` |
 | `FX_CACHE_TTL_HOURS` | `24` |
 | `FRANKFURTER_BASE_URL` | `https://api.frankfurter.dev` |
