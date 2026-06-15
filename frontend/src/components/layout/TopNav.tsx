@@ -119,7 +119,7 @@ export function TopNav() {
             to="/"
             className="shrink-0 text-lg font-semibold tracking-tight"
           >
-            Shopping Monitor
+            Someday
           </Link>
 
           <div className="mx-2 hidden flex-1 justify-center md:flex">

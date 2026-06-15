@@ -3,9 +3,11 @@ import { Link } from 'react-router-dom'
 import { DashboardCategoryList } from '@/components/products/DashboardCategoryList'
 import { EmptyState } from '@/components/products/EmptyState'
 import { ProductListRowSkeleton } from '@/components/products/ProductListRowSkeleton'
+import { RotatingCopy } from '@/components/layout/RotatingCopy'
 import { Button } from '@/components/ui/button'
 import { useProducts } from '@/hooks/useProducts'
 import type { ProductSummary } from '@/lib/products'
+import { dashboardQuotes } from '@/lib/copy'
 
 export function DashboardPage() {
   const { data: products = [] as ProductSummary[], isLoading, isError } = useProducts({
@@ -22,6 +24,11 @@ export function DashboardPage() {
           <p className="text-sm text-muted-foreground md:text-base">
             Products grouped by category.
           </p>
+          {hasProducts && (
+            <p className="mt-1 text-xs italic text-muted-foreground">
+              <RotatingCopy lines={dashboardQuotes} interval={6000} />
+            </p>
+          )}
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <Button

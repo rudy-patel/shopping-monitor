@@ -43,7 +43,7 @@ describe('TopNav', () => {
   it('renders logo, Add Product, bell, and avatar menu without currency control', () => {
     renderWithProviders(<TopNav />, { authenticated: true })
 
-    expect(screen.getByRole('link', { name: /shopping monitor/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /someday/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /add product/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /display currency/i })).not.toBeInTheDocument()
     expect(screen.queryByText(/^display currency$/i)).not.toBeInTheDocument()

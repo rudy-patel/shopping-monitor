@@ -3,6 +3,8 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { useAuth } from '@/contexts/AuthContext'
 import { Button } from '@/components/ui/button'
+import { RotatingCopy } from '@/components/layout/RotatingCopy'
+import { loginTaglines } from '@/lib/copy'
 
 function getRedirectPath(state: unknown): string {
   const from = (state as { from?: string } | null)?.from
@@ -37,9 +39,9 @@ export function LoginPage() {
     <div className="container mx-auto flex min-h-screen max-w-md flex-col justify-center px-4 py-12">
       <div className="space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-semibold tracking-tight">Shopping Monitor</h1>
+          <h1 className="text-3xl font-semibold tracking-tight">Someday</h1>
           <p className="text-muted-foreground">
-            One organized home for things you want to buy.
+            <RotatingCopy lines={loginTaglines} interval={4000} />
           </p>
         </div>
 
