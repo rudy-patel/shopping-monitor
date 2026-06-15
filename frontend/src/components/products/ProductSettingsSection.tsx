@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ChevronDown } from 'lucide-react'
 import { CategoryField } from '@/components/products/CategoryField'
 import { ThresholdField } from '@/components/products/ThresholdField'
+import { useJustAddedCategoryThinking } from '@/lib/just-added-product'
 import type { ProductDetail } from '@/lib/products'
 import { cn } from '@/lib/utils'
 
@@ -10,7 +11,14 @@ interface ProductSettingsSectionProps {
 }
 
 export function ProductSettingsSection({ product }: ProductSettingsSectionProps) {
+  const { isThinking } = useJustAddedCategoryThinking(product.id)
   const [open, setOpen] = useState(false)
+
+  useEffect(() => {
+    if (isThinking) {
+      setOpen(true)
+    }
+  }, [isThinking])
 
   return (
     <section className="space-y-3">

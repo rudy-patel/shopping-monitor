@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ProductSettingsSection } from '@/components/products/ProductSettingsSection'
+import { clearJustAddedProduct, markProductJustAdded } from '@/lib/just-added-product'
 import { makeProductDetail } from './product-fixtures'
 import { renderWithProviders } from './test-utils'
 
@@ -10,6 +11,10 @@ vi.mock('@/hooks/useProducts', () => ({
 
 describe('ProductSettingsSection', () => {
   const product = makeProductDetail({ id: 'settings-product-id' })
+
+  afterEach(() => {
+    clearJustAddedProduct()
+  })
 
   it('renders a collapsible settings region with semantic heading', () => {
     renderWithProviders(<ProductSettingsSection product={product} />)
@@ -31,5 +36,16 @@ describe('ProductSettingsSection', () => {
     expect(screen.getByRole('region', { name: /^settings$/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/notification threshold/i)).toBeInTheDocument()
     expect(screen.getByRole('combobox', { name: /category/i })).toBeInTheDocument()
+  })
+
+  it('opens automatically while category thinking is active after add', () => {
+    markProductJustAdded(product.id, 'heuristic')
+    renderWithProviders(<ProductSettingsSection product={product} />)
+
+    expect(screen.getByRole('button', { name: /^settings$/i })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
+    expect(screen.getByTestId('category-thinking')).toBeInTheDocument()
   })
 })
