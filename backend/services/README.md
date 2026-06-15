@@ -158,7 +158,7 @@ mail.send_digest(
 
 **Digest job:** `POST /internal/jobs/send-digests` (worker token) runs `digest_job_service.run_send_digests()`. Selects unread notifications with `email_sent_at IS NULL` within the 90-day window. Skips users with `email_digest_enabled=false` or zero qualifying rows. Resolves recipient via Supabase Auth admin API (`auth.admin.get_user_by_id`), not `profiles`. Marks `email_sent_at` only after a successful Resend send. When `RESEND_API_KEY` is unset, `mail_provider` is `noop` and qualifying users increment `users_skipped_noop` (no sends or marks). `profiles.notifications_enabled` does **not** gate digest delivery (PRD §7.6).
 
-**Worker boundary:** GitHub Actions `.github/workflows/digest.yml` (`workflow_dispatch` only; cron deferred T6.3) runs `backend/workers/send_digests.py`.
+**Worker boundary:** GitHub Actions `.github/workflows/digest.yml` (cron `0 14 * * *` UTC + `workflow_dispatch`) runs `backend/workers/send_digests.py`.
 
 **Manual smoke:** `python scripts/smoke_resend_digest.py` (dry-run default); `--live --to <email>` for one sandbox send (never in CI).
 
@@ -221,7 +221,7 @@ run_post_scrape_evaluation(..., scrape_source="scheduled", mode="scrape_triggere
 run_revisit_evaluation_for_active_products(client, user_id, evaluated_at, mode="revisit_only")
 ```
 
-**Worker boundary:** GitHub Actions `.github/workflows/scrape.yml` (`workflow_dispatch` only; cron deferred T6.3) runs `backend/workers/scrape_all.py`, which POSTs to the deployed backend with `X-Worker-Token`.
+**Worker boundary:** GitHub Actions `.github/workflows/scrape.yml` (cron `0 8 * * *` UTC + `workflow_dispatch`) runs `backend/workers/scrape_all.py`, which POSTs to the deployed backend with `X-Worker-Token`.
 
 ## Pricing helpers
 
@@ -252,7 +252,7 @@ trend = compute_trend(observations, today=date(2026, 6, 14))
 
 ## Deferred to later tasks
 
-- **T6.3** — Enable cron schedules on scrape/digest workflows after production validation.
+- **T6.4** — Seven-day scrape reliability check after cron enablement (T6.3 done).
 
 ## Account deletion (T4.3)
 

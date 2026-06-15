@@ -61,7 +61,7 @@ See `AGENTS.md` for lint/test commands and environment details.
 
 ### Implementation status (2026-06-14)
 
-Milestones **M0–M5** are **done** (retailer expansion T5.1–T5.5 including local drift tooling). **M6** in progress: **T6.2** production smoke **done**; **T6.3** cron and **T6.4** reliability remain. Human setup **H4** (Resend) and **H5** (Render/Vercel/GitHub Actions) and deployment docs (**T6.1**) are **done** — production URLs in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). See [`docs/ROADMAP.md`](docs/ROADMAP.md) §15 for next tasks.
+Milestones **M0–M5** are **done** (retailer expansion T5.1–T5.5 including local drift tooling). **M6** in progress: **T6.2** production smoke and **T6.3** cron schedules **done**; **T6.4** reliability remains. Human setup **H4** (Resend) and **H5** (Render/Vercel/GitHub Actions) and deployment docs (**T6.1**) are **done** — production URLs in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). See [`docs/ROADMAP.md`](docs/ROADMAP.md) §15 for next tasks.
 
 ## Documentation
 

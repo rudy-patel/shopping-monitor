@@ -4,6 +4,22 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] T6.3 Enable schedules
+
+**What:** Enabled production cron schedules for daily scrape (`0 8 * * *` UTC) and digest (`0 14 * * *` UTC) in GitHub Actions workflows. Fixed cron YAML to use `schedule: - cron:` syntax (commented placeholder was invalid). Added `backend/test/test_scheduled_workflows.py` to guard cron expressions, `workflow_dispatch`, and worker env wiring in CI.
+
+**Locked behavior:** No backend/worker code changes. Advisory lock still deduplicates concurrent scrape-all runs (`lock_not_acquired` → no `price_history` writes). Digest still skips users with zero qualifying unread rows. `workflow_dispatch` retained on both workflows for manual runs.
+
+**Pre-verified (T6.2, reused for T6.3):** Scrape [run #27509008501](https://github.com/rudy-patel/shopping-monitor/actions/runs/27509008501); digest suppression [run #27513581095](https://github.com/rudy-patel/shopping-monitor/actions/runs/27513581095); digest live send with unread notifications confirmed by owner via manual dispatch.
+
+**Files:** `.github/workflows/scrape.yml`, `.github/workflows/digest.yml`, `backend/test/test_scheduled_workflows.py`, `docs/ROADMAP.md`, `docs/DEPLOYMENT.md`, `docs/PRD.md`, `AGENTS.md`, `MEMORY.md`.
+
+**Verification:** `pytest backend/test/test_scheduled_workflows.py` (cron + dispatch + worker env); `make test` (549 backend + 95 frontend).
+
+**Deferred:** T6.4 seven-day reliability monitoring begins after cron runs on `main`.
+
+---
+
 ## [2026-06-14] T5.5 Drift detection (local tooling)
 
 **What:** Shipped local-only retailer drift tooling (no GitHub Actions workflow — not run on CI/merge). Added `backend/scrapers/drift/` with live URL catalog, structural fingerprint normalization, committed baselines under `snapshots/`, compare/runner modules, optional GitHub issue sync (`--file-issues`), `scripts/check_retailer_drift.py`, `scripts/update_drift_snapshots.py`, `make check-retailer-drift` (live) and `make update-drift-snapshots` (fixtures).
