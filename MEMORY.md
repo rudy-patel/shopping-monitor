@@ -29,6 +29,18 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] T8.2 Search production fix — second pass (timeout alignment)
+
+**Bug:** After #49 fixed the Gemini `response_schema` + `google_search` 502, production search still returned **504** "Search took too long" when grounded Gemini exceeded the interim `12.0`s default.
+
+**Fix:** Raised `GEMINI_SEARCH_TIMEOUT_S` default `12` → `30` (aligned with `GEMINI_DISCOVER_TIMEOUT_S`). `POST /api/search` now runs `run_search` via `asyncio.to_thread` so long Gemini calls do not block the event loop. Tightened `test_settings` env-key coverage for `GEMINI_SEARCH_TIMEOUT_S` + `SEARCH_CACHE_TTL_HOURS`; factory test asserts search timeout wiring.
+
+**Deploy note:** Render backend redeploy required. No new env vars needed — unset `GEMINI_SEARCH_TIMEOUT_S` picks up the new default.
+
+**Files:** `backend/core/settings.py`, `backend/routers/search.py`, `backend/.env.example`, `backend/test/test_settings.py`, `backend/test/test_services_gemini.py`, `docs/PRD.md`, `docs/ROADMAP.md`, `docs/DEPLOYMENT.md`, `AGENTS.md`, `MEMORY.md`.
+
+---
+
 ## [2026-06-15] Search production fix — Gemini grounded + structured output incompatibility
 
 **Bug:** Production `/api/search` returned `502` with "Search provider error — please try again." for queries like "airpods". Root cause: `_call_gemini_search` (and `_call_gemini_discover`) passed both `response_schema`/`response_mime_type` **and** `google_search` to `gemini-2.5-flash`. Gemini rejects that combo with `400 INVALID_ARGUMENT` ("controlled generation is not supported with google_search tool"), which the router maps to `LlmProviderError`.
@@ -37,9 +49,11 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Deploy note:** Backend must be redeployed to Render for the Gemini fix to reach production. `003_search_cache.sql` was already applied on Supabase.
 
-**Files:** `backend/services/gemini.py`, `backend/core/settings.py`, `backend/test/test_services_gemini.py`, `frontend/src/components/search/SearchThinking.tsx`, `frontend/src/components/search/SearchCommandDialog.tsx`, `frontend/src/test/search-thinking.test.tsx`, `frontend/src/test/search-dialog.test.tsx`, `docs/DEPLOYMENT.md`, `MEMORY.md`.
+**Files:** `backend/services/gemini.py`, `backend/core/settings.py`, `backend/test/test_services_gemini.py`, `frontend/src/components/search/SearchThinking.tsx`, `frontend/src/components/search/SearchCommandDialog.tsx`, `frontend/src/test/search-thinking.test.tsx`, `frontend/src/test/search-dialog.test.tsx`, `docs/DEPLOYMENT.md`, `MEMORY.md`. PR https://github.com/rudy-patel/shopping-monitor/pull/49
 
 ---
+
+## [2026-06-15] T7.4 Auto-categorization UX polish
 
 **What:** Frontend-only polish for self-organizing lists: URL-first Add Product modal with optional manual category disclosure; modal stays open with "Adding…" until success; product detail category field shows ~2.5s "Sorting into your list…" shimmer after add plus brief "Sorted by AI" hint; dashboard row "Sorting…" badge for the same session window via `frontend/src/lib/just-added-product.ts`. **No extra Gemini calls** — animation is client-side only.
 

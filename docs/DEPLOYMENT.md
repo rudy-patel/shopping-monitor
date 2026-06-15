@@ -137,7 +137,7 @@ The free tier sleeps after ~15 minutes idle with a ~30s cold start on wake (PRD 
 | `GEMINI_MODEL` | `gemini-2.5-flash` |
 | `GEMINI_CATEGORIZE_TIMEOUT_S` | `1.5` |
 | `GEMINI_DISCOVER_TIMEOUT_S` | `30.0` |
-| `GEMINI_SEARCH_TIMEOUT_S` | `12.0` (grounded search; bump if slow in prod) |
+| `GEMINI_SEARCH_TIMEOUT_S` | `30.0` (grounded search; aligned with `GEMINI_DISCOVER_TIMEOUT_S`; shorter values cause 504 timeouts) |
 | `LOG_LEVEL` | `INFO` |
 | `FX_CACHE_TTL_HOURS` | `24` |
 | `FRANKFURTER_BASE_URL` | `https://api.frankfurter.dev` |

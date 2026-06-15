@@ -15,7 +15,9 @@ from core.settings import (
     DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S,
     DEFAULT_GEMINI_DISCOVER_TIMEOUT_S,
     DEFAULT_GEMINI_MODEL,
+    DEFAULT_GEMINI_SEARCH_TIMEOUT_S,
     DEFAULT_SCRAPER_MODE,
+    DEFAULT_SEARCH_CACHE_TTL_HOURS,
     PRODUCTION_APP_BASE_URL,
     Settings,
     clear_settings_cache,
@@ -37,6 +39,8 @@ SETTINGS_ENV_KEYS = [
     "GEMINI_MODEL",
     "GEMINI_CATEGORIZE_TIMEOUT_S",
     "GEMINI_DISCOVER_TIMEOUT_S",
+    "GEMINI_SEARCH_TIMEOUT_S",
+    "SEARCH_CACHE_TTL_HOURS",
     "RESEND_API_KEY",
     "RESEND_FROM_EMAIL",
     "APP_BASE_URL",
@@ -73,6 +77,8 @@ def test_defaults_when_env_unset(settings_env, monkeypatch):
     assert settings.gemini_model == DEFAULT_GEMINI_MODEL
     assert settings.gemini_categorize_timeout_s == DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S
     assert settings.gemini_discover_timeout_s == DEFAULT_GEMINI_DISCOVER_TIMEOUT_S
+    assert settings.gemini_search_timeout_s == DEFAULT_GEMINI_SEARCH_TIMEOUT_S
+    assert settings.search_cache_ttl_hours == DEFAULT_SEARCH_CACHE_TTL_HOURS
     assert settings.resend_api_key == ""
     assert settings.app_base_url == DEFAULT_APP_BASE_URL
     assert settings.scraper_mode == DEFAULT_SCRAPER_MODE

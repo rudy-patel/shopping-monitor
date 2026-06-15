@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from google.genai import errors as genai_errors
 
-from core.settings import Settings, clear_settings_cache
+from core.settings import DEFAULT_GEMINI_SEARCH_TIMEOUT_S, Settings, clear_settings_cache
 from services.categorizer import CategorizationContext
 from services.factory import build_retailer_default_categories, get_categorizer, get_llm_provider
 from services.gemini import GeminiFlashLlmProvider, _extract_json_text
@@ -513,6 +513,7 @@ def test_get_llm_provider_with_key(monkeypatch):
     clear_settings_cache()
     provider = get_llm_provider(Settings(gemini_api_key="secret"))
     assert isinstance(provider, GeminiFlashLlmProvider)
+    assert provider._search_timeout_s == DEFAULT_GEMINI_SEARCH_TIMEOUT_S
 
 
 @patch("services.gemini.genai.Client")

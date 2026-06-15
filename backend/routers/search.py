@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from supabase import Client
@@ -56,7 +58,8 @@ async def post_search(
 ) -> SearchResponseModel:
     """Run a search. Auth required; results are cached globally for 24h."""
     try:
-        result = run_search(body.query, client=client)
+        # Grounded Gemini calls can take 10–30s; keep the event loop responsive.
+        result = await asyncio.to_thread(run_search, body.query, client=client)
     except LlmQuotaExhaustedError as exc:
         logger.warning("search_quota_exhausted", extra={"error": str(exc)})
         raise HTTPException(

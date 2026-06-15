@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-15 (T8.2 search production hotfix).
+> **Last updated:** 2026-06-15 (T8.2 search timeout second pass).
 
 ---
 
@@ -792,16 +792,19 @@ Start after M3 proves the one-retailer architecture.
 
 ### T8.2 Search production hotfix (M8)
 
-**Status:** done — 2026-06-15
+**Status:** done — 2026-06-15 (second pass: timeout alignment)
 
 - **Owner:** agent.
-- **Scope:** fix production `/api/search` 502 ("Search provider error") and improve in-flight search UX.
-- **Root cause:** `gemini-2.5-flash` rejects `response_schema` + `google_search` together (`400 INVALID_ARGUMENT`); same pattern affected `discover()`.
-- **Backend:** grounded search/discovery now prompt for JSON and parse locally (`_call_gemini_grounded`); default `GEMINI_SEARCH_TIMEOUT_S` raised to `12.0`.
-- **Frontend:** `SearchThinking` component — rotating status copy + skeleton rows while `isFetching`.
-- **Tests:** `test_search_grounded_call_omits_structured_output_config`, `test_discover_grounded_call_omits_structured_output_config`, `test_extract_json_text_strips_markdown_fence`, `search-thinking.test.tsx`, loading-state test in `search-dialog.test.tsx`.
-- **Docs:** PRD §10.7 grounded-JSON note + risk row; `DEPLOYMENT.md` migration 003 + timeout; `AGENTS.md`, `.env.example`, `MEMORY.md`.
-- **Deploy:** backend Render redeploy required for Gemini fix to reach production.
+- **Scope:** fix production `/api/search` failures and improve in-flight search UX.
+- **Root causes:**
+  1. **502** — `gemini-2.5-flash` rejects `response_schema` + `google_search` together (`400 INVALID_ARGUMENT`); same pattern affected `discover()`.
+  2. **504** — grounded Gemini often exceeds the interim `12.0`s search timeout; users saw "Search took too long" even after the grounding fix (#49).
+- **Backend (#49):** grounded search/discovery prompt for JSON and parse locally (`_call_gemini_grounded`); interim `GEMINI_SEARCH_TIMEOUT_S` raised to `12.0`.
+- **Backend (second pass):** default `GEMINI_SEARCH_TIMEOUT_S` raised to `30.0` (aligned with `GEMINI_DISCOVER_TIMEOUT_S`); `POST /api/search` runs `run_search` via `asyncio.to_thread`; `test_settings` documents `GEMINI_SEARCH_TIMEOUT_S` + `SEARCH_CACHE_TTL_HOURS`.
+- **Frontend (#49):** `SearchThinking` component — rotating status copy + skeleton rows while `isFetching`.
+- **Tests:** `test_search_grounded_call_omits_structured_output_config`, `test_discover_grounded_call_omits_structured_output_config`, `test_extract_json_text_strips_markdown_fence`, `search-thinking.test.tsx`, loading-state test in `search-dialog.test.tsx`; second pass adds default-timeout assertions in `test_settings` + `test_get_llm_provider_with_key`.
+- **Docs:** PRD §10.7 grounded-JSON note + timeout guardrails + risk rows; `DEPLOYMENT.md` migration 003 + timeout; `AGENTS.md`, `.env.example`, `MEMORY.md`.
+- **Deploy:** backend Render redeploy required for fixes to reach production.
 
 ---
 
@@ -854,7 +857,7 @@ Constraints:
 <details>
 <summary>Recently completed (M8)</summary>
 
-- ~~**T8.2** Search production hotfix~~ — Gemini grounded JSON parsing fix, `SearchThinking` loading UX, timeout/docs sync.
+- ~~**T8.2** Search production hotfix~~ — Gemini grounded JSON parsing fix (#49), `SearchThinking` loading UX, 30s search timeout + `asyncio.to_thread` second pass.
 - ~~**T8.1** Search-based product addition~~ — `POST /api/search` + 24h cache, `discovery_seed` plumbing, ⌘K command palette dialog, fixture-mode LLM provider.
 
 </details>
@@ -882,7 +885,7 @@ Constraints:
 
 </details>
 
-M4 validated in production (T6.2 done). M5 complete through T5.5. M8 search shipped; **T8.2 hotfix** ready for Render deploy.
+M4 validated in production (T6.2 done). M5 complete through T5.5. M8 search shipped; **T8.2** grounding + timeout fixes ready for Render deploy.
 
 <details>
 <summary>Historical bootstrap order (M0–M3, completed)</summary>

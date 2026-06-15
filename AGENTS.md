@@ -23,7 +23,7 @@ Two `.env` files are needed (not committed). Backend secrets (`SUPABASE_URL`, `S
 
 - `backend/.env` — Supabase credentials + `AUTH_BYPASS_ENABLED=true` for local dev (optional until auth is implemented), plus optional V1 service vars:
   - `GEMINI_API_KEY` — LLM discovery / categorization / **search** provider key (fixture mode uses `FixtureLlmProvider` automatically when unset, see `backend/services/factory.py`).
-  - `GEMINI_SEARCH_TIMEOUT_S` — optional, defaults to `12.0`s for `/api/search` Gemini calls.
+  - `GEMINI_SEARCH_TIMEOUT_S` — optional, defaults to `30.0`s for `/api/search` Gemini calls (align with `GEMINI_DISCOVER_TIMEOUT_S`).
   - `SEARCH_CACHE_TTL_HOURS` — optional, defaults to `24`h for the `search_cache` table.
   - `RESEND_API_KEY` — daily digest email provider key.
   - `WORKER_TOKEN` — shared secret required by `/internal/jobs/*` endpoints.
