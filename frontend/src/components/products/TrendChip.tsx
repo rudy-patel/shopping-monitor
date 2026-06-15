@@ -1,15 +1,10 @@
 import type { TrendChip as TrendChipType } from '@/lib/products'
+import { enrichedTrendLabel } from '@/lib/trend'
 import { cn } from '@/lib/utils'
 
 interface TrendChipProps {
   trend: TrendChipType
   className?: string
-}
-
-const DIRECTION_PREFIX: Record<TrendChipType['direction'], string> = {
-  down: '↓',
-  same: '→',
-  up: '↑',
 }
 
 const DIRECTION_STYLES: Record<TrendChipType['direction'], string> = {
@@ -28,8 +23,7 @@ export function trendPriceClass(direction: TrendChipType['direction']): string {
 }
 
 export function TrendChip({ trend, className }: TrendChipProps) {
-  const prefix = DIRECTION_PREFIX[trend.direction]
-  const accessibleLabel = `${prefix} ${trend.label}`
+  const accessibleLabel = enrichedTrendLabel(trend)
 
   return (
     <span

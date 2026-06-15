@@ -82,6 +82,8 @@ describe('ProductDetailPage', () => {
 
     expect(screen.getByRole('link', { name: /back to dashboard/i })).toBeInTheDocument()
 
+    await user.click(screen.getByRole('button', { name: /^settings$/i }))
+
     await user.click(screen.getByRole('combobox', { name: /category/i }))
     await user.click(screen.getByRole('option', { name: /^home$/i }))
     expect(mockUpdateMutate).toHaveBeenCalledWith({ category: 'home' })
@@ -98,7 +100,14 @@ describe('ProductDetailPage', () => {
 
   it('shows restore and archived back link for archived products', () => {
     vi.mocked(useProduct).mockReturnValue({
-      data: makeProductDetail({ id: 'detail-product-id', status: 'archived' }),
+      data: makeProductDetail({
+        id: 'detail-product-id',
+        status: 'archived',
+        price_history_30d: [
+          { observed_on: '2026-06-01', price_cents: 12999 },
+          { observed_on: '2026-06-14', price_cents: 11999 },
+        ],
+      }),
       isLoading: false,
       isError: false,
     } as ReturnType<typeof useProduct>)
@@ -106,6 +115,7 @@ describe('ProductDetailPage', () => {
     renderApp(`/products/${product.id}`, { authenticated: true })
 
     expect(screen.getByText(/this product is archived/i)).toBeInTheDocument()
+    expect(screen.getByText(/tracking paused/i)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /back to archived/i })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /^restore$/i })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /^archive$/i })).not.toBeInTheDocument()
@@ -141,42 +151,119 @@ describe('ProductDetailPage', () => {
 
     renderApp(`/products/${product.id}`, { authenticated: true })
 
-    const heroPrice = screen
+    const hero = screen.getByRole('region', { name: /product summary/i })
+    const heroPrice = within(hero)
       .getAllByText('$279.99')
       .find((el) => el.className.includes('text-3xl'))
     expect(heroPrice).toBeDefined()
-    expect(screen.getByText('at')).toBeInTheDocument()
-    expect(screen.getAllByText('Best Buy Canada').length).toBeGreaterThanOrEqual(1)
-    const sparkline = screen.getByRole('img')
+    expect(within(hero).getByText('at')).toBeInTheDocument()
+    expect(within(hero).getAllByText('Best Buy Canada').length).toBeGreaterThanOrEqual(1)
+    const sparkline = within(hero).getByRole('img')
     expect(sparkline.tagName.toLowerCase()).toBe('svg')
     expect(sparkline.querySelector('title')?.textContent).toMatch(/30-day price trend/)
+    expect(within(hero).getByText(/tracking since/i)).toBeInTheDocument()
+    expect(within(hero).getByText(/last refreshed/i)).toBeInTheDocument()
     expect(screen.queryByText('Best price')).not.toBeInTheDocument()
     expect(screen.queryByText(/vs best/i)).not.toBeInTheDocument()
   })
 
-  it('sorts listings cheapest-first with best-price hints and no scrape badges', () => {
-    const primary = product.listings[0]
+  it('shows threshold trigger dollars after expanding settings', async () => {
     vi.mocked(useProduct).mockReturnValue({
       data: makeProductDetail({
         id: 'detail-product-id',
-        listings: [
-          { ...primary, id: 'primary', last_known_price_cents: 12999, retailer_slug: 'bestbuy_ca' },
-          {
-            ...primary,
-            id: 'cheap',
-            is_primary: false,
-            review_status: 'auto_added',
-            last_known_price_cents: 11999,
-            retailer_slug: 'amazon_ca',
-          },
-          {
-            ...primary,
-            id: 'expensive',
-            is_primary: false,
-            review_status: 'auto_added',
-            last_known_price_cents: 13999,
-            retailer_slug: 'apple_ca',
-          },
+        best_price_cents: 27999,
+        notification_threshold_pct: 20,
+        effective_threshold_pct: 20,
+        price_history_30d: [{ observed_on: '2026-06-14', price_cents: 27999 }],
+      }),
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useProduct>)
+
+    const user = userEvent.setup()
+    renderApp(`/products/${product.id}`, { authenticated: true })
+
+    await user.click(screen.getByRole('button', { name: /^settings$/i }))
+
+    expect(screen.getByTestId('threshold-trigger-hint')).toHaveTextContent(
+      /alert when below \$223\.99 \(20% off \$279\.99\)/i,
+    )
+  })
+
+  it('enriches the trend chip when delta_pct is known', () => {
+    vi.mocked(useProduct).mockReturnValue({
+      data: makeProductDetail({
+        id: 'detail-product-id',
+        trend: {
+          direction: 'down',
+          delta_pct: -0.08,
+          days_of_data: 14,
+          label: 'Down in the last 30 days',
+        },
+      }),
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useProduct>)
+
+    renderApp(`/products/${product.id}`, { authenticated: true })
+
+    expect(screen.getAllByLabelText('↓ Down 8%').length).toBeGreaterThanOrEqual(1)
+  })
+
+  it('keeps settings collapsed by default', () => {
+    renderApp(`/products/${product.id}`, { authenticated: true })
+
+    expect(screen.getByRole('button', { name: /^settings$/i })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
+    expect(screen.queryByLabelText(/notification threshold/i)).not.toBeInTheDocument()
+  })
+
+  it('toggles settings fields when the section header is clicked', async () => {
+    const user = userEvent.setup()
+    renderApp(`/products/${product.id}`, { authenticated: true })
+
+    const toggle = screen.getByRole('button', { name: /^settings$/i })
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    expect(screen.getByLabelText(/notification threshold/i)).toBeInTheDocument()
+
+    await user.click(toggle)
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByLabelText(/notification threshold/i)).not.toBeInTheDocument()
+  })
+
+  it('uses the profile default in the threshold hint when no product override exists', async () => {
+    vi.mocked(useProduct).mockReturnValue({
+      data: makeProductDetail({
+        id: 'detail-product-id',
+        best_price_cents: 27999,
+        notification_threshold_pct: null,
+        effective_threshold_pct: 20,
+        price_history_30d: [{ observed_on: '2026-06-14', price_cents: 27999 }],
+      }),
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useProduct>)
+
+    const user = userEvent.setup()
+    renderApp(`/products/${product.id}`, { authenticated: true })
+    await user.click(screen.getByRole('button', { name: /^settings$/i }))
+
+    expect(screen.getByTestId('threshold-trigger-hint')).toHaveTextContent(
+      /alert when below \$223\.99 \(20% off \$279\.99\)/i,
+    )
+  })
+
+  it('greys the archived sparkline while keeping history visible', () => {
+    vi.mocked(useProduct).mockReturnValue({
+      data: makeProductDetail({
+        id: 'detail-product-id',
+        status: 'archived',
+        price_history_30d: [
+          { observed_on: '2026-06-01', price_cents: 12999 },
+          { observed_on: '2026-06-14', price_cents: 11999 },
         ],
       }),
       isLoading: false,
@@ -185,14 +272,62 @@ describe('ProductDetailPage', () => {
 
     renderApp(`/products/${product.id}`, { authenticated: true })
 
+    const hero = screen.getByRole('region', { name: /product summary/i })
+    expect(within(hero).getByRole('img')).toBeInTheDocument()
+    expect(within(hero).getByRole('img').closest('.opacity-60')).not.toBeNull()
+  })
+
+  it('sorts listings cheapest-first with best-price hints and no scrape badges', () => {
+    const primary = product.listings[0]
+    const listings = [
+      {
+        ...primary,
+        id: 'primary',
+        last_known_price_cents: 12999,
+        retailer_slug: 'bestbuy_ca',
+        url: 'https://fixtures.local/bestbuy_ca/in_stock',
+      },
+      {
+        ...primary,
+        id: 'cheap',
+        is_primary: false,
+        review_status: 'auto_added',
+        last_known_price_cents: 11999,
+        retailer_slug: 'amazon_ca',
+        url: 'https://fixtures.local/amazon_ca/in_stock',
+      },
+      {
+        ...primary,
+        id: 'expensive',
+        is_primary: false,
+        review_status: 'auto_added',
+        last_known_price_cents: 13999,
+        retailer_slug: 'apple_ca',
+        url: 'https://fixtures.local/apple_ca/in_stock',
+      },
+    ] as const
+    vi.mocked(useProduct).mockReturnValue({
+      data: makeProductDetail({
+        id: 'detail-product-id',
+        listings: [...listings],
+      }),
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useProduct>)
+
+    renderApp(`/products/${product.id}`, { authenticated: true })
+
     const listingsSection = screen.getByRole('region', { name: /^listings$/i })
-    const openLinks = within(listingsSection)
-      .getAllByRole('link', { name: /^open on /i })
-      .map((node) => node.textContent?.replace(/\s*$/, ''))
-    expect(openLinks).toEqual([
-      'Open on Amazon.ca',
-      'Open on Best Buy Canada',
-      'Open on Apple Canada',
+    const retailerLinks = within(listingsSection).getAllByRole('link')
+    expect(retailerLinks.map((node) => node.getAttribute('href'))).toEqual([
+      listings[1].url,
+      listings[0].url,
+      listings[2].url,
+    ])
+    expect(retailerLinks.map((node) => node.textContent?.trim())).toEqual([
+      'Amazon.ca',
+      'Best Buy Canada',
+      'Apple Canada',
     ])
     expect(within(listingsSection).getByText('Best price')).toBeInTheDocument()
     expect(within(listingsSection).getByText('+$10.00 vs best')).toBeInTheDocument()

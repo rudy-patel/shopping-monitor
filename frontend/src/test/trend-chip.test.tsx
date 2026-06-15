@@ -52,4 +52,18 @@ describe('TrendChip', () => {
       'text-trend-up',
     )
   })
+
+  it('appends a percent suffix when delta_pct is known', () => {
+    renderWithProviders(
+      <TrendChip
+        trend={{
+          ...sampleTrend,
+          direction: 'down',
+          delta_pct: -0.08,
+          label: 'Down in the last 30 days',
+        }}
+      />,
+    )
+    expect(screen.getByLabelText('↓ Down 8%')).toBeInTheDocument()
+  })
 })

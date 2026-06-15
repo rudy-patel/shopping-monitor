@@ -886,7 +886,9 @@ Constraints:
 
 - ~~**Product detail back navigation**~~ — `BackLink` with arrow icon and aligned placement on product detail (loading, not-found, active, archived).
 - ~~**Product detail hero + 30-day sparkline**~~ — hero best price (trend-tinted) + retailer; unified `[best price] [chip] [sparkline]` row; `GET /api/products/:id` now returns `price_history_30d` daily-min series; backfill at current best for new products (PRD §5.3 U-VIEW-4).
-- ~~**Product detail listings polish (Tier 2)**~~ — cheapest-first cards, subtle best-price highlight, `+$N vs best` deltas, tighter card hierarchy (large price, retailer + stock on one line, secondary retailer link), scrape status hidden from cards (PRD §5.3 U-VIEW-4, §5.4 U-CMP-4).
+- ~~**Product detail listings polish (Tier 2)**~~ — cheapest-first cards, subtle best-price highlight, `+$N vs best` deltas, tighter card hierarchy (large price, retailer + stock on one line), scrape status hidden from cards (PRD §5.3 U-VIEW-4, §5.4 U-CMP-4).
+- ~~**Product detail layout & micro-copy (Tier 3–4)**~~ — hero card, collapsible Settings, metadata chips, mobile sticky price+trend, threshold dollar hint, enriched trend chip, archived sparkline pause state (PRD §5.3 U-VIEW-4, U-VIEW-6).
+- ~~**Listing card retailer link**~~ — retailer label beside the logo links to the source URL (external-link icon, new tab); removed separate "Open on …" row (PRD §5.3 U-VIEW-4, §5.4 U-CMP-2).
 - ~~**Archive in-context feedback**~~ — success toast on archive; no auto-redirect to `/history` (PRD U-ARC-1).
 - ~~**T7.4** Auto-categorization UX polish~~ — URL-first add modal, category thinking shimmer (~2.5s), dashboard sorting badge; client-side only (no extra Gemini calls).
 - ~~**T7.1** UI polish and accessibility~~ — typography-first lists, mobile tab bar, axe vitest, Playwright Mobile Chrome.

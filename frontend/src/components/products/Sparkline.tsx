@@ -13,6 +13,8 @@ interface SparklineProps {
   windowDays?: number
   className?: string
   ariaLabel?: string
+  /** Greyed-out styling for archived products with paused tracking. */
+  paused?: boolean
 }
 
 interface SparklinePoint {
@@ -147,6 +149,7 @@ export function Sparkline({
   windowDays = DEFAULT_WINDOW_DAYS,
   className,
   ariaLabel,
+  paused = false,
 }: SparklineProps) {
   const formatPriceCents = useFormatPriceCents()
   const titleId = useId()
@@ -213,10 +216,13 @@ export function Sparkline({
   const tooltipDate = tooltipPoint ? formatDateShort(tooltipPoint.date) : ''
   const tooltipPrice = tooltipPoint ? formatPriceCents(tooltipPoint.priceCents) : ''
 
+  const strokeClass = paused ? 'text-muted-foreground' : STROKE_CLASS[direction]
+
   return (
     <div
       className={cn(
         'relative inline-flex items-center gap-2 text-xs text-muted-foreground tabular-nums',
+        paused && 'opacity-60',
         className,
       )}
     >
@@ -230,7 +236,7 @@ export function Sparkline({
           viewBox={`0 0 ${width} ${height}`}
           width={width}
           height={height}
-          className={cn('block overflow-visible', STROKE_CLASS[direction])}
+          className={cn('block overflow-visible', strokeClass)}
           onPointerMove={handlePointerMove}
           onPointerLeave={handlePointerLeave}
         >
@@ -290,10 +296,10 @@ export function Sparkline({
       <span aria-hidden="true" className="hidden sm:inline">
         {endPriceLabel}
       </span>
-      {deltaLabel ? (
+      {deltaLabel && !paused ? (
         <span
           aria-hidden="true"
-          className={cn('text-[11px] font-medium', STROKE_CLASS[direction])}
+          className={cn('text-[11px] font-medium', strokeClass)}
         >
           {deltaLabel}
         </span>

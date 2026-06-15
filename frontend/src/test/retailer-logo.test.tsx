@@ -23,4 +23,12 @@ describe('retailer logos', () => {
     expect(screen.getByText('Amazon.ca')).toBeInTheDocument()
     expect(document.querySelector('img')).toBeInTheDocument()
   })
+
+  it('links the retailer label when href is provided', () => {
+    render(<RetailerIdentity slug="bestbuy_ca" href="https://www.bestbuy.ca/example" />)
+    const link = screen.getByRole('link', { name: /best buy canada/i })
+    expect(link).toHaveAttribute('href', 'https://www.bestbuy.ca/example')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
 })
