@@ -18,6 +18,13 @@ describe('ListingCard', () => {
     expect(screen.getByRole('link', { name: /open on best buy canada/i })).toBeInTheDocument()
   })
 
+  it('does not show comparison hints by default', () => {
+    renderWithProviders(<ListingCard listing={listing} />)
+
+    expect(screen.queryByText('Best price')).not.toBeInTheDocument()
+    expect(screen.queryByText(/vs best/i)).not.toBeInTheDocument()
+  })
+
   it('highlights the cheapest listing when comparison hints are enabled', () => {
     renderWithProviders(
       <ListingCard listing={listing} isBestPrice priceDeltaVsBestCents={null} />,
@@ -37,12 +44,5 @@ describe('ListingCard', () => {
 
     expect(screen.getByText('+$20.00 vs best')).toBeInTheDocument()
     expect(screen.queryByText('Best price')).not.toBeInTheDocument()
-  })
-
-  it('uses a secondary link style for the retailer action', () => {
-    renderWithProviders(<ListingCard listing={listing} />)
-
-    const link = screen.getByRole('link', { name: /open on best buy canada/i })
-    expect(link.className).toMatch(/text-muted-foreground/)
   })
 })

@@ -20,12 +20,7 @@ import {
   useRestoreProduct,
 } from '@/hooks/useProducts'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
-import {
-  activeListings,
-  cheapestActivePriceCents,
-  isCheapestListing,
-  listingPriceDeltaVsBest,
-} from '@/lib/products'
+import { activeListings, listingComparisonHints } from '@/lib/products'
 import { retailerLabel } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -41,8 +36,6 @@ export function ProductDetailPage() {
   const isArchived = product?.status === 'archived'
   const isRefreshing = refresh.isPending
   const listings = product ? activeListings(product.listings) : []
-  const bestListingPriceCents = cheapestActivePriceCents(listings)
-  const showListingComparison = listings.length > 1
 
   if (isLoading) {
     return (
@@ -137,26 +130,21 @@ export function ProductDetailPage() {
             Listings
           </h2>
           <div className="space-y-3">
-            {listings.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                isBestPrice={isCheapestListing(
-                  listing,
-                  bestListingPriceCents,
-                  listings.length,
-                )}
-                priceDeltaVsBestCents={
-                  showListingComparison
-                    ? listingPriceDeltaVsBest(listing, bestListingPriceCents)
-                    : null
-                }
-                onRemove={(listingId) => removeListing.mutate(listingId)}
-                isRemoving={
-                  removeListing.isPending && removeListing.variables === listing.id
-                }
-              />
-            ))}
+            {listings.map((listing) => {
+              const comparison = listingComparisonHints(listing, listings)
+              return (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  isBestPrice={comparison.isBestPrice}
+                  priceDeltaVsBestCents={comparison.priceDeltaVsBestCents}
+                  onRemove={(listingId) => removeListing.mutate(listingId)}
+                  isRemoving={
+                    removeListing.isPending && removeListing.variables === listing.id
+                  }
+                />
+              )
+            })}
           </div>
         </section>
 

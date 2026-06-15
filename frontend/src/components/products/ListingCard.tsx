@@ -40,7 +40,7 @@ export function ListingCard({
     <div
       className={cn(
         'rounded-lg border border-border p-4 space-y-2',
-        isBestPrice && 'border-l-[3px] border-l-foreground/35 pl-[calc(1rem-1px)]',
+        isBestPrice && 'border-l-2 border-l-foreground/35',
       )}
     >
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
@@ -76,7 +76,7 @@ export function ListingCard({
         <Button
           variant="link"
           size="sm"
-          className="h-auto p-0 text-sm font-normal text-muted-foreground"
+          className="inline-flex h-11 min-h-11 items-center p-0 text-sm font-normal text-muted-foreground"
           asChild
         >
           <a href={listing.url} target="_blank" rel="noopener noreferrer">
@@ -89,7 +89,7 @@ export function ListingCard({
             type="button"
             variant="ghost"
             size="sm"
-            className="h-auto p-0 text-sm font-normal text-muted-foreground"
+            className="h-11 min-h-11 px-2 text-sm font-normal text-muted-foreground"
             disabled={isRemoving}
             onClick={() => onRemove(listing.id)}
           >

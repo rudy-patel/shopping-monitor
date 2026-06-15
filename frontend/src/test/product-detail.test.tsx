@@ -147,6 +147,8 @@ describe('ProductDetailPage', () => {
     const sparkline = screen.getByRole('img')
     expect(sparkline.tagName.toLowerCase()).toBe('svg')
     expect(sparkline.querySelector('title')?.textContent).toMatch(/30-day price trend/)
+    expect(screen.queryByText('Best price')).not.toBeInTheDocument()
+    expect(screen.queryByText(/vs best/i)).not.toBeInTheDocument()
   })
 
   it('sorts listings cheapest-first with best-price hints and no scrape badges', () => {
