@@ -2,7 +2,7 @@ import { axe } from 'vitest-axe'
 import { screen } from '@testing-library/react'
 import { DashboardPage } from '@/pages/DashboardPage'
 import { makeProductDetail, makeProductSummary } from './product-fixtures'
-import { renderApp, renderWithProviders } from './test-utils'
+import { renderApp, renderWithProviders, clearAuthStorage } from './test-utils'
 
 vi.mock('@/hooks/useProducts', () => ({
   useProducts: vi.fn(),
@@ -24,6 +24,7 @@ import { useProducts, useProduct } from '@/hooks/useProducts'
 
 describe('page accessibility', () => {
   beforeEach(() => {
+    clearAuthStorage()
     vi.mocked(useProducts).mockReturnValue({
       data: [makeProductSummary({ title: 'Sample Product' })],
       isLoading: false,
@@ -48,6 +49,13 @@ describe('page accessibility', () => {
     const product = makeProductDetail()
     const { container } = renderApp(`/products/${product.id}`, { authenticated: true })
     expect(await screen.findByRole('heading', { level: 1 })).toBeInTheDocument()
+    const results = await axe(container)
+    expect(results.violations).toHaveLength(0)
+  })
+
+  it('login page has no axe violations', async () => {
+    const { container } = renderApp('/login', { authenticated: false })
+    expect(await screen.findByRole('button', { name: /continue with google/i })).toBeEnabled()
     const results = await axe(container)
     expect(results.violations).toHaveLength(0)
   })

@@ -67,6 +67,7 @@ export function DashboardPage() {
       {!isLoading && !isError && !hasProducts ? (
         <div className="mb-8">
           <EmptyState
+            showBrandMark
             title="No products yet"
             description="Tap Add to paste your first product URL."
           />

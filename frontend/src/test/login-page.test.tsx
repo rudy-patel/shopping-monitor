@@ -30,6 +30,20 @@ describe('LoginPage', () => {
     expect(screen.queryByRole('button', { name: /add product/i })).not.toBeInTheDocument()
   })
 
+  it('renders the Someday brand pill as the page heading', async () => {
+    renderApp('/login', { authenticated: false })
+
+    const heading = await screen.findByRole('heading', { level: 1, name: /someday\.?/i })
+    expect(heading).toBeInTheDocument()
+  })
+
+  it('exposes a single main landmark (RootLayout wrapper only)', async () => {
+    renderApp('/login', { authenticated: false })
+
+    await screen.findByRole('button', { name: /continue with google/i })
+    expect(screen.getAllByRole('main')).toHaveLength(1)
+  })
+
   it('calls signInWithOAuth when Continue with Google is clicked', async () => {
     vi.mocked(getSupabaseClient).mockReturnValue(createMockSupabaseClient() as never)
     const user = userEvent.setup()

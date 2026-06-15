@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Sign-in splash redesign (floating shopping stickers)
+
+**What:** Replaced the barebones boxed `LoginPage` with a colourful splash inspired by the "Got Mail?" Interfere reference. Centre stage: shared **`BrandMark`** (`hero` size) — **Someday.** in a large dashed-border pill with optional wing flourishes. Below it, rotating `loginTaglines`, then **Continue with Google** (+ dev login unchanged). Background: warm radial gradient via `loginSplashBackgroundClass` (light mode; `dark:bg-background` fallback). **13 desktop-only stickers** (`LoginSplashStickers` + data in `login-stickers.ts`) via `FloatingSticker` primitive — `aria-hidden`, `md:`+ only, Framer Motion entrance with `prefers-reduced-motion` respect. **In-app bridge:** empty dashboard `EmptyState` shows compact `BrandMark` (no wings) so first-run matches sign-in branding without scattering stickers app-wide. **A11y fix:** removed nested `<main>` on login (RootLayout owns `main#main-content`). **Tests:** `brand-mark`, `login-splash-stickers`, login single-main + axe, existing login OAuth tests.
+
+**Files:** `frontend/src/pages/LoginPage.tsx`, `frontend/src/components/brand/BrandMark.tsx` (new), `frontend/src/components/login/FloatingSticker.tsx` (new), `frontend/src/components/login/LoginSplashStickers.tsx` (new), `frontend/src/lib/login-stickers.ts` (new), `frontend/src/lib/login-splash.ts` (new), `frontend/src/components/products/EmptyState.tsx`, `frontend/src/pages/DashboardPage.tsx`, `frontend/src/test/brand-mark.test.tsx`, `frontend/src/test/floating-sticker.test.tsx`, `frontend/src/test/login-splash-stickers.test.tsx`, `frontend/src/test/login-page.test.tsx`, `frontend/src/test/a11y-pages.test.tsx`, `docs/PRD.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `npm run lint` clean; `npm run test:run` (brand-mark, login-splash, floating-sticker, login-page, a11y login); `npm run build` clean.
+
+---
+
 ## [2026-06-15] Manual product rename on detail page (T8.6)
 
 **What:** Users can override a bad AI-cleaned or verbose scraped title from the product detail hero. **Rename** opens an inline input; save on Enter/blur via existing `PATCH /api/products/{id}` with `title` (1–200 chars, trimmed). Manual names persist through refresh/scrape — only `products.title` is updated; listing `scrape_snapshot.title` stays as the retailer source.
