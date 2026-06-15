@@ -20,7 +20,7 @@ import {
   useRestoreProduct,
 } from '@/hooks/useProducts'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
-import { activeListings } from '@/lib/products'
+import { activeListings, listingComparisonHints } from '@/lib/products'
 import { retailerLabel } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
@@ -130,16 +130,21 @@ export function ProductDetailPage() {
             Listings
           </h2>
           <div className="space-y-3">
-            {listings.map((listing) => (
-              <ListingCard
-                key={listing.id}
-                listing={listing}
-                onRemove={(listingId) => removeListing.mutate(listingId)}
-                isRemoving={
-                  removeListing.isPending && removeListing.variables === listing.id
-                }
-              />
-            ))}
+            {listings.map((listing) => {
+              const comparison = listingComparisonHints(listing, listings)
+              return (
+                <ListingCard
+                  key={listing.id}
+                  listing={listing}
+                  isBestPrice={comparison.isBestPrice}
+                  priceDeltaVsBestCents={comparison.priceDeltaVsBestCents}
+                  onRemove={(listingId) => removeListing.mutate(listingId)}
+                  isRemoving={
+                    removeListing.isPending && removeListing.variables === listing.id
+                  }
+                />
+              )
+            })}
           </div>
         </section>
 

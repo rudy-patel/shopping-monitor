@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react'
+import { screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 import { clearJustAddedProduct } from '@/lib/just-added-product'
@@ -147,5 +147,53 @@ describe('ProductDetailPage', () => {
     const sparkline = screen.getByRole('img')
     expect(sparkline.tagName.toLowerCase()).toBe('svg')
     expect(sparkline.querySelector('title')?.textContent).toMatch(/30-day price trend/)
+    expect(screen.queryByText('Best price')).not.toBeInTheDocument()
+    expect(screen.queryByText(/vs best/i)).not.toBeInTheDocument()
+  })
+
+  it('sorts listings cheapest-first with best-price hints and no scrape badges', () => {
+    const primary = product.listings[0]
+    vi.mocked(useProduct).mockReturnValue({
+      data: makeProductDetail({
+        id: 'detail-product-id',
+        listings: [
+          { ...primary, id: 'primary', last_known_price_cents: 12999, retailer_slug: 'bestbuy_ca' },
+          {
+            ...primary,
+            id: 'cheap',
+            is_primary: false,
+            review_status: 'auto_added',
+            last_known_price_cents: 11999,
+            retailer_slug: 'amazon_ca',
+          },
+          {
+            ...primary,
+            id: 'expensive',
+            is_primary: false,
+            review_status: 'auto_added',
+            last_known_price_cents: 13999,
+            retailer_slug: 'apple_ca',
+          },
+        ],
+      }),
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useProduct>)
+
+    renderApp(`/products/${product.id}`, { authenticated: true })
+
+    const listingsSection = screen.getByRole('region', { name: /^listings$/i })
+    const openLinks = within(listingsSection)
+      .getAllByRole('link', { name: /^open on /i })
+      .map((node) => node.textContent?.replace(/\s*$/, ''))
+    expect(openLinks).toEqual([
+      'Open on Amazon.ca',
+      'Open on Best Buy Canada',
+      'Open on Apple Canada',
+    ])
+    expect(within(listingsSection).getByText('Best price')).toBeInTheDocument()
+    expect(within(listingsSection).getByText('+$10.00 vs best')).toBeInTheDocument()
+    expect(within(listingsSection).getByText('+$20.00 vs best')).toBeInTheDocument()
+    expect(within(listingsSection).queryByText('ok')).not.toBeInTheDocument()
   })
 })

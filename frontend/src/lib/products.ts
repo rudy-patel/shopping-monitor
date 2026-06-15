@@ -191,6 +191,44 @@ export function activeListings(listings: Listing[]): Listing[] {
     })
 }
 
+/** Lowest known price among the given listings; ignores null prices. */
+function cheapestActivePriceCents(listings: Listing[]): number | null {
+  let best: number | null = null
+  for (const listing of listings) {
+    const price = listing.last_known_price_cents
+    if (price == null) continue
+    if (best == null || price < best) best = price
+  }
+  return best
+}
+
+export interface ListingComparisonHints {
+  isBestPrice: boolean
+  priceDeltaVsBestCents: number | null
+}
+
+/** Best-price highlight and delta labels for a listing within an active set. */
+export function listingComparisonHints(
+  listing: Listing,
+  listings: Listing[],
+): ListingComparisonHints {
+  if (listings.length < 2) {
+    return { isBestPrice: false, priceDeltaVsBestCents: null }
+  }
+
+  const bestPriceCents = cheapestActivePriceCents(listings)
+  const price = listing.last_known_price_cents
+  if (bestPriceCents == null || price == null) {
+    return { isBestPrice: false, priceDeltaVsBestCents: null }
+  }
+
+  const delta = price - bestPriceCents
+  return {
+    isBestPrice: delta === 0,
+    priceDeltaVsBestCents: delta > 0 ? delta : null,
+  }
+}
+
 export function needsReviewListings(listings: Listing[]): Listing[] {
   return listings.filter((listing) => listing.review_status === 'needs_review')
 }

@@ -1,6 +1,7 @@
 import {
   activeListings,
   isProductListQueryKey,
+  listingComparisonHints,
   needsReviewListings,
   productQueryKey,
   productsQueryKey,
@@ -33,6 +34,28 @@ describe('listing partition helpers', () => {
       primary.id,
       expensive.id,
     ])
+  })
+
+  it('listingComparisonHints derives best price and deltas', () => {
+    const expensive = { ...autoAdded, last_known_price_cents: 15000 }
+    const active = activeListings([primary, expensive, autoAdded])
+    expect(listingComparisonHints(autoAdded, active)).toEqual({
+      isBestPrice: true,
+      priceDeltaVsBestCents: null,
+    })
+    expect(listingComparisonHints(primary, active)).toEqual({
+      isBestPrice: false,
+      priceDeltaVsBestCents: 7999,
+    })
+    expect(listingComparisonHints(primary, [primary])).toEqual({
+      isBestPrice: false,
+      priceDeltaVsBestCents: null,
+    })
+    const tied = { ...primary, last_known_price_cents: 5000 }
+    expect(listingComparisonHints(tied, [autoAdded, tied])).toEqual({
+      isBestPrice: true,
+      priceDeltaVsBestCents: null,
+    })
   })
 })
 
