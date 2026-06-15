@@ -224,5 +224,6 @@ describe('ProductListRow price display', () => {
     )
 
     expect(await screen.findByText('US$74.00')).toBeInTheDocument()
+    expect(screen.getByText('US$74.00')).toHaveClass('text-trend-down')
   })
 })

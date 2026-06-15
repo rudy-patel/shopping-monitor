@@ -1,5 +1,5 @@
 import { screen } from '@testing-library/react'
-import { TrendChip } from '@/components/products/TrendChip'
+import { TrendChip, trendPriceClass } from '@/components/products/TrendChip'
 import { sampleTrend } from './product-fixtures'
 import { renderWithProviders } from './test-utils'
 
@@ -19,6 +19,12 @@ describe('TrendChip', () => {
       <TrendChip trend={{ ...sampleTrend, direction: 'up', label: 'Up in the last 30 days' }} />,
     )
     expect(screen.getByLabelText('↑ Up in the last 30 days')).toBeInTheDocument()
+  })
+
+  it('maps trendPriceClass to matching text color utilities', () => {
+    expect(trendPriceClass('down')).toBe('text-trend-down')
+    expect(trendPriceClass('same')).toBe('text-trend-same')
+    expect(trendPriceClass('up')).toBe('text-trend-up')
   })
 
   it('uses subtle trend color styles per direction', () => {

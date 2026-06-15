@@ -4,6 +4,14 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Trend chip color hints (PR #52)
+
+**What:** Restored PRD U-TREND-1 color coding with desaturated green/yellow/red theme tokens for 30-day trend chips and matching best-price text on product rows. Monochrome `StockBadge` unchanged.
+
+**Files:** `frontend/src/index.css`, `frontend/tailwind.config.ts`, `frontend/src/components/products/TrendChip.tsx`, `ProductListRow.tsx`, `ArchivedProductRow.tsx`, `frontend/src/test/trend-chip.test.tsx`, `frontend/src/test/format-price.test.tsx`, `frontend/src/test/settings-page.test.tsx` (flaky theme hydration waitFor), `docs/PRD.md` §10.1.
+
+---
+
 ## [2026-06-15] T8.1 Search-based product addition (M8)
 
 > **Second-pass code review polish (same PR):** removed dead `RetailerNotSupportedError` guard in `_classify_candidate`; clarified `_is_canadian_host` comment and extended blocked TLDs to `.de/.fr/.jp`; renamed shadowed `payload` var in `run_search`; fixed `llm.py` docstring §7.11 stale ref → `§5.2 U-ADD-0`; disambiguated `SearchTrigger` `hidden md:flex` Tailwind ordering; added `aria-busy`/`aria-live`/`role="region"` to dialog results container; added fixtures for the remaining two example chips ("Lenovo Yoga laptop", "Patagonia jacket") so fixture-mode demos work for all 4 chips; added a parametric test guarding that invariant; added a vitest for Track-failure pending-state recovery; updated **PRD §7.2**, **README**, **AGENTS.md**.
