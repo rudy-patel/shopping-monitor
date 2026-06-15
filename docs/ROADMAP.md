@@ -635,7 +635,7 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.5 Drift detection workflow
 
-**Status:** done
+**Status:** done — PR https://github.com/rudy-patel/shopping-monitor/pull/44
 
 - **Owner:** agent.
 - **Human setup:** none for CI (local-only tool). Optional: `GITHUB_TOKEN` + `GITHUB_REPOSITORY` when using `--file-issues` locally.

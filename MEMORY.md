@@ -12,7 +12,7 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Files:** `backend/scrapers/drift/*`, `backend/scrapers/drift/snapshots/*.json`, `scripts/check_retailer_drift.py`, `scripts/update_drift_snapshots.py`, `backend/test/test_retailer_drift.py`, `backend/test/test_scraper_http_guard.py`, `Makefile`, `backend/scrapers/README.md`, `AGENTS.md`, `docs/ROADMAP.md`, `docs/PRD.md`, `README.md`, `MEMORY.md`.
 
-**Verification:** `ruff check .`, `pytest -m "not integration"` with `SCRAPER_MODE=fixtures`; mocked drift tests; snapshot sync test.
+**Verification:** `ruff check .`, `pytest -m "not integration"` (545 passed), mocked drift tests; snapshot sync test; local `SCRAPER_MODE=live make check-retailer-drift` when validating live pages. PR https://github.com/rudy-patel/shopping-monitor/pull/44
 
 ---
 
