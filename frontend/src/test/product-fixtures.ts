@@ -54,6 +54,7 @@ export function makeProductDetail(overrides: Partial<ProductDetail> = {}): Produ
         match_confidence: null,
       },
     ],
+    price_history_30d: overrides.price_history_30d ?? [],
     ...overrides,
   }
 }

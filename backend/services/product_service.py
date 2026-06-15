@@ -36,9 +36,11 @@ from services.categorizer import CategorizationContext, CategorySource
 from services.factory import get_categorizer
 from services.pricing import (
     ELIGIBLE_REVIEW_STATUSES,
+    TREND_WINDOW_DAYS,
     TrendDirection,
     TrendResult,
     compute_trend,
+    product_daily_minimum,
 )
 from services.pricing_data import load_price_observations
 from services.notification_evaluation import run_post_scrape_evaluation
@@ -391,12 +393,33 @@ def _serialize_listing(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def _serialize_price_history_30d(
+    observations: list, *, today: date
+) -> list[dict[str, Any]]:
+    """Per-day product-level minimum (eligible listings only) over the trailing
+    30-day window, ordered oldest → newest. Only days with at least one
+    observation appear; the frontend handles backfill for new products and gaps.
+    """
+    daily_min = product_daily_minimum(observations)
+    if not daily_min:
+        return []
+    window_start = today - timedelta(days=TREND_WINDOW_DAYS)
+    rows = [
+        {"observed_on": day.isoformat(), "price_cents": price}
+        for day, price in daily_min.items()
+        if window_start <= day <= today
+    ]
+    rows.sort(key=lambda r: r["observed_on"])
+    return rows
+
+
 def build_product_detail(
     *,
     product: dict[str, Any],
     profile: dict[str, Any],
     listings: list[dict[str, Any]],
     today: date | None = None,
+    include_price_history: bool = False,
 ) -> dict[str, Any]:
     today = today or date.today()
     sorted_listings = _sort_listings(listings)
@@ -409,7 +432,7 @@ def build_product_detail(
         1 for row in sorted_listings if row.get("review_status") == "needs_review"
     )
 
-    return {
+    detail: dict[str, Any] = {
         "id": product["id"],
         "title": product["title"],
         "brand": product.get("brand"),
@@ -433,6 +456,11 @@ def build_product_detail(
         "needs_review_count": needs_review_count,
         "listings": [_serialize_listing(row) for row in sorted_listings],
     }
+    if include_price_history:
+        detail["price_history_30d"] = _serialize_price_history_30d(
+            observations, today=today
+        )
+    return detail
 
 
 def _get_owned_product(client: Client, *, product_id: UUID, user_id: UUID) -> dict[str, Any]:
@@ -552,7 +580,12 @@ def create_product(
         ).execute()
 
     listings = [listing]
-    return build_product_detail(product=product, profile=profile, listings=listings)
+    return build_product_detail(
+        product=product,
+        profile=profile,
+        listings=listings,
+        include_price_history=True,
+    )
 
 
 def list_products(
@@ -586,7 +619,12 @@ def get_product(*, user_id: UUID, product_id: UUID) -> dict[str, Any]:
     product = _get_owned_product(client, product_id=product_id, user_id=user_id)
     profile = get_or_create_profile(user_id)
     listings = _load_listings(client, product["id"])
-    return build_product_detail(product=product, profile=profile, listings=listings)
+    return build_product_detail(
+        product=product,
+        profile=profile,
+        listings=listings,
+        include_price_history=True,
+    )
 
 
 def update_product(
@@ -623,7 +661,12 @@ def update_product(
 
     profile = get_or_create_profile(user_id)
     listings = _load_listings(client, str(product_id))
-    return build_product_detail(product=product, profile=profile, listings=listings)
+    return build_product_detail(
+        product=product,
+        profile=profile,
+        listings=listings,
+        include_price_history=True,
+    )
 
 
 def delete_product(*, user_id: UUID, product_id: UUID) -> None:
@@ -718,7 +761,10 @@ def refresh_product(*, user_id: UUID, product_id: UUID) -> dict[str, Any]:
     profile = get_or_create_profile(user_id)
     refreshed_listings = _load_listings(client, product["id"])
     return build_product_detail(
-        product=updated_product, profile=profile, listings=refreshed_listings
+        product=updated_product,
+        profile=profile,
+        listings=refreshed_listings,
+        include_price_history=True,
     )
 
 
@@ -758,7 +804,12 @@ def _detail_after_listing_change(
     product = _get_owned_product(client, product_id=product_id, user_id=user_id)
     profile = get_or_create_profile(user_id)
     listings = _load_listings(client, str(product_id))
-    return build_product_detail(product=product, profile=profile, listings=listings)
+    return build_product_detail(
+        product=product,
+        profile=profile,
+        listings=listings,
+        include_price_history=True,
+    )
 
 
 def accept_listing(
@@ -866,5 +917,8 @@ def select_variant(
     profile = get_or_create_profile(user_id)
     refreshed_listings = _load_listings(client, product["id"])
     return build_product_detail(
-        product=updated_product, profile=profile, listings=refreshed_listings
+        product=updated_product,
+        profile=profile,
+        listings=refreshed_listings,
+        include_price_history=True,
     )

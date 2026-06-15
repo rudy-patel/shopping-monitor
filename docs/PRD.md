@@ -138,7 +138,7 @@ Each story below is a V1 commitment.
 - **U-VIEW-1.** My default dashboard shows all active products grouped by the 5 fixed categories.
 - **U-VIEW-2.** I can toggle to a flat list view and filter by category, retailer, or "has unreviewed matches."
 - **U-VIEW-3.** Each product row shows: title, brand, retailer of best current price, best current price (in display currency), 30-day trend chip, alternate retailers count, last-refreshed timestamp, manual refresh button, and a kebab menu. V1 list surfaces are typography-first — no in-app product images; users open the retailer PDP via listing links when they want to see photos.
-- **U-VIEW-4.** Clicking a row opens a product detail page showing every listing as a card with retailer, current price, stock state, last-refreshed timestamp, scrape status, and an external link to the source URL (no inline product images in-app).
+- **U-VIEW-4.** Clicking a row opens a product detail page showing every listing as a card with retailer, current price, stock state, last-refreshed timestamp, scrape status, and an external link to the source URL (no inline product images in-app). The detail page hero block leads with the best price (tinted by 30-day trend) and best retailer, paired with the trend chip and a compact 30-day sparkline (no axis ticks; endpoint price labels; hover tooltip on desktop). Products with fewer than 7 days of data render a flat sparkline at the current best price so the chip and the line agree visually.
 - **U-VIEW-5.** I can manually re-categorize a product into a different fixed bucket from its detail page.
 - **U-VIEW-6.** I can edit a product's notification threshold from its detail page (overriding my global default).
 - **U-VIEW-7.** I can manually refresh a product (forces a fresh scrape of every listing) with a 1-hour per-product cooldown.
@@ -571,7 +571,7 @@ REST under `/api`, all behind auth (Supabase JWT).
 | `POST`   | `/api/search`                                   | LLM-grounded free-text product search (24h server cache)                    |
 | `POST`   | `/api/products`                                 | Add a new product from a URL (optionally with `discovery_seed`)             |
 | `GET`    | `/api/products`                                 | List user's products with filters (`status`, `category`)                    |
-| `GET`    | `/api/products/:id`                             | Product detail (includes listings + recent history)                         |
+| `GET`    | `/api/products/:id`                             | Product detail (includes listings + 30-day daily-minimum price history)     |
 | `PATCH`  | `/api/products/:id`                             | Update category, threshold, notifications-enabled, status (archive/restore) |
 | `DELETE` | `/api/products/:id`                             | Hard delete                                                                 |
 | `POST`   | `/api/products/:id/refresh`                     | Trigger manual refresh (enforces 1h cooldown)                               |

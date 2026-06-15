@@ -4,6 +4,22 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Product detail hero + 30-day sparkline
+
+**What:** Refreshed the product detail page with a hero price block and a unified "price signal" row. Best price renders large (tinted by 30-day trend) next to the best retailer; the trend chip, a 30-day sparkline, and endpoint price labels sit on one horizontal band (stack on mobile). The sparkline uses the existing `trend-down/same/up` tokens, no axis ticks, and shows a desktop-only hover tooltip with the date + price for the nearest day. For products with < 7 days of real data or leading gaps, the line is backfilled at the current best price so new products render a flat "Same in the last 30 days" line that agrees with the chip.
+
+**Backend:** `GET /api/products/:id` now returns `price_history_30d`: a list of `{observed_on, price_cents}` rows for the trailing 30 days of **product-level daily minimum** (eligible listings only). The serializer reuses `product_daily_minimum` and stays inside the existing trend math — same definition of "eligible" as the chip. Summary endpoints (`GET /api/products`) intentionally omit the field to keep dashboard list payloads small (toggled by `include_price_history=True` on `build_product_detail`).
+
+**Frontend:** New `Sparkline` component (`frontend/src/components/products/Sparkline.tsx`) renders a single SVG path with `stroke="currentColor"` against the trend token. `buildSparklinePoints()` is exported for testing and implements the backfill rule (leading gaps → current best price; middle gaps → carry-forward last known). `ProductDetailPage` now hosts the hero/price-signal row, keeps the existing listings + settings + actions, and reads from `product.price_history_30d`.
+
+**Locked behavior:** Sparkline `windowDays=30` matches `TREND_WINDOW_DAYS`. Delta label (`+/−N%`) only renders when `days_of_data >= 7` and endpoint prices differ, mirroring the chip's deadband copy. Tooltip is skipped for `pointerType: touch | pen` to stay lightweight on mobile. The endpoint labels are hidden below the `sm` breakpoint to keep the line uncluttered on phones.
+
+**Files:** `backend/services/product_service.py`, `backend/routers/products.py`, `backend/test/test_products_router.py`, `frontend/src/lib/products.ts`, `frontend/src/components/products/Sparkline.tsx`, `frontend/src/pages/ProductDetailPage.tsx`, `frontend/src/test/product-fixtures.ts`, `frontend/src/test/product-detail.test.tsx`, `frontend/src/test/sparkline.test.tsx`, `docs/PRD.md`, `MEMORY.md`.
+
+**Verification:** Backend `pytest -m "not integration"` (619 passed), `ruff check .` clean. Frontend `npm run lint`, `npm run test:run` (136 passed + 2 skipped), `npm run build` clean. In-Cursor browser smoke against local backend + remote Supabase: hero `$629.99` tinted yellow, retailer "at Best Buy Canada", chip "→ Same in the last 30 days", flat sparkline with endpoint `$629.99` labels and a working desktop hover tooltip showing date + price for the nearest day. Mobile (390×844) stacks the price + retailer above the chip + sparkline cleanly.
+
+---
+
 ## [2026-06-15] Archive stays in context (toast, no redirect)
 
 **What:** Archiving a product no longer navigates to `/history`. `useArchiveProduct` shows a Sonner success toast and leaves the user on the dashboard or product detail page; archived items remain reachable via nav → History. Aligns with PRD U-ARC-1 perceived-performance feedback.

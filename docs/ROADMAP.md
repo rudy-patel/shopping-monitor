@@ -865,6 +865,7 @@ Constraints:
 <details>
 <summary>Recently completed (M6 / T7)</summary>
 
+- ~~**Product detail hero + 30-day sparkline**~~ — hero best price (trend-tinted) + retailer; unified `[best price] [chip] [sparkline]` row; `GET /api/products/:id` now returns `price_history_30d` daily-min series; backfill at current best for new products (PRD §5.3 U-VIEW-4).
 - ~~**Archive in-context feedback**~~ — success toast on archive; no auto-redirect to `/history` (PRD U-ARC-1).
 - ~~**T7.4** Auto-categorization UX polish~~ — URL-first add modal, category thinking shimmer (~2.5s), dashboard sorting badge; client-side only (no extra Gemini calls).
 - ~~**T7.1** UI polish and accessibility~~ — typography-first lists, mobile tab bar, axe vitest, Playwright Mobile Chrome.

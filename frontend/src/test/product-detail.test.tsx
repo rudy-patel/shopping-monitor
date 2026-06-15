@@ -121,4 +121,31 @@ describe('ProductDetailPage', () => {
     await user.click(screen.getByRole('button', { name: /^refresh$/i }))
     expect(toast).toHaveBeenCalledWith('Refresh is on cooldown. Try again in about an hour.')
   })
+
+  it('renders hero best price, retailer, trend chip, and a sparkline svg', () => {
+    vi.mocked(useProduct).mockReturnValue({
+      data: makeProductDetail({
+        id: 'detail-product-id',
+        best_price_cents: 27999,
+        best_retailer_slug: 'bestbuy_ca',
+        price_history_30d: [
+          { observed_on: '2026-06-01', price_cents: 28999 },
+          { observed_on: '2026-06-14', price_cents: 27999 },
+        ],
+      }),
+      isLoading: false,
+      isError: false,
+    } as ReturnType<typeof useProduct>)
+
+    renderApp(`/products/${product.id}`, { authenticated: true })
+
+    const heroPrice = screen
+      .getAllByText('$279.99')
+      .find((el) => el.className.includes('text-3xl'))
+    expect(heroPrice).toBeDefined()
+    expect(screen.getByText(/at Best Buy Canada/i)).toBeInTheDocument()
+    const sparkline = screen.getByRole('img')
+    expect(sparkline.tagName.toLowerCase()).toBe('svg')
+    expect(sparkline.querySelector('title')?.textContent).toMatch(/30-day price trend/)
+  })
 })
