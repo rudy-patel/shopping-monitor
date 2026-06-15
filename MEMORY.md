@@ -4,6 +4,18 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-14] T5.5 Drift detection (local tooling)
+
+**What:** Shipped local-only retailer drift tooling (no GitHub Actions workflow — not run on CI/merge). Added `backend/scrapers/drift/` with live URL catalog, structural fingerprint normalization, committed baselines under `snapshots/`, compare/runner modules, optional GitHub issue sync (`--file-issues`), `scripts/check_retailer_drift.py`, `scripts/update_drift_snapshots.py`, `make check-retailer-drift` (live) and `make update-drift-snapshots` (fixtures).
+
+**Locked behavior:** Compares structural fingerprint (field presence, variant shape, extraction path) — not price/title/stock values. One GitHub issue per retailer when `--file-issues`; auto-close on pass. `blocked` vs `shape_mismatch` vs `error` statuses. CI runs snapshot sync test only (no live network). Field expectations reuse benchmark catalog entries for the same slug/scenario.
+
+**Files:** `backend/scrapers/drift/*`, `backend/scrapers/drift/snapshots/*.json`, `scripts/check_retailer_drift.py`, `scripts/update_drift_snapshots.py`, `backend/test/test_retailer_drift.py`, `backend/test/test_scraper_http_guard.py`, `Makefile`, `backend/scrapers/README.md`, `AGENTS.md`, `docs/ROADMAP.md`, `docs/PRD.md`, `README.md`, `MEMORY.md`.
+
+**Verification:** `ruff check .`, `pytest -m "not integration"` with `SCRAPER_MODE=fixtures`; mocked drift tests; snapshot sync test.
+
+---
+
 ## [2026-06-14] T5.4 Bot-protected retailers (amazon_ca, nike_ca)
 
 **What:** Shipped T5.4 bot-protected retailers in one PR: shared `scrapers/bot_protected_retailer.py` HTTP-only factory (no production Playwright), `amazon_ca` parser with first-party seller verification and twister variants, `nike_ca` `__NEXT_DATA__` parser with color/size variants, live-recorded fixtures (+6 HTML files), benchmark catalog entries, retailer labels, and extended `record_retailer_fixtures.py` (Amazon 1P validation, refined challenge markers).

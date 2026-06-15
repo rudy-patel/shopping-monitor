@@ -40,6 +40,8 @@ make test           # unit tests (backend + frontend)
 make test-integration  # pytest -m integration (requires Supabase)
 make test-e2e       # Playwright vertical slice (auto-starts servers)
 make benchmark-retailers  # fixture-mode scraper strategy benchmark (T5.1)
+make update-drift-snapshots  # regen drift baselines from fixtures (T5.5; CI-safe)
+# SCRAPER_MODE=live make check-retailer-drift  # manual live scraper health check (not CI)
 ```
 
 ### E2E tests
@@ -59,7 +61,7 @@ See `AGENTS.md` for lint/test commands and environment details.
 
 ### Implementation status (2026-06-14)
 
-Milestones **M0–M4** are **done**. **M5** in progress: T5.1–T5.4 retailer expansion is **done** — Shopify (`palmisleskate`, `tikiroomskate`), moderate (`indigo`, `apple_ca`, `abercrombie`), and bot-protected (`amazon_ca`, `nike_ca`; deferred `sportchek`, `footlocker_ca`); benchmark reports in [`docs/benchmarks/`](docs/benchmarks/). **Remaining M5:** T5.5 drift workflow. **M6** in progress: **T6.2** production smoke **done**; **T6.3** cron and **T6.4** reliability remain. Human setup **H4** (Resend) and **H5** (Render/Vercel/GitHub Actions) and deployment docs (**T6.1**) are **done** — production URLs in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). See [`docs/ROADMAP.md`](docs/ROADMAP.md) §15 for next tasks.
+Milestones **M0–M5** are **done** (retailer expansion T5.1–T5.5 including local drift tooling). **M6** in progress: **T6.2** production smoke **done**; **T6.3** cron and **T6.4** reliability remain. Human setup **H4** (Resend) and **H5** (Render/Vercel/GitHub Actions) and deployment docs (**T6.1**) are **done** — production URLs in [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md). See [`docs/ROADMAP.md`](docs/ROADMAP.md) §15 for next tasks.
 
 ## Documentation
 

@@ -127,7 +127,7 @@ Retailer scrapers **must** call `scrapers.http.scraper_fetch()` for outbound req
 
 ## Recording fixture files
 
-`FixtureLoader.record(...)` is the canonical writer for manual fixture capture (T2.8) and the future drift-detection workflow (T5.5). Nothing auto-records in record mode; callers invoke `record` explicitly after a live fetch.
+`FixtureLoader.record(...)` is the canonical writer for manual fixture capture (T2.8). After changing fixture HTML, run `make update-drift-snapshots` so committed drift baselines stay in sync (T5.5).
 
 ```bash
 cd backend && source venv/bin/activate
@@ -188,3 +188,21 @@ SCRAPER_MODE=live python ../scripts/run_scraper_benchmark.py --live \
 **Strategies measured:** `structured_data` (JSON-LD/OG + retailer parsers), `http_parse` (`scraper_fetch` + parser, with retailer API sub-probes such as Best Buy JSON API), and optional `playwright` (`--with-playwright`, requires `requirements-benchmark.txt`).
 
 Reports are committed under `docs/benchmarks/`. Recommendations are advisory until a human confirms before T5.2+ scraper PRs copy `registry_snippet` values.
+
+## Drift detection (T5.5)
+
+Local-only tooling — **not run in CI or on merge**. Compares a manual live scrape of each canonical product URL to committed structural baselines derived from fixtures.
+
+```bash
+# Regenerate baselines after fixture changes (fixture-mode, CI-safe)
+make update-drift-snapshots
+
+# Manual live health check (hits retailer sites — run sparingly)
+SCRAPER_MODE=live make check-retailer-drift
+
+# Optional: file GitHub issues when drift/blocking is detected
+SCRAPER_MODE=live python scripts/check_retailer_drift.py --file-issues
+# requires GITHUB_TOKEN + GITHUB_REPOSITORY; use --dry-run to preview issue actions
+```
+
+Catalog: `scrapers/drift/catalog.yaml` (live URLs; field expectations inherited from `scrapers/benchmark/catalog.yaml`). Baselines: `scrapers/drift/snapshots/<slug>.json`. Comparison uses a structural fingerprint (field presence, variant shape, extraction path) — not price/title text.

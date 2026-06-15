@@ -1,7 +1,7 @@
 # Shopping Monitor — Development Makefile
 # Run `make help` to see available commands
 
-.PHONY: help start stop restart status logs health test test-backend test-frontend test-integration test-e2e test-all clean install-deps setup benchmark-retailers
+.PHONY: help start stop restart status logs health test test-backend test-frontend test-integration test-e2e test-all clean install-deps setup benchmark-retailers update-drift-snapshots check-retailer-drift
 
 help:
 	@echo "🛒 Shopping Monitor — development commands"
@@ -24,6 +24,8 @@ help:
 	@echo "  make test-e2e       - Run Playwright e2e tests (auto-starts servers)"
 	@echo "  make test-all       - Run all tests including integration"
 	@echo "  make benchmark-retailers - Regenerate fixture benchmark report (T5.1)"
+	@echo "  make update-drift-snapshots - Regenerate drift baselines from fixtures (T5.5)"
+	@echo "  make check-retailer-drift - Live drift check (SCRAPER_MODE=live; hits retailers)"
 	@echo ""
 	@echo "Development:"
 	@echo "  make clean     - Clean up logs and cache files"
@@ -100,6 +102,14 @@ benchmark-retailers:
 	@echo "📊 Running fixture-mode retailer benchmark..."
 	@cd backend && . venv/bin/activate && SCRAPER_MODE=fixtures python ../scripts/run_scraper_benchmark.py \
 		--out ../docs/benchmarks/fixtures-$$(date +%Y-%m-%d).json
+
+update-drift-snapshots:
+	@echo "🧭 Regenerating drift baselines from fixtures..."
+	@cd backend && . venv/bin/activate && SCRAPER_MODE=fixtures python ../scripts/update_drift_snapshots.py
+
+check-retailer-drift:
+	@echo "🔍 Running live retailer drift check (outbound requests; not for CI)..."
+	@cd backend && . venv/bin/activate && SCRAPER_MODE=live python ../scripts/check_retailer_drift.py --no-issues
 
 install: install-deps
 

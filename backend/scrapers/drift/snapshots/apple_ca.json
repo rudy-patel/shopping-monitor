@@ -1,0 +1,19 @@
+{
+  "extraction": "apple_ca",
+  "has_image": true,
+  "has_price": true,
+  "has_stock": true,
+  "has_title": true,
+  "has_variants": true,
+  "schema_types": null,
+  "selected_variant_attribute_names": [
+    "color",
+    "storage"
+  ],
+  "source": "fixture",
+  "variant_attribute_names": [
+    "color",
+    "storage"
+  ],
+  "variant_count_bucket": "2+"
+}

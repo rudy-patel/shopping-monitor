@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-14 (T5.4 bot-protected retailers; T6.2 production smoke; T5.3 moderate retailers; T5.2 Shopify; H4 Resend done).
+> **Last updated:** 2026-06-14 (T5.5 local drift tooling; T5.4 bot-protected retailers; T6.2 production smoke).
 
 ---
 
@@ -52,7 +52,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M2: First local vertical slice | done | A signed-in dev user can add, view, refresh, archive, restore, delete, and categorize a fixture-backed `bestbuy_ca` product locally. | Discovery, notifications, settings, currency, and more UI polish can fan out. |
 | M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
 | M4: MVP product workflows | done | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5), digest email (T3.6), settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
-| M5: V1 retailer coverage | in progress | Supported retailers have benchmark decisions, scraper modules, fixtures, and drift checks. **Done:** T5.1 benchmark harness; T5.2 `palmisleskate` + `tikiroomskate`; T5.3 `indigo` + `apple_ca` + `abercrombie`; T5.4 `amazon_ca` + `nike_ca` (deferred `sportchek`, `footlocker_ca`). **Remaining:** T5.5 drift workflow. | V1 success criteria can be tested end-to-end. |
+| M5: V1 retailer coverage | done | Supported retailers have benchmark decisions, scraper modules, fixtures, and local drift checks (T5.1–T5.5). Deferred: `sportchek`, `footlocker_ca`, `costco_ca`, etc. | V1 success criteria can be tested end-to-end. |
 | M6: Production-ready V1 | in progress | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check. **Progress:** T6.2 production smoke done (Google OAuth, live `bestbuy_ca` + `palmisleskate` add/refresh on Render, digest suppression, disposable account delete); T6.1/T3.5/T3.6 job code shipped (`workflow_dispatch` only). **Remaining:** T6.3 cron enablement, T6.4 7-day reliability, T7.x quality gates. | Invite early friends for feedback. |
 
 ---
@@ -635,19 +635,18 @@ Start after M3 proves the one-retailer architecture.
 
 ### T5.5 Drift detection workflow
 
-**Status:** pending
+**Status:** done
 
 - **Owner:** agent.
-- **Human setup:** GitHub issue permissions/secrets if needed.
-- **PR size:** tooling/workflow PR.
+- **Human setup:** none for CI (local-only tool). Optional: `GITHUB_TOKEN` + `GITHUB_REPOSITORY` when using `--file-issues` locally.
+- **PR size:** tooling PR (no GitHub Actions workflow — drift is not run on merge/CI).
 - **Build:**
-  - `.github/workflows/retailer-drift.yml` weekly.
-  - Local `make check-retailer-drift`.
-  - Compare canonical live scrape to stored snapshots.
-  - Open/update GitHub issue tagged `retailer-drift`.
+  - `backend/scrapers/drift/` module with live URL catalog, structural fingerprints, committed baselines.
+  - `make update-drift-snapshots` (fixture-mode baseline regen) and `make check-retailer-drift` (live manual check).
+  - Optional local `--file-issues` to open/update/close GitHub issues tagged `retailer-drift`.
 - **Verification:**
-  - Local mocked drift test.
-  - `workflow_dispatch` dry run.
+  - Mocked drift pytest (`test_retailer_drift.py`); CI snapshot sync test (no live retailer requests).
+  - Local `SCRAPER_MODE=live make check-retailer-drift` when validating against live pages.
 
 ---
 
@@ -789,21 +788,24 @@ Constraints:
 
 ## 15. Near-term recommended execution order
 
-**Phase 3 through T3.6, Phase 4 through T4.3, deployment docs (T6.1), T5.1–T5.4 retailer expansion, and T6.2 production smoke are complete.** Pick next from:
+**Phase 3 through T3.6, Phase 4 through T4.3, deployment docs (T6.1), T5.1–T5.5 retailer expansion + drift tooling, and T6.2 production smoke are complete.** Pick next from:
 
-1. **T5.5** Drift detection workflow — weekly retailer parity checks.
-2. **T6.3** Enable scrape/digest cron schedules — requires explicit human confirmation.
-3. ~~**T5.4** Bot-protected retailers~~ — **done** (`amazon_ca`, `nike_ca`; deferred `sportchek`, `footlocker_ca`).
-4. ~~**T6.2** Production smoke~~ — **done**.
-5. ~~**T5.3** Moderate retailers~~ — **done** (`indigo`, `apple_ca`, `abercrombie`; deferred `costco_ca`, `oakley`, `canadiantire`, `vans_ca`).
-6. ~~**T5.2** Easy Shopify retailers~~ — **done**.
-7. ~~**T3.6** Digest email service and job~~ — **done**.
-8. ~~**T3.5** Internal scrape job endpoint~~ — **done**; enable cron in T6.3 after explicit human confirmation.
-9. ~~**T4.2** Settings page~~ — **done**.
-10. ~~**T4.3** Delete account~~ — **done**.
-11. ~~**T5.1** Benchmark harness~~ — **done**.
+1. **T6.3** Enable scrape/digest cron schedules — requires explicit human confirmation.
+2. **T7.x** Quality gates and V1 acceptance checklist.
 
-M4 validated in production (T6.2 done). T5.4 shipped `amazon_ca` and `nike_ca`; deferred `sportchek` and `footlocker_ca`. T5.2–T5.3 Shopify and moderate retailers are shipped.
+<details>
+<summary>Recently completed (M5 / M6)</summary>
+
+- ~~**T5.5** Drift detection~~ — local `make check-retailer-drift` + `make update-drift-snapshots` (not run in CI).
+- ~~**T5.4** Bot-protected retailers~~ — `amazon_ca`, `nike_ca` (deferred `sportchek`, `footlocker_ca`).
+- ~~**T5.3** Moderate retailers~~ — `indigo`, `apple_ca`, `abercrombie`.
+- ~~**T5.2** Easy Shopify retailers~~ — `palmisleskate`, `tikiroomskate`.
+- ~~**T5.1** Benchmark harness~~ — done.
+- ~~**T6.2** Production smoke~~ — done.
+
+</details>
+
+M4 validated in production (T6.2 done). M5 complete through T5.5.
 
 <details>
 <summary>Historical bootstrap order (M0–M3, completed)</summary>

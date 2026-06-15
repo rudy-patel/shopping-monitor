@@ -698,9 +698,11 @@ V1 must ship with a lightweight harness that lets engineers and AI agents iterat
 
 **Drift detection:**
 
-- A scheduled GitHub Actions workflow (`.github/workflows/retailer-drift.yml`, runs weekly) executes each retailer's scraper against one canonical live URL and compares the extracted fields to a stored snapshot. Any mismatch opens (or updates) a GitHub issue tagged `retailer-drift` so engineers know when a retailer changed their page shape.
-- The same parity check is available locally via `make check-retailer-drift` for manual triage.
-- CI (`.github/workflows/ci.yml`) always runs scrapers in `fixtures` mode so PRs never hit live retailers. PRs that change fixtures must update the parity snapshot in the same commit.
+- **Status (2026-06-14):** Local tooling shipped (ROADMAP T5.5). Not scheduled in GitHub Actions — run manually when checking scraper health.
+- `make check-retailer-drift` (requires `SCRAPER_MODE=live`) scrapes each retailer's canonical product URL and compares a structural fingerprint to committed baselines in `backend/scrapers/drift/snapshots/`.
+- Optional `--file-issues` opens/updates/closes GitHub issues tagged `retailer-drift` (one per retailer; requires `GITHUB_TOKEN` + `GITHUB_REPOSITORY`).
+- `make update-drift-snapshots` regenerates baselines from fixtures after fixture edits.
+- CI (`.github/workflows/ci.yml`) always runs scrapers in `fixtures` mode so PRs never hit live retailers. PRs that change fixtures must update drift baselines in the same commit (`test_drift_snapshots_match_fixtures`).
 
 **Why this is V1, not nice-to-have:**
 
@@ -778,10 +780,10 @@ Each natively supported retailer needs a scraper module exposing a `scrape(url) 
 | GitHub Actions cron is best-effort (can run late)                    | Daily scrape may shift by minutes                                                        | Acceptable; not a correctness issue                                                                                                                                                                                                     |
 | GitHub Actions free minutes differ by repository visibility          | Private repo could eventually consume included minutes                                   | Stay private for V1; flip the repo to public if monthly minute usage approaches the 2,000-min cap (see §10.9 budget)                                                                                                                    |
 | AI categorization mislabels a product                                | User sees the wrong bucket on the dashboard                                              | Manual re-categorize from product detail page; manual overrides are sticky (§7.7) and stop future auto runs from undoing them; `category_source='manual'` recorded on the row                                                           |
-| Heavy dev iteration burns retailer bot-protection budget             | Scrapers get rate-limited or IP-banned mid-build                                         | `SCRAPER_MODE=fixtures` is the default in local dev and CI (§10.10); live mode is reserved for the daily scheduled job, weekly drift checks, and explicit benchmark runs                                                                |
+| Heavy dev iteration burns retailer bot-protection budget             | Scrapers get rate-limited or IP-banned mid-build                                         | `SCRAPER_MODE=fixtures` is the default in local dev and CI (§10.10); live mode is reserved for the daily scheduled job, manual drift checks, and explicit benchmark runs                                                                |
 | Two parallel agents trigger `/internal/jobs/scrape-all` concurrently | Double scrapes, duplicated `price_history` rows                                          | Postgres advisory lock around the scrape entrypoint (§10.9)                                                                                                                                                                             |
 | Revisit prompts feel naggy or robotic                                | User disables them or stops trusting the digest                                          | 30-day per-product debounce; settings toggles to disable each prompt type independently; copy guidelines in §7.10 enforced in design review                                                                                             |
-| Retailer page structure changes silently                             | Scraped fields drift without anyone noticing                                             | Weekly drift-detection workflow opens a GitHub issue per affected retailer (§10.10)                                                                                                                                                     |
+| Retailer page structure changes silently                             | Scraped fields drift without anyone noticing                                             | Local drift tooling (`make check-retailer-drift`) compares live scrapes to committed baselines when run manually (§10.10)                                                                                                                                                     |
 | ToS / scraping ethics                                                | Long-term legal exposure if app grows                                                    | V1 is personal-use; revisit before any public launch                                                                                                                                                                                    |
 
 
@@ -827,7 +829,7 @@ V1 is considered complete when:
 10. A user can archive, restore, delete, and re-categorize products.
 11. A user can toggle between light and dark theme from `/settings`; the preference survives reload.
 12. The dashboard and product detail pages hit Lighthouse Performance ≥ 95 and Accessibility ≥ 95 on a desktop throttled run.
-13. `SCRAPER_MODE=fixtures` lets engineers run the full backend test suite and a local dev session end-to-end with zero outbound requests to retailer domains, and the weekly drift-detection workflow opens an issue when a canonical fixture diverges from a fresh live scrape.
+13. `SCRAPER_MODE=fixtures` lets engineers run the full backend test suite and a local dev session end-to-end with zero outbound requests to retailer domains. Local drift tooling (`make check-retailer-drift`) compares live scrapes to committed baselines when run manually with `SCRAPER_MODE=live`.
 14. A user can delete their account from `/settings` and verify (via Supabase dashboard or integration test) that their data is gone. Production disposable-user smoke verified in T6.2 (`smoke_delete_account.py --live --confirm`).
 
 ---

@@ -58,6 +58,8 @@ Or use `make start` (runs `./dev-servers.sh start` which starts both and blocks)
 | Daily digest workflow | `.github/workflows/digest.yml` (`workflow_dispatch` only; cron deferred T6.3) | Same secrets as scrape; requires `RESEND_API_KEY` on Render for live sends. Local smoke: `python scripts/smoke_resend_digest.py` (dry-run default). |
 | Frontend build | `cd frontend && npm run build` | `tsc && vite build` |
 | Retailer benchmark | `make benchmark-retailers` | Fixture-mode harness (T5.1); writes `docs/benchmarks/fixtures-YYYY-MM-DD.json` |
+| Drift baselines | `make update-drift-snapshots` | Fixture-mode; regen `scrapers/drift/snapshots/*.json` after fixture edits (T5.5) |
+| Drift live check | `SCRAPER_MODE=live make check-retailer-drift` | Manual only — hits live retailer URLs; never run in CI |
 | Record Shopify fixtures | `SCRAPER_MODE=record python scripts/record_shopify_fixtures.py --slug palmisleskate --scenario in_stock --url "<product-url>"` | Live capture only; CI uses `SCRAPER_MODE=fixtures` |
 | Record structured retailer fixtures | `SCRAPER_MODE=record python scripts/record_retailer_fixtures.py --slug indigo --scenario in_stock --url "<product-url>"` | T5.3 (`indigo`, `apple_ca`, `abercrombie`) and T5.4 (`amazon_ca`, `nike_ca`); live capture only; `amazon_ca` auto-validates 1P seller |
 | Production smoke (T6.2) | `cd backend && source venv/bin/activate && python scripts/smoke_production_t6_2.py --live` | Live Render API for `bestbuy_ca` + `palmisleskate`; cleans up disposable users/products. Not for CI. |
