@@ -919,6 +919,7 @@ Constraints:
 - ~~**T7.4** Auto-categorization UX polish~~ — URL-first add modal, category thinking shimmer (~2.5s), dashboard sorting badge; client-side only (no extra Gemini calls).
 - ~~**T7.1** UI polish and accessibility~~ — typography-first lists, mobile tab bar, axe vitest, Playwright Mobile Chrome.
 - ~~**Sign-in splash redesign**~~ — warm gradient landing, dashed **Someday.** pill, desktop-only floating shopping stickers; compact `BrandMark` on empty dashboard; axe coverage for `/login`.
+- ~~**Brand assets & share meta**~~ — header `BrandMark` (`nav` size), favicon, Apple touch icon, 1200×630 OG image, Open Graph / Twitter tags; `copy.ts` site constants + `site-meta.test.ts` guards `index.html` drift.
 - ~~**T6.3** Cron schedules~~ — scrape `0 8 * * *` UTC, digest `0 14 * * *` UTC.
 - ~~**T6.2** Production smoke~~ — done.
 

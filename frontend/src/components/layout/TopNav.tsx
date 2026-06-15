@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Bell, Menu, Plus, User } from 'lucide-react'
+import { BrandMark } from '@/components/brand/BrandMark'
 import { useAuth } from '@/contexts/AuthContext'
 import { AddProductDialog } from '@/components/add-product/AddProductDialog'
 import {
@@ -117,9 +118,10 @@ export function TopNav() {
         <div className="container mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-4">
           <Link
             to="/"
-            className="shrink-0 text-lg font-semibold tracking-tight"
+            aria-label="Someday home"
+            className="shrink-0 transition-opacity hover:opacity-80"
           >
-            Someday
+            <BrandMark size="nav" />
           </Link>
 
           <div className="mx-2 hidden flex-1 justify-center md:flex">

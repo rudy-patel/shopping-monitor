@@ -211,7 +211,9 @@ V1 frontend routes (all behind auth except `/login`):
 | `/settings`              | Global preferences (currency, threshold, digest, theme, revisit prompts) + delete account |
 
 
-A persistent top nav contains: app title/logo, a header **Search** trigger (⌘K / Ctrl+K, mobile: icon-only), "Add Product" CTA, bell icon (notifications), avatar menu (settings, sign out).
+A persistent top nav contains: **Someday.** brand mark (compact dashed pill, same as splash), a header **Search** trigger (⌘K / Ctrl+K, mobile: icon-only), "Add Product" CTA, bell icon (notifications), avatar menu (settings, sign out).
+
+Static assets in `frontend/public/`: SVG favicon, 180×180 Apple touch icon, 1200×630 Open Graph image, and `index.html` meta tags so shared links render a branded preview (iMessage, Slack, etc.).
 
 The header **Search** trigger opens a command-palette-style overlay with a free-text input; results render inline with one-click **Track** per row and an "Add by URL" fallback. The "Add Product" CTA continues to open the URL-input modal for users who already have a specific URL.
 

@@ -1,4 +1,4 @@
-import { loginTaglines, dashboardQuotes, footerQuips } from '@/lib/copy'
+import { loginTaglines, dashboardQuotes, footerQuips, SITE_DESCRIPTION, SITE_NAME } from '@/lib/copy'
 
 describe('copy arrays', () => {
   it.each([
@@ -8,5 +8,10 @@ describe('copy arrays', () => {
   ] as const)('%s is non-empty and contains only non-empty strings', (_, lines) => {
     expect(lines.length).toBeGreaterThan(0)
     expect(lines.every((l) => typeof l === 'string' && l.length > 0)).toBe(true)
+  })
+
+  it('exports site branding constants', () => {
+    expect(SITE_NAME).toBe('Someday')
+    expect(SITE_DESCRIPTION.length).toBeGreaterThan(10)
   })
 })
