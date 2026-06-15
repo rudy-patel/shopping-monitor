@@ -41,7 +41,9 @@ test.describe('product vertical slice', () => {
     await expect(page.getByTestId('category-thinking')).toHaveCount(0)
 
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(/.+/)
-    await expect(page.getByText(/best buy canada/i).first()).toBeVisible()
+    const retailerLink = page.getByRole('link', { name: /best buy canada/i }).first()
+    await expect(retailerLink).toBeVisible()
+    await expect(retailerLink).toHaveAttribute('href', /.+\/bestbuy_ca\/.+/)
     await expect(page.getByText(/^in stock$/i).first()).toBeVisible()
 
     const categoryCombobox = page.getByRole('combobox', { name: /category/i })

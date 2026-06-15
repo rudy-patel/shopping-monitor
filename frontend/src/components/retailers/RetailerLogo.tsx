@@ -1,3 +1,4 @@
+import { ExternalLink } from 'lucide-react'
 import { retailerLabel } from '@/lib/format'
 import { retailerLogoSrc } from '@/lib/retailer-logos'
 import { cn } from '@/lib/utils'
@@ -33,6 +34,8 @@ interface RetailerIdentityProps {
   size?: keyof typeof SIZE_CLASS
   className?: string
   labelClassName?: string
+  /** When set, the retailer label links to the listing URL in a new tab. */
+  href?: string
 }
 
 /** Logo + human-readable retailer name for inline display. */
@@ -41,11 +44,29 @@ export function RetailerIdentity({
   size = 'sm',
   className,
   labelClassName,
+  href,
 }: RetailerIdentityProps) {
+  const label = retailerLabel(slug)
+
   return (
     <span className={cn('inline-flex min-w-0 items-center gap-1.5', className)}>
       <RetailerLogo slug={slug} size={size} />
-      <span className={cn('truncate', labelClassName)}>{retailerLabel(slug)}</span>
+      {href ? (
+        <a
+          href={href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={cn(
+            'inline-flex min-w-0 items-center gap-0.5 truncate hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            labelClassName,
+          )}
+        >
+          {label}
+          <ExternalLink className="h-3 w-3 shrink-0" aria-hidden />
+        </a>
+      ) : (
+        <span className={cn('truncate', labelClassName)}>{label}</span>
+      )}
     </span>
   )
 }

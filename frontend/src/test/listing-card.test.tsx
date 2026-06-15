@@ -16,7 +16,10 @@ describe('ListingCard', () => {
     expect(document.querySelector('img[src*="bestbuy"]')).toBeInTheDocument()
     expect(screen.getByText('In stock')).toBeInTheDocument()
     expect(screen.queryByText('ok')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: /open on best buy canada/i })).toBeInTheDocument()
+    const retailerLink = screen.getByRole('link', { name: /best buy canada/i })
+    expect(retailerLink).toHaveAttribute('href', listing.url)
+    expect(retailerLink).toHaveAttribute('target', '_blank')
+    expect(screen.queryByRole('link', { name: /open on/i })).not.toBeInTheDocument()
   })
 
   it('does not show comparison hints by default', () => {

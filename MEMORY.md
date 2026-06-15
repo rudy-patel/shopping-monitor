@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] Listing card retailer link (Tier 3–4 follow-up)
+
+**What:** Product detail listing cards now hyperlink the retailer name (with external-link icon) beside the logo instead of a separate "Open on …" row — saves vertical space while keeping the same destination URL and new-tab behavior.
+
+**Files:** `frontend/src/components/retailers/RetailerLogo.tsx` (`RetailerIdentity` optional `href`), `frontend/src/components/products/ListingCard.tsx`, `frontend/src/test/listing-card.test.tsx`, `frontend/src/test/product-detail.test.tsx`, `frontend/src/test/listing-review.test.tsx`, `frontend/src/test/retailer-logo.test.tsx`, `frontend/e2e/products.spec.ts`, `docs/PRD.md` (U-VIEW-4, U-CMP-2), `docs/ROADMAP.md`.
+
+**Verification:** Frontend `npm run lint`, `npm run test:run`, `npm run build`.
+
+---
+
 ## [2026-06-15] Product detail layout & micro-copy (Tier 3–4)
 
 **What:** Polished the product detail page with a bordered hero card (title, brand, price, trend chip, sparkline, metadata chips), collapsible Settings (chevron, collapsed by default), tighter listings spacing, and a mobile sticky action bar that repeats price + trend chip. Threshold field shows a computed dollar trigger (`Alert when below $X (N% off $Y)`). Trend chips append a quiet percent suffix when `delta_pct` is known. Discovery status sits beside the trend chip and stays hidden once complete. Archived products grey the sparkline and show "Tracking paused" while history remains visible.

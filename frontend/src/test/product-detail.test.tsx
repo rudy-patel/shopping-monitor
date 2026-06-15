@@ -279,28 +279,37 @@ describe('ProductDetailPage', () => {
 
   it('sorts listings cheapest-first with best-price hints and no scrape badges', () => {
     const primary = product.listings[0]
+    const listings = [
+      {
+        ...primary,
+        id: 'primary',
+        last_known_price_cents: 12999,
+        retailer_slug: 'bestbuy_ca',
+        url: 'https://fixtures.local/bestbuy_ca/in_stock',
+      },
+      {
+        ...primary,
+        id: 'cheap',
+        is_primary: false,
+        review_status: 'auto_added',
+        last_known_price_cents: 11999,
+        retailer_slug: 'amazon_ca',
+        url: 'https://fixtures.local/amazon_ca/in_stock',
+      },
+      {
+        ...primary,
+        id: 'expensive',
+        is_primary: false,
+        review_status: 'auto_added',
+        last_known_price_cents: 13999,
+        retailer_slug: 'apple_ca',
+        url: 'https://fixtures.local/apple_ca/in_stock',
+      },
+    ] as const
     vi.mocked(useProduct).mockReturnValue({
       data: makeProductDetail({
         id: 'detail-product-id',
-        listings: [
-          { ...primary, id: 'primary', last_known_price_cents: 12999, retailer_slug: 'bestbuy_ca' },
-          {
-            ...primary,
-            id: 'cheap',
-            is_primary: false,
-            review_status: 'auto_added',
-            last_known_price_cents: 11999,
-            retailer_slug: 'amazon_ca',
-          },
-          {
-            ...primary,
-            id: 'expensive',
-            is_primary: false,
-            review_status: 'auto_added',
-            last_known_price_cents: 13999,
-            retailer_slug: 'apple_ca',
-          },
-        ],
+        listings: [...listings],
       }),
       isLoading: false,
       isError: false,
@@ -309,13 +318,16 @@ describe('ProductDetailPage', () => {
     renderApp(`/products/${product.id}`, { authenticated: true })
 
     const listingsSection = screen.getByRole('region', { name: /^listings$/i })
-    const openLinks = within(listingsSection)
-      .getAllByRole('link', { name: /^open on /i })
-      .map((node) => node.textContent?.replace(/\s*$/, ''))
-    expect(openLinks).toEqual([
-      'Open on Amazon.ca',
-      'Open on Best Buy Canada',
-      'Open on Apple Canada',
+    const retailerLinks = within(listingsSection).getAllByRole('link')
+    expect(retailerLinks.map((node) => node.getAttribute('href'))).toEqual([
+      listings[1].url,
+      listings[0].url,
+      listings[2].url,
+    ])
+    expect(retailerLinks.map((node) => node.textContent?.trim())).toEqual([
+      'Amazon.ca',
+      'Best Buy Canada',
+      'Apple Canada',
     ])
     expect(within(listingsSection).getByText('Best price')).toBeInTheDocument()
     expect(within(listingsSection).getByText('+$10.00 vs best')).toBeInTheDocument()

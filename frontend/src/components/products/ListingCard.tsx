@@ -1,10 +1,9 @@
-import { ExternalLink } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { StockBadge } from '@/components/products/StockBadge'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
 import { RetailerIdentity } from '@/components/retailers/RetailerLogo'
-import { formatRelativeTime, retailerLabel } from '@/lib/format'
+import { formatRelativeTime } from '@/lib/format'
 import type { Listing } from '@/lib/products'
 import { cn } from '@/lib/utils'
 
@@ -64,6 +63,7 @@ export function ListingCard({
         <RetailerIdentity
           slug={listing.retailer_slug}
           labelClassName="text-sm font-medium"
+          href={listing.url}
         />
         <StockBadge inStock={listing.is_in_stock} />
         <span className="text-xs text-muted-foreground">
@@ -76,31 +76,18 @@ export function ListingCard({
       ) : null}
       {matchPct ? <p className="text-xs text-muted-foreground">{matchPct}</p> : null}
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
+      {canRemove(listing) && onRemove ? (
         <Button
-          variant="link"
+          type="button"
+          variant="ghost"
           size="sm"
-          className="inline-flex h-11 min-h-11 items-center p-0 text-sm font-normal text-muted-foreground"
-          asChild
+          className="mt-1 h-11 min-h-11 px-2 text-sm font-normal text-muted-foreground"
+          disabled={isRemoving}
+          onClick={() => onRemove(listing.id)}
         >
-          <a href={listing.url} target="_blank" rel="noopener noreferrer">
-            Open on {retailerLabel(listing.retailer_slug)}
-            <ExternalLink className="ml-1 inline h-3 w-3" />
-          </a>
+          Remove
         </Button>
-        {canRemove(listing) && onRemove ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-11 min-h-11 px-2 text-sm font-normal text-muted-foreground"
-            disabled={isRemoving}
-            onClick={() => onRemove(listing.id)}
-          >
-            Remove
-          </Button>
-        ) : null}
-      </div>
+      ) : null}
     </div>
   )
 }

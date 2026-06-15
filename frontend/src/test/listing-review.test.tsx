@@ -115,7 +115,9 @@ describe('listing review UI', () => {
     expect(listingsSection).not.toBeNull()
     if (!listingsSection) return
     expect(within(listingsSection).queryByText(/candidate at dime mtl/i)).not.toBeInTheDocument()
-    expect(within(listingsSection).getByText(/^best buy canada$/i)).toBeInTheDocument()
+    expect(
+      within(listingsSection).getByRole('link', { name: /best buy canada/i }),
+    ).toBeInTheDocument()
   })
 
   it('shows fallback copy when review_reason is missing', () => {
