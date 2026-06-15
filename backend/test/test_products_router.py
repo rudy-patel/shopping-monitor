@@ -901,3 +901,125 @@ def test_serialized_review_fields_on_needs_review(products_client, fake_client):
     listing = next(row for row in response.json()["listings"] if row["id"] == review["id"])
     assert listing["review_reason"] == "Same laptop model"
     assert listing["review_title"] == "Candidate at Canadian Tire"
+
+
+def test_detail_includes_price_history_30d_ordered_ascending(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    listing = _seed_listing(fake, product["id"], last_known_price_cents=9999)
+    now = datetime.now(UTC)
+    for offset, price in [(5, 11000), (10, 12500), (20, 10500), (40, 9999)]:
+        history_id = fake._next_price_history_id()
+        fake.price_history[history_id] = {
+            "id": history_id,
+            "listing_id": listing["id"],
+            "price_cents": price,
+            "is_in_stock": True,
+            "observed_at": (now - timedelta(days=offset)).isoformat(),
+            "source": "scheduled",
+        }
+
+    response = client.get(f"/api/products/{product['id']}")
+
+    assert response.status_code == 200
+    body = response.json()
+    history = body["price_history_30d"]
+    assert len(history) == 3
+    dates = [row["observed_on"] for row in history]
+    assert dates == sorted(dates)
+    assert all(isinstance(row["price_cents"], int) for row in history)
+    assert {row["price_cents"] for row in history} == {11000, 12500, 10500}
+
+
+def test_detail_price_history_30d_empty_when_no_observations(products_client, fake_client):
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    _seed_listing(fake, product["id"])
+
+    response = client.get(f"/api/products/{product['id']}")
+
+    assert response.status_code == 200
+    assert response.json()["price_history_30d"] == []
+
+
+def test_list_summary_excludes_price_history_30d(products_client, fake_client):
+    """Summary endpoints stay lightweight — only the detail payload carries history."""
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    listing = _seed_listing(fake, product["id"])
+    history_id = fake._next_price_history_id()
+    fake.price_history[history_id] = {
+        "id": history_id,
+        "listing_id": listing["id"],
+        "price_cents": 8000,
+        "is_in_stock": True,
+        "observed_at": datetime.now(UTC).isoformat(),
+        "source": "scheduled",
+    }
+
+    list_response = client.get("/api/products")
+
+    assert list_response.status_code == 200
+    rows = list_response.json()
+    assert rows
+    assert "price_history_30d" not in rows[0]
+
+
+def test_detail_price_history_30d_excludes_out_of_window_rows(products_client, fake_client):
+    """Observations older than the 30-day trend window must not appear."""
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    listing = _seed_listing(fake, product["id"])
+    now = datetime.now(UTC)
+    for offset in (5, 45):
+        history_id = fake._next_price_history_id()
+        fake.price_history[history_id] = {
+            "id": history_id,
+            "listing_id": listing["id"],
+            "price_cents": 7000 + offset,
+            "is_in_stock": True,
+            "observed_at": (now - timedelta(days=offset)).isoformat(),
+            "source": "scheduled",
+        }
+
+    response = client.get(f"/api/products/{product['id']}")
+
+    assert response.status_code == 200
+    history = response.json()["price_history_30d"]
+    assert len(history) == 1
+    assert history[0]["price_cents"] == 7005
+
+
+def test_detail_price_history_30d_skips_needs_review_listings(products_client, fake_client):
+    """Needs-review and rejected listings must not contribute to the chart series."""
+    from datetime import date as date_cls
+
+    client, fake, _llm = products_client
+    product = _seed_product(fake)
+    primary = _seed_listing(fake, product["id"], last_known_price_cents=10000)
+    review = _seed_review_listing(fake, product["id"], last_known_price_cents=1)
+    # Anchor history a few days back so it lands inside the window regardless of
+    # the test machine's UTC-vs-local boundary at run time.
+    observed_at = (
+        datetime.combine(date_cls.today(), datetime.min.time())
+        .replace(tzinfo=UTC)
+        - timedelta(days=2)
+    )
+    for listing_id, price in ((primary["id"], 10000), (review["id"], 1)):
+        history_id = fake._next_price_history_id()
+        fake.price_history[history_id] = {
+            "id": history_id,
+            "listing_id": listing_id,
+            "price_cents": price,
+            "is_in_stock": True,
+            "observed_at": observed_at.isoformat(),
+            "source": "scheduled",
+        }
+
+    response = client.get(f"/api/products/{product['id']}")
+
+    assert response.status_code == 200
+    history = response.json()["price_history_30d"]
+    assert history == [
+        {"observed_on": observed_at.date().isoformat(), "price_cents": 10000}
+    ]

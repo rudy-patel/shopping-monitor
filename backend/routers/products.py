@@ -80,8 +80,14 @@ class ProductSummary(BaseModel):
     needs_review_count: int = 0
 
 
+class PriceHistoryPoint(BaseModel):
+    observed_on: str
+    price_cents: int
+
+
 class ProductDetail(ProductSummary):
     listings: list[ListingResponse]
+    price_history_30d: list[PriceHistoryPoint] = Field(default_factory=list)
 
 
 class DiscoverySeedEntry(BaseModel):

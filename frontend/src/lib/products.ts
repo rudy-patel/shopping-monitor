@@ -63,8 +63,14 @@ export interface ProductSummary {
   needs_review_count: number
 }
 
+export interface PriceHistoryPoint {
+  observed_on: string
+  price_cents: number
+}
+
 export interface ProductDetail extends ProductSummary {
   listings: Listing[]
+  price_history_30d: PriceHistoryPoint[]
 }
 
 export interface ProductFilters {

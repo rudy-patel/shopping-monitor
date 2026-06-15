@@ -8,11 +8,20 @@ import { DeleteProductDialog } from '@/components/products/DeleteProductDialog'
 import { DiscoveryIndicator } from '@/components/products/DiscoveryIndicator'
 import { ListingCard } from '@/components/products/ListingCard'
 import { NeedsReviewQueue } from '@/components/products/NeedsReviewQueue'
+import { Sparkline } from '@/components/products/Sparkline'
 import { ThresholdField } from '@/components/products/ThresholdField'
-import { TrendChip } from '@/components/products/TrendChip'
+import { TrendChip, trendPriceClass } from '@/components/products/TrendChip'
 import { ProductListRowSkeleton } from '@/components/products/ProductListRowSkeleton'
-import { useArchiveProduct, useDeleteListing, useProduct, useRefreshProduct, useRestoreProduct } from '@/hooks/useProducts'
+import {
+  useArchiveProduct,
+  useDeleteListing,
+  useProduct,
+  useRefreshProduct,
+  useRestoreProduct,
+} from '@/hooks/useProducts'
+import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
 import { activeListings } from '@/lib/products'
+import { retailerLabel } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
 export function ProductDetailPage() {
@@ -22,6 +31,7 @@ export function ProductDetailPage() {
   const archive = useArchiveProduct(id ?? '')
   const restore = useRestoreProduct(id ?? '')
   const removeListing = useDeleteListing(id ?? '')
+  const formatPriceCents = useFormatPriceCents()
   const [deleteOpen, setDeleteOpen] = useState(false)
   const isArchived = product?.status === 'archived'
   const isRefreshing = refresh.isPending
@@ -62,13 +72,44 @@ export function ProductDetailPage() {
           </div>
         ) : null}
 
-        <section className="space-y-3">
-          <h1 className="text-xl font-semibold tracking-tight md:text-2xl">{product.title}</h1>
-          {product.brand ? (
-            <p className="text-muted-foreground">{product.brand}</p>
-          ) : null}
+        <section className="space-y-4">
+          <div className="space-y-1">
+            <h1 className="text-xl font-semibold tracking-tight md:text-2xl">
+              {product.title}
+            </h1>
+            {product.brand ? (
+              <p className="text-muted-foreground">{product.brand}</p>
+            ) : null}
+          </div>
+
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-4">
+            <div className="flex items-baseline gap-2">
+              <span
+                className={cn(
+                  'text-3xl font-semibold tabular-nums tracking-tight md:text-4xl',
+                  trendPriceClass(product.trend.direction),
+                )}
+              >
+                {formatPriceCents(product.best_price_cents)}
+              </span>
+              {product.best_retailer_slug ? (
+                <span className="text-sm text-muted-foreground">
+                  at {retailerLabel(product.best_retailer_slug)}
+                </span>
+              ) : null}
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <TrendChip trend={product.trend} />
+              <Sparkline
+                history={product.price_history_30d}
+                currentPriceCents={product.best_price_cents}
+                direction={product.trend.direction}
+                daysOfData={product.trend.days_of_data}
+              />
+            </div>
+          </div>
+
           <div className="flex flex-wrap items-center gap-2">
-            <TrendChip trend={product.trend} />
             <DiscoveryIndicator status={product.discovery_status} />
             {product.needs_review_count > 0 ? (
               <Badge variant="outline">
