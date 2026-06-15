@@ -7,11 +7,22 @@ import {
   type SearchResponse,
 } from '@/lib/search'
 
-const SEARCH_MAX_RETRIES = 2
+// react-query's `failureCount` argument starts at 0 for the first retry decision
+// (= count of failures BEFORE this one). `failureCount < 1` → exactly one retry,
+// for a total of two attempts on transient errors. Two strikes the right balance:
+// short user wait on transient 503/504s, but never an open-ended retry loop that
+// burns Gemini quota or makes the spinner linger.
+const SEARCH_RETRY_LIMIT = 1
+
+export function isQuotaExhaustedError(error: unknown): boolean {
+  return error instanceof ApiError && error.status === 429
+}
 
 function isRetryableSearchError(error: unknown): boolean {
   if (!(error instanceof ApiError)) return false
-  // Transient provider/rate-limit failures — keep loading and retry before surfacing.
+  // Transient provider/timeout failures get one retry. Quota (429) is a real
+  // daily cap — retrying just burns more quota and makes the user wait, so we
+  // never retry it; the dialog surfaces a specific "daily limit" message.
   return error.status === 503 || error.status === 502 || error.status === 504
 }
 
@@ -29,7 +40,8 @@ export function useSearch(submittedQuery: string) {
     staleTime: 1000 * 60 * 60,
     gcTime: 1000 * 60 * 60 * 2,
     retry: (failureCount, error) =>
-      failureCount < SEARCH_MAX_RETRIES && isRetryableSearchError(error),
-    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
+      failureCount < SEARCH_RETRY_LIMIT && isRetryableSearchError(error),
+    // Keep the gap between attempts short so users don't stare at a spinner.
+    retryDelay: (attempt) => Math.min(800 * 2 ** attempt, 3000),
   })
 }

@@ -125,7 +125,10 @@ def test_search_returns_cached_response_on_second_call(auth_env):
     assert len(llm.search_calls) == 1
 
 
-def test_search_quota_exhausted_returns_503(auth_env):
+def test_search_quota_exhausted_returns_429(auth_env):
+    """Gemini daily-quota exhaustion is a hard cap — return 429 so the frontend
+    surfaces a specific 'daily limit' message and does NOT retry (every retry
+    burns more quota for the same wall-time wait)."""
     llm = FakeLlmProvider(raise_on_search=LlmQuotaExhaustedError("rate limit"))
     app, _ = make_app(llm)
     auth_env.setattr("services.search_service.get_llm_provider", lambda: llm)
@@ -133,7 +136,8 @@ def test_search_quota_exhausted_returns_503(auth_env):
     with TestClient(app) as client:
         response = client.post("/api/search", json={"query": "widget"})
 
-    assert response.status_code == 503
+    assert response.status_code == 429
+    assert "daily" in response.json()["detail"].lower()
 
 
 def test_search_timeout_returns_504(auth_env):
@@ -156,6 +160,22 @@ def test_search_invalid_response_returns_502(auth_env):
         response = client.post("/api/search", json={"query": "widget"})
 
     assert response.status_code == 502
+
+
+def test_search_provider_error_returns_503(auth_env):
+    """Transient Gemini provider failures (non-quota, non-timeout) map to 503 so
+    the frontend's retry loop kicks in. Quota is intentionally NOT bundled here."""
+    from services.llm import LlmProviderError
+
+    llm = FakeLlmProvider(raise_on_search=LlmProviderError("503 UNAVAILABLE"))
+    app, _ = make_app(llm)
+    auth_env.setattr("services.search_service.get_llm_provider", lambda: llm)
+
+    with TestClient(app) as client:
+        response = client.post("/api/search", json={"query": "widget"})
+
+    assert response.status_code == 503
+    assert "temporarily unavailable" in response.json()["detail"].lower()
 
 
 def test_search_short_query_returns_422(auth_env):

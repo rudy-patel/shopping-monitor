@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useCreateProduct } from '@/hooks/useProducts'
-import { useSearch } from '@/hooks/useSearch'
+import { isQuotaExhaustedError, useSearch } from '@/hooks/useSearch'
 import { useMotionEnabled } from '@/lib/motion'
 import { isSearchableQuery, type SearchResultItem } from '@/lib/search'
 import { cn } from '@/lib/utils'
@@ -130,7 +130,13 @@ export function SearchCommandDialog({
       return <SearchThinking query={submittedQuery} />
     }
     if (isError) {
-      return <ErrorState error={error} motionEnabled={motionEnabled} />
+      return (
+        <ErrorState
+          error={error}
+          motionEnabled={motionEnabled}
+          onAddByUrl={handleAddByUrl}
+        />
+      )
     }
     if (results.length === 0) {
       return <EmptyState query={submittedQuery} onAddByUrl={handleAddByUrl} />
@@ -319,22 +325,49 @@ function IdleState({
 function ErrorState({
   error,
   motionEnabled,
+  onAddByUrl,
 }: {
   error: unknown
   motionEnabled: boolean
+  onAddByUrl: () => void
 }) {
-  const message =
-    error instanceof ApiError ? error.message : 'Search hit a snag — try again.'
+  const isQuota = isQuotaExhaustedError(error)
+  const message = isQuota
+    ? 'Daily AI search limit reached.'
+    : error instanceof ApiError
+      ? error.message
+      : 'Search hit a snag — try again.'
+  const hint = isQuota
+    ? "We'll be back to full speed soon. In the meantime, paste a product URL to track it now."
+    : 'Try again in a moment, or paste a product URL directly.'
+
   return (
     <div
       className={cn(
-        'rounded-xl border border-destructive/40 bg-destructive/5 p-4 text-sm text-destructive',
+        'space-y-3 rounded-xl border p-4 text-sm',
+        isQuota
+          ? 'border-border/60 bg-muted/40 text-foreground'
+          : 'border-destructive/40 bg-destructive/5 text-destructive',
         motionEnabled && 'animate-in fade-in-0',
       )}
       role="alert"
-      data-testid="search-error"
+      data-testid={isQuota ? 'search-quota-exhausted' : 'search-error'}
     >
-      {message}
+      <div className="space-y-1">
+        <p className="font-medium">{message}</p>
+        <p className={cn('text-xs', isQuota ? 'text-muted-foreground' : 'opacity-90')}>
+          {hint}
+        </p>
+      </div>
+      <Button
+        variant="outline"
+        size="sm"
+        className="rounded-full"
+        onClick={onAddByUrl}
+      >
+        <Link2 className="mr-1 h-3.5 w-3.5" aria-hidden />
+        Add by URL
+      </Button>
     </div>
   )
 }

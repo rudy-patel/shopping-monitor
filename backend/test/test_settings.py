@@ -15,6 +15,7 @@ from core.settings import (
     DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S,
     DEFAULT_GEMINI_DISCOVER_TIMEOUT_S,
     DEFAULT_GEMINI_MODEL,
+    DEFAULT_GEMINI_SEARCH_MODEL,
     DEFAULT_GEMINI_SEARCH_TIMEOUT_S,
     DEFAULT_SCRAPER_MODE,
     DEFAULT_SEARCH_CACHE_TTL_HOURS,
@@ -37,6 +38,7 @@ SETTINGS_ENV_KEYS = [
     "WORKER_TOKEN",
     "GEMINI_API_KEY",
     "GEMINI_MODEL",
+    "GEMINI_SEARCH_MODEL",
     "GEMINI_CATEGORIZE_TIMEOUT_S",
     "GEMINI_DISCOVER_TIMEOUT_S",
     "GEMINI_SEARCH_TIMEOUT_S",
@@ -75,6 +77,7 @@ def test_defaults_when_env_unset(settings_env, monkeypatch):
     assert settings.worker_token == ""
     assert settings.gemini_api_key == ""
     assert settings.gemini_model == DEFAULT_GEMINI_MODEL
+    assert settings.gemini_search_model == DEFAULT_GEMINI_SEARCH_MODEL
     assert settings.gemini_categorize_timeout_s == DEFAULT_GEMINI_CATEGORIZE_TIMEOUT_S
     assert settings.gemini_discover_timeout_s == DEFAULT_GEMINI_DISCOVER_TIMEOUT_S
     assert settings.gemini_search_timeout_s == DEFAULT_GEMINI_SEARCH_TIMEOUT_S
@@ -95,6 +98,7 @@ def test_env_overrides(settings_env, monkeypatch):
     monkeypatch.setenv("WORKER_TOKEN", "secret-worker")
     monkeypatch.setenv("GEMINI_API_KEY", "gemini-key")
     monkeypatch.setenv("GEMINI_MODEL", "gemini-test-model")
+    monkeypatch.setenv("GEMINI_SEARCH_MODEL", "gemini-test-search-model")
     monkeypatch.setenv("GEMINI_CATEGORIZE_TIMEOUT_S", "2.5")
     monkeypatch.setenv("RESEND_API_KEY", "resend-key")
     monkeypatch.setenv("APP_BASE_URL", "http://app.example")
@@ -112,6 +116,7 @@ def test_env_overrides(settings_env, monkeypatch):
     assert settings.worker_token == "secret-worker"
     assert settings.gemini_api_key == "gemini-key"
     assert settings.gemini_model == "gemini-test-model"
+    assert settings.gemini_search_model == "gemini-test-search-model"
     assert settings.gemini_categorize_timeout_s == 2.5
     assert settings.resend_api_key == "resend-key"
     assert settings.app_base_url == "http://app.example"

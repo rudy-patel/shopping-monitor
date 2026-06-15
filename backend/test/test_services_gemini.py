@@ -31,6 +31,7 @@ def _make_provider(**kwargs) -> GeminiFlashLlmProvider:
     defaults = {
         "api_key": "test-key",
         "model": "gemini-2.5-flash",
+        "search_model": "gemini-2.5-flash-lite",
         "default_timeout_s": 1.5,
         "discover_timeout_s": 30.0,
         "search_timeout_s": 5.0,
@@ -335,18 +336,43 @@ def test_extract_grounded_response_text_falls_back_to_candidate_parts():
 
 @patch("services.gemini.time.sleep")
 @patch("services.gemini.genai.Client")
-def test_grounded_search_retries_once_on_rate_limit(
+def test_grounded_search_does_not_retry_on_quota_error(
     mock_client_cls: MagicMock,
     mock_sleep: MagicMock,
 ):
+    """Quota exhaustion is a daily cap — every retry burns more quota for the
+    same wall-time wait. Fail fast so the frontend can surface the daily-limit
+    message immediately instead of after multiple attempts."""
     mock_client = MagicMock()
     mock_client_cls.return_value = mock_client
-    rate_limited = genai_errors.APIError(
+    mock_client.models.generate_content.side_effect = genai_errors.APIError(
         429,
         {"error": {"status": "RESOURCE_EXHAUSTED", "message": "rate limit"}},
     )
+
+    with pytest.raises(LlmQuotaExhaustedError):
+        _make_provider().search(query="patagonia")
+
+    assert mock_client.models.generate_content.call_count == 1
+    mock_sleep.assert_not_called()
+
+
+@patch("services.gemini.time.sleep")
+@patch("services.gemini.genai.Client")
+def test_grounded_search_retries_on_transient_503(
+    mock_client_cls: MagicMock,
+    mock_sleep: MagicMock,
+):
+    """503 UNAVAILABLE is a documented transient failure for Gemini grounded
+    search (python-genai#2249). One retry typically clears it."""
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    unavailable = genai_errors.APIError(
+        503,
+        {"error": {"status": "UNAVAILABLE", "message": "model overloaded"}},
+    )
     mock_client.models.generate_content.side_effect = [
-        rate_limited,
+        unavailable,
         _mock_response('{"candidates":[]}'),
     ]
 
@@ -355,6 +381,150 @@ def test_grounded_search_retries_once_on_rate_limit(
     assert result.candidates == []
     assert mock_client.models.generate_content.call_count == 2
     mock_sleep.assert_called_once()
+
+
+@patch("services.gemini.time.sleep")
+@patch("services.gemini.genai.Client")
+def test_grounded_search_retries_on_transient_504(
+    mock_client_cls: MagicMock,
+    mock_sleep: MagicMock,
+):
+    """504 DEADLINE_EXCEEDED is the second most common grounded-search transient
+    error (see capacity rotation reports in python-genai#2249)."""
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    deadline = genai_errors.APIError(
+        504,
+        {"error": {"status": "DEADLINE_EXCEEDED", "message": "grounded deadline"}},
+    )
+    mock_client.models.generate_content.side_effect = [
+        deadline,
+        _mock_response('{"candidates":[]}'),
+    ]
+
+    result = _make_provider().search(query="patagonia")
+
+    assert result.candidates == []
+    assert mock_client.models.generate_content.call_count == 2
+    mock_sleep.assert_called_once()
+
+
+@patch("services.gemini.time.sleep")
+@patch("services.gemini.genai.Client")
+def test_grounded_search_retries_on_empty_response(
+    mock_client_cls: MagicMock,
+    mock_sleep: MagicMock,
+):
+    """Empty grounded response (model returned no text despite running) is
+    intermittent — retry once before failing."""
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.side_effect = [
+        _mock_response(""),
+        _mock_response('{"candidates":[]}'),
+    ]
+
+    result = _make_provider().search(query="patagonia")
+
+    assert result.candidates == []
+    assert mock_client.models.generate_content.call_count == 2
+
+
+@patch("services.gemini.genai.Client")
+def test_search_uses_search_model_not_default_model(mock_client_cls: MagicMock):
+    """Grounded search uses `search_model` so production can run Flash for
+    categorization and Flash-Lite for search (separate quota pools)."""
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.return_value = _mock_response(
+        '{"candidates":[]}'
+    )
+
+    provider = _make_provider(
+        model="gemini-2.5-flash",
+        search_model="gemini-2.5-flash-lite",
+    )
+    provider.search(query="something")
+
+    call_kwargs = mock_client.models.generate_content.call_args.kwargs
+    assert call_kwargs["model"] == "gemini-2.5-flash-lite"
+
+
+@patch("services.gemini.genai.Client")
+def test_search_model_falls_back_to_default_model(mock_client_cls: MagicMock):
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.return_value = _mock_response(
+        '{"candidates":[]}'
+    )
+
+    provider = _make_provider(model="gemini-2.5-flash", search_model=None)
+    provider.search(query="something")
+
+    call_kwargs = mock_client.models.generate_content.call_args.kwargs
+    assert call_kwargs["model"] == "gemini-2.5-flash"
+
+
+@patch("services.gemini.genai.Client")
+def test_discover_uses_search_model_not_categorize_model(mock_client_cls: MagicMock):
+    """Discovery is a *grounded* call (google_search tool) just like search, so it
+    must use the grounded-friendly `search_model` (Flash-Lite), not the structured-
+    output `model` (Flash). Burning Flash quota on discover would re-trigger the
+    daily-cap outage this PR fixed."""
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.return_value = _mock_response(
+        '{"candidates":[]}'
+    )
+
+    from scrapers.bestbuy_ca import register_bestbuy_ca
+    from scrapers.generic import register_generic
+
+    register_generic()
+    register_bestbuy_ca()
+
+    provider = _make_provider(
+        model="gemini-2.5-flash",
+        search_model="gemini-2.5-flash-lite",
+    )
+    provider.discover(
+        title="Widget",
+        brand=None,
+        retailer_slug="bestbuy_ca",
+        variant_attributes={},
+        image_url=None,
+    )
+
+    call_kwargs = mock_client.models.generate_content.call_args.kwargs
+    assert call_kwargs["model"] == "gemini-2.5-flash-lite"
+
+
+@patch("services.gemini.time.sleep")
+@patch("services.gemini.genai.Client")
+def test_search_does_not_double_wrap_provider_error(
+    mock_client_cls: MagicMock, mock_sleep: MagicMock
+):
+    """`_call_gemini_grounded` already classifies API errors into LlmProviderError;
+    the outer search() / discover() wrappers must re-raise it cleanly instead of
+    feeding it back through `_raise_gemini_call_error` (which would re-wrap it as
+    `LlmProviderError(str(LlmProviderError(...)))` with a noisy message)."""
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    # Persistent 500 — no quota, no transient retry success → bubbles up as LlmProviderError
+    # from `_call_gemini_grounded` after exhausting retries.
+    mock_client.models.generate_content.side_effect = genai_errors.APIError(
+        500,
+        {"error": {"status": "INTERNAL", "message": "boom"}},
+    )
+
+    with pytest.raises(LlmProviderError) as exc_info:
+        _make_provider().search(query="something")
+
+    # The chain should be: APIError → LlmProviderError (once). The cause must be the
+    # APIError, not another LlmProviderError (which would indicate double-wrap).
+    assert not isinstance(exc_info.value.__cause__, LlmProviderError)
+    # Should retry 500s (transient) then give up after _GROUNDED_MAX_ATTEMPTS.
+    assert mock_client.models.generate_content.call_count == 3
 
 
 @patch("services.gemini.genai.Client")
@@ -426,6 +596,36 @@ def test_search_valid_json(mock_client_cls: MagicMock):
     assert candidate.title == "Widget Pro"
     assert candidate.retailer_hint == "Best Buy Canada"
     assert candidate.brand_hint == "WidgetCo"
+
+
+@patch("services.gemini.genai.Client")
+def test_search_natural_language_refusal_returns_empty_results(
+    mock_client_cls: MagicMock,
+):
+    """Gemini occasionally returns 'I'm sorry, I can't…' for broad queries.
+    That's a no-results signal, not an error worth a 502 + frontend retry."""
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.return_value = _mock_response(
+        "I am sorry, but I cannot fulfill this request. The query is too broad."
+    )
+
+    result = _make_provider().search(query="patagonia jacket")
+    assert result.candidates == []
+
+
+@patch("services.gemini.genai.Client")
+def test_search_malformed_json_still_raises(mock_client_cls: MagicMock):
+    """If the response looks like JSON ({...}) but doesn't parse, surface the
+    error so retries/observability still kick in — that's a real provider bug."""
+    mock_client = MagicMock()
+    mock_client_cls.return_value = mock_client
+    mock_client.models.generate_content.return_value = _mock_response(
+        '{"candidates": [{"url": broken json'
+    )
+
+    with pytest.raises(LlmInvalidResponseError, match="not valid JSON"):
+        _make_provider().search(query="something")
 
 
 @patch("services.gemini.genai.Client")
@@ -510,15 +710,28 @@ def test_search_quota_error(mock_client_cls: MagicMock, mock_sleep: MagicMock):
     with pytest.raises(LlmQuotaExhaustedError):
         _make_provider().search(query="something")
 
+    # Quota = hard daily cap; do not waste more requests.
+    assert mock_client.models.generate_content.call_count == 1
+    mock_sleep.assert_not_called()
 
+
+@patch("services.gemini.time.sleep")
 @patch("services.gemini.genai.Client")
-def test_search_empty_response_raises(mock_client_cls: MagicMock):
+def test_search_empty_response_raises_after_retries(
+    mock_client_cls: MagicMock, mock_sleep: MagicMock
+):
+    """Empty grounded responses retry up to _GROUNDED_MAX_ATTEMPTS times before
+    surfacing the empty-response error to the caller."""
     mock_client = MagicMock()
     mock_client_cls.return_value = mock_client
     mock_client.models.generate_content.return_value = _mock_response("")
 
     with pytest.raises(LlmInvalidResponseError, match="empty search response"):
         _make_provider().search(query="something")
+
+    # 3 grounded attempts total; sleeps between attempts only (2 sleeps).
+    assert mock_client.models.generate_content.call_count == 3
+    assert mock_sleep.call_count == 2
 
 
 def test_build_retailer_default_categories_includes_registered_retailers():
@@ -551,11 +764,30 @@ def test_get_llm_provider_no_key_fixtures_mode_returns_fixture_provider(monkeypa
 
 
 def test_get_llm_provider_with_key(monkeypatch):
+    from core.settings import DEFAULT_GEMINI_SEARCH_MODEL
+
     monkeypatch.setattr("core.settings._env_file_path", lambda: None)
     clear_settings_cache()
     provider = get_llm_provider(Settings(gemini_api_key="secret"))
     assert isinstance(provider, GeminiFlashLlmProvider)
     assert provider._search_timeout_s == DEFAULT_GEMINI_SEARCH_TIMEOUT_S
+    # Search uses Flash-Lite by default (separate quota pool from Flash).
+    assert provider._search_model == DEFAULT_GEMINI_SEARCH_MODEL
+
+
+def test_get_llm_provider_with_key_honors_search_model_override(monkeypatch):
+    monkeypatch.setattr("core.settings._env_file_path", lambda: None)
+    clear_settings_cache()
+    provider = get_llm_provider(
+        Settings(
+            gemini_api_key="secret",
+            gemini_model="gemini-2.5-flash",
+            gemini_search_model="gemini-3-flash-preview",
+        )
+    )
+    assert isinstance(provider, GeminiFlashLlmProvider)
+    assert provider._model == "gemini-2.5-flash"
+    assert provider._search_model == "gemini-3-flash-preview"
 
 
 @patch("services.gemini.genai.Client")

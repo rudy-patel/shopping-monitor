@@ -134,10 +134,11 @@ The free tier sleeps after ~15 minutes idle with a ~30s cold start on wake (PRD 
 
 | Variable | Default / notes |
 | --- | --- |
-| `GEMINI_MODEL` | `gemini-2.5-flash` |
+| `GEMINI_MODEL` | `gemini-2.5-flash` (used for categorize + discover) |
+| `GEMINI_SEARCH_MODEL` | `gemini-2.5-flash-lite` (used for grounded `/api/search`; **must stay lite in production** — `gemini-2.5-flash` + `google_search` is capped at 20 RPD on the free tier and exhausts within minutes of normal usage, returning 429 to every subsequent request) |
 | `GEMINI_CATEGORIZE_TIMEOUT_S` | `1.5` |
 | `GEMINI_DISCOVER_TIMEOUT_S` | `30.0` |
-| `GEMINI_SEARCH_TIMEOUT_S` | `30.0` (grounded search; aligned with `GEMINI_DISCOVER_TIMEOUT_S`; shorter values cause 504 timeouts) |
+| `GEMINI_SEARCH_TIMEOUT_S` | `20.0` (grounded search; lite is faster than flash so we can be tighter; raise toward `30.0` only if `504`s appear in logs) |
 | `LOG_LEVEL` | `INFO` |
 | `FX_CACHE_TTL_HOURS` | `24` |
 | `FRANKFURTER_BASE_URL` | `https://api.frankfurter.dev` |
@@ -217,6 +218,10 @@ Manual run: GitHub → Actions → **Daily digest** → **Run workflow**.
 ```bash
 # Backend reachable
 curl -sS https://shopping-monitor-api.onrender.com/health | jq .
+
+# Gemini wiring (no API call — safe to curl anytime)
+# Expect: configured=true, search_model="gemini-2.5-flash-lite"
+curl -sS https://shopping-monitor-api.onrender.com/health/llm | jq .
 
 # OpenAPI includes worker job routes (confirms deploy complete)
 curl -sS https://shopping-monitor-api.onrender.com/openapi.json \
