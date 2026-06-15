@@ -61,6 +61,7 @@ export interface ProductSummary {
   effective_threshold_pct: number
   last_scraped_at: string | null
   needs_review_count: number
+  dashboard_sort_order: number | null
 }
 
 export interface PriceHistoryPoint {
@@ -94,6 +95,20 @@ export interface UpdateProductInput {
   notification_threshold_pct?: number
   notifications_enabled?: boolean
   status?: 'active' | 'archived'
+}
+
+export interface DashboardReorderEntry {
+  id: string
+  dashboard_sort_order: number
+}
+
+export function reorderDashboardProducts(
+  items: DashboardReorderEntry[],
+): Promise<void> {
+  return apiFetch<void>('/api/products/dashboard-order', {
+    method: 'PUT',
+    body: JSON.stringify({ items }),
+  })
 }
 
 export interface VariantOption {

@@ -136,7 +136,7 @@ Each story below is a V1 commitment.
 
 ### 5.3 Viewing & organizing products
 
-- **U-VIEW-1.** My default dashboard shows all active products grouped by the 5 fixed categories.
+- **U-VIEW-1.** My default dashboard shows all active products grouped by the 5 fixed categories. Each category section is collapsible (Notion-style toggle). All five categories are always visible — empty ones show a zero count and start collapsed. **Edit order** mode lets me drag category headers to reorder sections (saved locally) and drag products within a category (saved per product via `dashboard_sort_order`; cross-category moves use the product detail category field).
 - **U-VIEW-2.** I can toggle to a flat list view and filter by category, retailer, or "has unreviewed matches."
 - **U-VIEW-3.** Each product row shows: title, brand, retailer of best current price (with a small bundled icon for supported retailer slugs), best current price (in display currency), 30-day trend chip, alternate retailers count, last-refreshed timestamp, manual refresh button, and a kebab menu. V1 list surfaces are typography-first — no in-app product images; users open the retailer PDP via listing links when they want to see photos.
 - **U-VIEW-4.** Clicking a row opens a product detail page showing every listing as a card with retailer (icon + label linking to the source URL with an external-link icon for supported slugs), current price (prominent), stock state, and last-refreshed timestamp (no inline product images in-app; scrape status is stored but not shown on listing cards). The detail page hero sits in a light bordered card: best price (tinted by 30-day trend) and best retailer, trend chip (with optional `delta_pct` suffix), discovery status beside the chip (hidden once complete), compact 30-day sparkline, and a metadata row (category pill, tracking-since date, last refresh). Archived products grey the sparkline and show "Tracking paused." Products with fewer than 7 days of data render a flat sparkline at the current best price so the chip and the line agree visually. Listings and Settings follow below with tighter vertical rhythm; Settings is collapsed by default behind a chevron. On mobile, the sticky action bar repeats price + trend chip beside Refresh/Archive/Delete.
@@ -576,6 +576,7 @@ REST under `/api`, all behind auth (Supabase JWT).
 | `GET`    | `/api/products`                                 | List user's products with filters (`status`, `category`)                    |
 | `GET`    | `/api/products/:id`                             | Product detail (includes listings + 30-day daily-minimum price history)     |
 | `PATCH`  | `/api/products/:id`                             | Update category, threshold, notifications-enabled, status (archive/restore) |
+| `PUT`    | `/api/products/dashboard-order`                 | Bulk update `dashboard_sort_order` for manual dashboard row ordering within a category |
 | `DELETE` | `/api/products/:id`                             | Hard delete                                                                 |
 | `POST`   | `/api/products/:id/refresh`                     | Trigger manual refresh (enforces 1h cooldown)                               |
 | `POST`   | `/api/products/:id/select-variant`              | Resolve `needs_input` by selecting a variant                                |

@@ -30,6 +30,7 @@ export function makeProductSummary(overrides: Partial<ProductSummary> = {}): Pro
     effective_threshold_pct: 20,
     last_scraped_at: '2026-06-13T12:00:00.000Z',
     needs_review_count: 0,
+    dashboard_sort_order: null,
     ...overrides,
   }
 }

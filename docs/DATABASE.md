@@ -62,6 +62,7 @@ profiles  products  notifications      fx_rates_cache    search_cache
 | `category_source`            | `text`        | `manual`, `llm`, `heuristic`, `default_other`. Used to skip future auto-categorization when value is `manual`.                                                                          |
 | `last_refresh_at`            | `timestamptz` | nullable; used to enforce manual refresh cooldown                                                                                                                                       |
 | `last_user_interaction_at`   | `timestamptz` | nullable; updated on manual refresh, threshold/category edits, listing accept/reject, archive/restore, or notification mark-read for this product. Used by §7.10 stale revisit prompts. |
+| `dashboard_sort_order`       | `int`         | nullable; manual ordering within the user's category-grouped dashboard. Null falls back to `created_at` desc.                                                                           |
 | `created_at`, `updated_at`   | `timestamptz` |                                                                                                                                                                                         |
 
 ### `product_listings`

@@ -16,6 +16,7 @@ import {
   isProductListQueryKey,
   refreshProduct,
   rejectListing,
+  reorderDashboardProducts,
   selectVariant,
   updateProduct,
   type CreateProductInput,
@@ -23,6 +24,7 @@ import {
   type ProductFilters,
   type ProductSummary,
   type UpdateProductInput,
+  type DashboardReorderEntry,
 } from '@/lib/products'
 
 const PRODUCT_DETAIL_POLL_MS = 3_000
@@ -323,6 +325,38 @@ export function useRestoreProduct(id: string) {
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: productQueryKey(id) })
+      queryClient.invalidateQueries({ queryKey: ['products'] })
+    },
+  })
+}
+
+export function useReorderDashboardProducts() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (items: DashboardReorderEntry[]) => reorderDashboardProducts(items),
+    onMutate: async (items) => {
+      await queryClient.cancelQueries({
+        predicate: (query) => isProductListQueryKey(query.queryKey),
+      })
+      const previousLists = snapshotListCaches(queryClient)
+      const orderById = new Map(items.map((entry) => [entry.id, entry.dashboard_sort_order]))
+
+      updateListCache(queryClient, (current) =>
+        current.map((product) => {
+          const sortOrder = orderById.get(product.id)
+          if (sortOrder === undefined) return product
+          return { ...product, dashboard_sort_order: sortOrder }
+        }),
+      )
+
+      return { previousLists }
+    },
+    onError: (_error, _items, context) => {
+      rollbackListCaches(queryClient, context?.previousLists ?? [])
+      toast.error('Could not save order')
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['products'] })
     },
   })

@@ -483,6 +483,7 @@ def build_product_detail(
         "effective_threshold_pct": _effective_threshold_pct(product, profile),
         "last_scraped_at": _max_last_scraped(sorted_listings),
         "needs_review_count": needs_review_count,
+        "dashboard_sort_order": product.get("dashboard_sort_order"),
         "listings": [_serialize_listing(row) for row in sorted_listings],
     }
     if include_price_history:
@@ -951,3 +952,28 @@ def select_variant(
         listings=refreshed_listings,
         include_price_history=True,
     )
+
+
+def reorder_dashboard_products(
+    *,
+    user_id: UUID,
+    items: list[dict[str, int | str]],
+) -> None:
+    if not items:
+        raise HTTPException(status_code=400, detail="No items to reorder")
+
+    client = get_client()
+    seen_ids: set[str] = set()
+    for entry in items:
+        product_id = str(entry["id"])
+        if product_id in seen_ids:
+            raise HTTPException(status_code=400, detail="Duplicate product id in reorder payload")
+        seen_ids.add(product_id)
+        sort_order = entry["dashboard_sort_order"]
+        if not isinstance(sort_order, int) or sort_order < 0:
+            raise HTTPException(status_code=400, detail="Invalid dashboard_sort_order")
+
+        _get_owned_product(client, product_id=UUID(product_id), user_id=user_id)
+        client.table("products").update({"dashboard_sort_order": sort_order}).eq(
+            "id", product_id
+        ).execute()

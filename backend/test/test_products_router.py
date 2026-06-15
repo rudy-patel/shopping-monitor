@@ -1128,3 +1128,44 @@ def test_detail_price_history_30d_skips_needs_review_listings(products_client, f
     assert history == [
         {"observed_on": observed_at.date().isoformat(), "price_cents": 10000}
     ]
+
+
+def test_put_dashboard_order_updates_sort_order(products_client, fake_client):
+    client, fake, _llm = products_client
+    first = _seed_product(fake, title="First")
+    second = _seed_product(fake, title="Second")
+
+    response = client.put(
+        "/api/products/dashboard-order",
+        json={
+            "items": [
+                {"id": first["id"], "dashboard_sort_order": 1},
+                {"id": second["id"], "dashboard_sort_order": 0},
+            ]
+        },
+    )
+
+    assert response.status_code == 204
+    assert fake.products[first["id"]]["dashboard_sort_order"] == 1
+    assert fake.products[second["id"]]["dashboard_sort_order"] == 0
+
+    listed = client.get("/api/products").json()
+    by_id = {row["id"]: row for row in listed}
+    assert by_id[first["id"]]["dashboard_sort_order"] == 1
+    assert by_id[second["id"]]["dashboard_sort_order"] == 0
+
+
+def test_put_dashboard_order_rejects_empty_body(products_client):
+    client, _fake, _llm = products_client
+    response = client.put("/api/products/dashboard-order", json={"items": []})
+    assert response.status_code == 422
+
+
+def test_put_dashboard_order_rejects_other_users_product(products_client, fake_client):
+    client, fake, _llm = products_client
+    other_product = _seed_product(fake, user_id=OTHER_USER_ID)
+    response = client.put(
+        "/api/products/dashboard-order",
+        json={"items": [{"id": other_product["id"], "dashboard_sort_order": 0}]},
+    )
+    assert response.status_code == 404
