@@ -3,7 +3,7 @@
 > **Status:** Draft v1.3 — clarified worker boundaries, fixed digest timing, data-model gaps, product-level price semantics, and first vertical-slice scope for AI-agent implementation.
 > **Implementation progress:** Task-level completion status and PR links live in [`docs/ROADMAP.md`](ROADMAP.md); chronological ship log in [`MEMORY.md`](../MEMORY.md).
 > **Owner:** Product (you). **Audience:** Engineering, AI agents implementing the prototype.
-> **Last updated:** 2026-06-15.
+> **Last updated:** 2026-06-15 (T7.4 auto-categorization UX).
 
 ---
 
@@ -125,7 +125,7 @@ Each story below is a V1 commitment.
 - **U-ADD-5.** If the URL is from a retailer **not** on our supported list, the app still creates a tracked product using a best-effort generic scraper, and labels the listing "Generic scraper — may be unreliable."
 - **U-ADD-6.** Immediately after I add a product, the app kicks off background cross-retailer discovery. I see a "Looking for other retailers…" indicator on the product card.
 - **U-ADD-7.** When discovery completes, high-confidence matches are added automatically, medium-confidence matches go into a **"Needs review"** list under the product, and I receive an in-app notification telling me discovery finished.
-- **U-ADD-8.** When I add a product, the app puts it into one of the 5 fixed categories automatically using AI on the page title, brand, and breadcrumbs. The Add Product modal also has an optional category dropdown (defaults to **"Auto"**) if I want to choose manually. I can re-categorize at any time from the product detail page.
+- **U-ADD-8.** When I add a product, the app puts it into one of the 5 fixed categories automatically using AI on the page title, brand, and breadcrumbs. The Add Product modal defaults to auto-categorization (URL only); a **"Set category manually"** link reveals an optional category picker if I want to choose upfront. After add, the product detail page shows a brief **"Sorting into your list…"** shimmer on the category field (minimum ~2.5s) before revealing the assigned category, with a one-click override always available.
 
 ### 5.3 Viewing & organizing products
 
@@ -325,12 +325,12 @@ Evaluated after every successful scrape (scheduled or manual).
 ### 7.7 Categories
 
 - Five fixed categories: `clothing`, `shoes`, `home`, `tech`, `other`. AI is **not** allowed to invent new categories in V1; the categorizer must return exactly one of these five slugs.
-- The Add Product modal has an optional category dropdown that defaults to **"Auto"**. If the user explicitly picks a specific category, that wins and no LLM call is made.
-- If the dropdown is left on "Auto", category assignment runs **synchronously** as part of the add request, in this priority order:
+- The Add Product modal defaults to **auto-categorization** (URL input only). A **"Set category manually"** disclosure reveals an optional category picker; if the user picks a category there, that wins and no LLM call is made.
+- If auto mode is used, category assignment runs **synchronously** as part of the add request, in this priority order:
   1. **LLM categorizer** (Gemini Flash via `LlmProvider`, see §10.7) given the scraped `title`, `brand`, `retailer_slug`, and any retailer breadcrumbs. The prompt hard-instructs the model to choose exactly one of the 5 slugs and return a JSON object so the response is trivially parseable.
   2. **Heuristic fallback** (retailer-slug default → breadcrumb keyword match → title/brand keyword match → retailer's mapped category) if the LLM call fails, times out, returns an invalid slug, or quota is exhausted.
   3. **`other`** if even the heuristic can't classify.
-- The whole categorization step is wrapped in a **1.5s timeout** so the add flow stays responsive and degrades gracefully to the heuristic on slow days. The UI shows a brief loading shimmer on the category chip while the response resolves.
+- The whole categorization step is wrapped in a **1.5s timeout** so the add flow stays responsive and degrades gracefully to the heuristic on slow days. After navigation to product detail, the category field shows a **minimum ~2.5s** client-side "Sorting into your list…" shimmer (shared with the dashboard row badge for the same product) so the auto-sort feels intentional; this does **not** add extra Gemini calls.
 - The user can re-categorize from the product detail page at any time. Manual overrides are sticky — the categorizer never reruns automatically and won't undo a manual choice.
 - All category-assignment logic lives behind a single `Categorizer` interface so swapping providers or adding a "suggest with confidence" mode in V2 is a no-schema change.
 
@@ -747,7 +747,7 @@ Each natively supported retailer needs a scraper module exposing a `scrape(url) 
 ## 12. Non-Functional Requirements
 
 - **Performance:** product list page loads in < 2s with up to 200 products. Manual refresh of one product should complete in < 30s for non-Playwright retailers; Playwright-backed retailers may be slower because browser cold start dominates.
-- **Perceived performance:** every user action surfaces visible feedback within 100ms. All mutations (add, archive, re-categorize, accept/reject discovered match, mark-read) render optimistically and only roll back on server error. The Add Product modal shows a category-shimmer placeholder while AI categorization resolves and degrades to the heuristic at the 1.5s timeout (§7.7).
+- **Perceived performance:** every user action surfaces visible feedback within 100ms. All mutations (add, archive, re-categorize, accept/reject discovered match, mark-read) render optimistically and only roll back on server error. After add, the product detail category field (and matching dashboard row) show a brief sorting shimmer for at least ~2.5s before revealing the server-resolved category (§7.7); the Add modal stays open with an inline spinner until the add request completes.
 - **Design quality:** dashboard and product detail routes target **Lighthouse Performance ≥ 95** and **Accessibility ≥ 95** on a desktop run with throttled CPU. Visual style follows §10.1 design principles.
 - **Reliability:** daily scrape job retries each listing up to 2 times with exponential backoff. A run is considered successful if at least 80% of listings scrape successfully.
 - **Cost:** $0/month for V1 even while engineers iterate at ~30 manual job triggers/day across parallel agents (see §10.9). All providers used in the core product (Supabase, Vercel, Render, GitHub Actions, Gemini, Resend, Frankfurter) have free tiers that accommodate that load. The core plan excludes hosted scraping APIs such as Firecrawl because one-time credits or paid monthly quotas are incompatible with indefinite free operation.

@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useCreateProduct } from '@/hooks/useProducts'
-import { ADD_PRODUCT_CATEGORIES, type CategoryInput } from '@/lib/categories'
+import { CATEGORY_ORDER, categoryLabel, type ProductCategory } from '@/lib/categories'
 
 interface AddProductDialogProps {
   open: boolean
@@ -27,28 +27,50 @@ interface AddProductDialogProps {
 
 export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) {
   const [url, setUrl] = useState('')
-  const [category, setCategory] = useState<CategoryInput>('auto')
+  const [showManualCategory, setShowManualCategory] = useState(false)
+  const [manualCategory, setManualCategory] = useState<ProductCategory>('clothing')
   const createProduct = useCreateProduct()
+
+  const resetForm = () => {
+    setUrl('')
+    setShowManualCategory(false)
+    setManualCategory('clothing')
+  }
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault()
     const trimmed = url.trim()
-    if (!trimmed) return
+    if (!trimmed || createProduct.isPending) return
 
-    onOpenChange(false)
-    setUrl('')
-    setCategory('auto')
-    createProduct.mutate({ url: trimmed, category })
+    const payload = showManualCategory
+      ? { url: trimmed, category: manualCategory }
+      : { url: trimmed, category: 'auto' as const }
+
+    createProduct.mutate(payload, {
+      onSuccess: () => {
+        onOpenChange(false)
+        resetForm()
+      },
+    })
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next && !createProduct.isPending) {
+          resetForm()
+        }
+        onOpenChange(next)
+      }}
+    >
       <DialogContent>
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>Add Product</DialogTitle>
             <DialogDescription>
-              Paste a Canadian retailer product URL to start tracking.
+              Paste a Canadian retailer product URL to start tracking. We&apos;ll automatically
+              sort it into the right category — you can change it anytime.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -61,30 +83,52 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
                 value={url}
                 onChange={(event) => setUrl(event.target.value)}
                 required
+                disabled={createProduct.isPending}
               />
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="product-category">Category</Label>
-              <Select value={category} onValueChange={(value) => setCategory(value as CategoryInput)}>
-                <SelectTrigger id="product-category">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {ADD_PRODUCT_CATEGORIES.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+            {showManualCategory ? (
+              <div className="grid gap-2">
+                <Label htmlFor="product-category">Category</Label>
+                <Select
+                  value={manualCategory}
+                  onValueChange={(value) => setManualCategory(value as ProductCategory)}
+                  disabled={createProduct.isPending}
+                >
+                  <SelectTrigger id="product-category">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CATEGORY_ORDER.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {categoryLabel(category)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <Button
+                type="button"
+                variant="link"
+                className="h-auto justify-start px-0 text-muted-foreground"
+                onClick={() => setShowManualCategory(true)}
+                disabled={createProduct.isPending}
+              >
+                Set category manually
+              </Button>
+            )}
           </div>
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              disabled={createProduct.isPending}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={createProduct.isPending}>
-              Add
+            <Button type="submit" disabled={createProduct.isPending || !url.trim()}>
+              {createProduct.isPending ? 'Adding…' : 'Add'}
             </Button>
           </DialogFooter>
         </form>

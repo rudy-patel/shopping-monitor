@@ -11,10 +11,12 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Skeleton } from '@/components/ui/skeleton'
+import { CategorySortingBadge } from '@/components/products/CategorySortingBadge'
 import { DiscoveryIndicator } from '@/components/products/DiscoveryIndicator'
 import { TrendChip } from '@/components/products/TrendChip'
 import { useArchiveProduct, useRefreshProduct } from '@/hooks/useProducts'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
+import { useJustAddedCategoryThinking } from '@/lib/just-added-product'
 import { listItemTransition, useMotionEnabled } from '@/lib/motion'
 import {
   extraRetailerCount,
@@ -77,6 +79,7 @@ export function ProductListRow({ product, compact = false }: ProductListRowProps
   const refresh = useRefreshProduct(product.id)
   const formatPriceCents = useFormatPriceCents()
   const motionEnabled = useMotionEnabled()
+  const { isThinking: isCategorySorting } = useJustAddedCategoryThinking(product.id)
   const detailPath =
     product.status === 'needs_input'
       ? `/products/${product.id}/variants`
@@ -124,6 +127,7 @@ export function ProductListRow({ product, compact = false }: ProductListRowProps
               {product.needs_review_count > 0 ? (
                 <Badge variant="outline">{product.needs_review_count} to review</Badge>
               ) : null}
+              {isCategorySorting ? <CategorySortingBadge /> : null}
             </div>
 
             <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">

@@ -2,7 +2,7 @@
 
 > **Status:** Agent handoff roadmap for the V1 PRD.
 > **Source of truth:** `docs/PRD.md` remains the product requirements source. This roadmap translates it into a dependency-aware implementation sequence for parallel AI agents and just-in-time human setup.
-> **Last updated:** 2026-06-15 (T7.1 UI polish; T6.3 cron schedules; T5.5 local drift tooling; T6.2 production smoke).
+> **Last updated:** 2026-06-15 (T7.4 auto-categorization UX).
 
 ---
 
@@ -53,7 +53,7 @@ Agents may do small read-only/admin tasks and routine migration/application step
 | M3: Real Best Buy validation | done | The first slice works once against a live Best Buy Canada URL in controlled `live` or `record` mode. | Call the one-retailer MVP technically proven. |
 | M4: MVP product workflows | done | Notifications, digest, currency, settings, account deletion, and review queues work against fixtures. **Done:** discovery/review (T3.1–T3.2), notification read API + evaluators on manual refresh (T3.3–T3.4), display currency (T4.1), scheduled scrape job (T3.5), digest email (T3.6), settings UI (T4.2), account delete (T4.3). | Deployment hardening and broader retailer expansion. |
 | M5: V1 retailer coverage | done | Supported retailers have benchmark decisions, scraper modules, fixtures, and local drift checks (T5.1–T5.5). Deferred: `sportchek`, `footlocker_ca`, `costco_ca`, etc. | V1 success criteria can be tested end-to-end. |
-| M6: Production-ready V1 | in progress | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check. **Progress:** T6.3 cron schedules; T6.2 production smoke; T7.1 UI polish shipped. **Remaining:** T6.4 7-day reliability, T7.2 Lighthouse, T7.3 checklist. | Invite early friends for feedback. |
+| M6: Production-ready V1 | in progress | Deployed frontend/backend, scheduled jobs, Lighthouse/accessibility targets, 7-day scrape reliability check. **Progress:** T6.3 cron schedules; T6.2 production smoke; T7.1 UI polish; T7.4 auto-categorization UX shipped. **Remaining:** T6.4 7-day reliability, T7.2 Lighthouse, T7.3 checklist. | Invite early friends for feedback. |
 
 ---
 
@@ -737,6 +737,22 @@ Start after M3 proves the one-retailer architecture.
   - Dashboard and product detail hit Lighthouse Performance >= 95 and Accessibility >= 95 on desktop throttled run.
   - Document command/results in PR.
 
+### T7.4 Auto-categorization UX polish
+
+**Status:** done — 2026-06-15
+
+- **Owner:** agent.
+- **PR size:** frontend PR.
+- **Build:**
+  - Streamline Add Product modal (URL-first; manual category behind disclosure).
+  - Product detail `CategoryField` thinking shimmer (~2.5s min) + "Sorted by AI" hint; override via existing select.
+  - Dashboard `ProductListRow` "Sorting…" badge for the same just-added session window.
+  - Session-scoped `just-added-product` helper in `frontend/src/lib/just-added-product.ts` (no extra LLM calls).
+- **Verification:**
+  - Vitest: `just-added-product.test.ts`, `category-field-thinking.test.tsx`, `product-list-row.test.tsx`, updated add-product dialog tests.
+  - Playwright add flow waits for category thinking → select visible.
+  - `npm run lint`, `npm run test:run`, `npm run build`, `make test-e2e`.
+
 ### T7.3 V1 success-criteria checklist
 
 **Status:** pending
@@ -799,6 +815,7 @@ Constraints:
 <details>
 <summary>Recently completed (M6 / T7)</summary>
 
+- ~~**T7.4** Auto-categorization UX polish~~ — URL-first add modal, category thinking shimmer (~2.5s), dashboard sorting badge; client-side only (no extra Gemini calls).
 - ~~**T7.1** UI polish and accessibility~~ — typography-first lists, mobile tab bar, axe vitest, Playwright Mobile Chrome.
 - ~~**T6.3** Cron schedules~~ — scrape `0 8 * * *` UTC, digest `0 14 * * *` UTC.
 - ~~**T6.2** Production smoke~~ — done.
