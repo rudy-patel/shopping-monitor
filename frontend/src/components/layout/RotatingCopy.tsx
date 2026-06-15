@@ -17,10 +17,12 @@ export function RotatingCopy({ lines, interval = 4000, className }: RotatingCopy
       setIndex((current) => (current + 1) % lines.length)
     }, interval)
     return () => clearInterval(id)
-  }, [lines.length, interval])
+  }, [lines, interval])
+
+  if (!lines.length) return null
 
   return (
-    <span className={cn('relative inline-block', className)} aria-live="polite" aria-atomic="true">
+    <span className={cn('relative inline-block min-h-[1.5em]', className)}>
       <AnimatePresence mode="wait" initial={false}>
         <motion.span
           key={index}

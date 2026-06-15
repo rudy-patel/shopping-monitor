@@ -25,7 +25,7 @@ export function DashboardPage() {
             Products grouped by category.
           </p>
           {hasProducts && (
-            <p className="mt-1 text-xs italic text-muted-foreground">
+            <p className="mt-1 text-xs italic text-muted-foreground" aria-hidden="true">
               <RotatingCopy lines={dashboardQuotes} interval={6000} />
             </p>
           )}
