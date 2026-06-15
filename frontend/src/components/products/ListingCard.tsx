@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { StockBadge } from '@/components/products/StockBadge'
 import { useFormatPriceCents } from '@/hooks/useFormatPriceCents'
 import { RetailerIdentity } from '@/components/retailers/RetailerLogo'
-import { formatRelativeTime } from '@/lib/format'
+import { formatRelativeTime, retailerLabel } from '@/lib/format'
 import type { Listing } from '@/lib/products'
 import { cn } from '@/lib/utils'
 
@@ -72,7 +72,7 @@ export function ListingCard({
       </div>
 
       {isGeneric ? (
-        <p className="text-xs text-muted-foreground">Generic scraper — may be unreliable</p>
+        <p className="text-xs text-muted-foreground">{retailerLabel('generic')}</p>
       ) : null}
       {matchPct ? <p className="text-xs text-muted-foreground">{matchPct}</p> : null}
 

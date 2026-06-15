@@ -12,8 +12,11 @@ const RETAILER_LABELS: Record<string, string> = {
   nike_ca: 'Nike Canada',
   palmisleskate: 'Palm Isle Skate Shop',
   tikiroomskate: 'Tiki Room Skateboards',
-  generic: 'Generic scraper — may be unreliable',
+  generic: 'Generic scraper (may be unreliable)',
 }
+
+/** Placeholder when price is unknown (intentionally not an em dash). */
+export const MISSING_PRICE_LABEL = '-'
 
 /** Slugs with human labels in `RETAILER_LABELS`, excluding the generic scraper. */
 export function knownRetailerSlugs(): string[] {
@@ -21,7 +24,7 @@ export function knownRetailerSlugs(): string[] {
 }
 
 export function formatCadCents(cents: number | null | undefined): string {
-  if (cents == null) return '—'
+  if (cents == null) return MISSING_PRICE_LABEL
   return CAD_FORMATTER.format(cents / 100)
 }
 

@@ -13,12 +13,15 @@ from routers.search import get_search_client, router as search_router
 from services.llm import (
     FakeLlmProvider,
     LlmInvalidResponseError,
+    LlmProviderError,
     LlmQuotaExhaustedError,
     LlmSearchCandidate,
     LlmSearchResult,
     LlmTimeoutError,
 )
 from test.fake_supabase import FakeSupabaseClient
+
+EM_DASH = "\u2014"
 
 
 @pytest.fixture(autouse=True)
@@ -165,8 +168,6 @@ def test_search_invalid_response_returns_502(auth_env):
 def test_search_provider_error_returns_503(auth_env):
     """Transient Gemini provider failures (non-quota, non-timeout) map to 503 so
     the frontend's retry loop kicks in. Quota is intentionally NOT bundled here."""
-    from services.llm import LlmProviderError
-
     llm = FakeLlmProvider(raise_on_search=LlmProviderError("503 UNAVAILABLE"))
     app, _ = make_app(llm)
     auth_env.setattr("services.search_service.get_llm_provider", lambda: llm)
@@ -200,3 +201,24 @@ def test_search_empty_results_returns_200(auth_env):
     assert response.status_code == 200
     body = response.json()
     assert body["results"] == []
+
+
+@pytest.mark.parametrize(
+    ("exc_factory", "expected_status"),
+    [
+        (lambda: LlmQuotaExhaustedError("rate limit"), 429),
+        (lambda: LlmTimeoutError("too slow"), 504),
+        (lambda: LlmInvalidResponseError("bad json"), 502),
+        (lambda: LlmProviderError("503 UNAVAILABLE"), 503),
+    ],
+)
+def test_search_error_details_avoid_em_dash(auth_env, exc_factory, expected_status):
+    llm = FakeLlmProvider(raise_on_search=exc_factory())
+    app, _ = make_app(llm)
+    auth_env.setattr("services.search_service.get_llm_provider", lambda: llm)
+
+    with TestClient(app) as client:
+        response = client.post("/api/search", json={"query": "widget"})
+
+    assert response.status_code == expected_status
+    assert EM_DASH not in response.json()["detail"]

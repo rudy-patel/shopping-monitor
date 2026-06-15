@@ -4,6 +4,16 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 ---
 
+## [2026-06-15] User-facing copy: remove em dashes
+
+**What:** Replaced em dashes in all user-visible strings (taglines, share meta, search errors, generic scraper label, missing-price placeholder) with commas, periods, colons, or parentheses. `ListingCard` now reads the generic label from `retailerLabel('generic')` instead of duplicating copy. Added regression tests (`copy.test.ts`, `site-meta.test.ts`, `format.test.ts`, `search-dialog.test.tsx`, `test_search_router.py`, `test_digest_templates.py`) and synced PRD U-ADD-5.
+
+**Files:** `frontend/src/lib/copy.ts`, `frontend/src/lib/format.ts`, `frontend/index.html`, `frontend/public/site.webmanifest`, search/add-product/listing components, `backend/routers/search.py`, `backend/services/digest_templates.py`, search fixtures, tests, `docs/PRD.md`, `docs/ROADMAP.md`, `MEMORY.md`.
+
+**Verification:** `npm run lint`; `npm run test:run` (copy, site-meta, format, search-dialog); `pytest test/test_search_router.py test/test_digest_templates.py`.
+
+---
+
 ## [2026-06-15] Condensed wishlist product rows
 
 **What:** Tightened dashboard and flat-list `ProductListRow` layout from four stacked lines to two (title · brand inline; price, compact trend chip, badges, retailer, and updated time on one row). Desktop shows an icon-only refresh beside the kebab menu; mobile refresh stays in the menu. Category sections use slightly tighter spacing. Dashboard heading renamed to **Wishlist** via `DASHBOARD_TITLE` in `copy.ts`. `compactTrendLabel()` shortens trend chips when `delta_pct` is unknown; full label remains on `aria-label`.
@@ -663,7 +673,7 @@ Chronological timeline of completed work, files changed, and known bugs/solution
 
 **Files:** `backend/scrapers/generic.py`, `backend/scrapers/bootstrap.py`, `backend/scrapers/structured_data.py`, `backend/scrapers/fixture_url.py`, `backend/scrapers/extraction/` (`types.py`, `jsonld.py`, `opengraph.py`, `price.py`), `backend/test/fixtures/retailers/generic/*.html`, `backend/test/test_generic_scraper.py`, `backend/test/conftest.py`, `backend/test/test_scraper_registry.py`, `backend/scrapers/exceptions.py`, `backend/scrapers/README.md`, `backend/requirements.txt`, `backend/pytest.ini`, `docs/ROADMAP.md`, `MEMORY.md`.
 
-**Deferred:** Product API wiring for generic listings → T2.5; frontend "Generic scraper — may be unreliable" label → T2.6.
+**Deferred:** Product API wiring for generic listings → T2.5; frontend "Generic scraper (may be unreliable)" label → T2.6.
 
 ## [2026-06-14] T2.1 review pass
 

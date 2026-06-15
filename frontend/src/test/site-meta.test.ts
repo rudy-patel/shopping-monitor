@@ -3,6 +3,12 @@ import path from 'node:path'
 import { SITE_DESCRIPTION, SITE_NAME, SITE_ORIGIN } from '@/lib/copy'
 
 const indexHtml = readFileSync(path.resolve(__dirname, '../../index.html'), 'utf8')
+const webManifest = readFileSync(
+  path.resolve(__dirname, '../../public/site.webmanifest'),
+  'utf8',
+)
+
+const EM_DASH = '\u2014'
 
 describe('index.html share meta', () => {
   it('includes favicon, touch icon, and web manifest links', () => {
@@ -22,5 +28,14 @@ describe('index.html share meta', () => {
     expect(indexHtml).toContain('property="og:image:width" content="1200"')
     expect(indexHtml).toContain('property="og:image:height" content="630"')
     expect(indexHtml).toContain('name="twitter:card" content="summary_large_image"')
+  })
+
+  it('avoids em dashes in share-preview copy', () => {
+    expect(indexHtml).not.toContain(EM_DASH)
+  })
+
+  it('keeps web manifest description aligned with copy.ts', () => {
+    expect(webManifest).toContain(SITE_DESCRIPTION)
+    expect(webManifest).not.toContain(EM_DASH)
   })
 })

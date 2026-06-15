@@ -2,6 +2,7 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { toast } from 'sonner'
 import { SearchCommandDialog } from '@/components/search/SearchCommandDialog'
+import { SEARCH_STATUS_MESSAGES } from '@/components/search/SearchThinking'
 import { useCreateProduct } from '@/hooks/useProducts'
 import * as apiModule from '@/lib/api'
 import type { SearchResponse } from '@/lib/search'
@@ -27,6 +28,16 @@ vi.mock('@/hooks/useProducts', () => ({
 }))
 
 const mockMutate = vi.fn()
+
+const EM_DASH = '\u2014'
+
+describe('search user-facing copy', () => {
+  it('avoids em dashes in loading status messages', () => {
+    for (const message of SEARCH_STATUS_MESSAGES) {
+      expect(message).not.toContain(EM_DASH)
+    }
+  })
+})
 
 const baseResponse: SearchResponse = {
   query: 'airpods pro',
@@ -58,7 +69,7 @@ const baseResponse: SearchResponse = {
       url: 'https://walmart.ca/airpods-pro',
       supported: false,
       brand_hint: 'Apple',
-      justification: 'Walmart PDP — best-effort scrape',
+      justification: 'Walmart PDP, best-effort scrape',
     },
   ],
 }
@@ -275,7 +286,7 @@ describe('SearchCommandDialog', () => {
         searchCallCount += 1
         throw new apiModule.ApiError(
           429,
-          'Daily AI search limit reached. Try again later — or paste a product URL directly to add it now.',
+          'Daily AI search limit reached. Try again later, or paste a product URL directly to add it now.',
         )
       }
       throw new apiModule.ApiError(500, 'unrelated')

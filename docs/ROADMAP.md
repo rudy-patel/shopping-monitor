@@ -921,6 +921,7 @@ Constraints:
 - ~~**Sign-in splash redesign**~~ — warm gradient landing, dashed **Someday.** pill, desktop-only floating shopping stickers; compact `BrandMark` on empty dashboard; axe coverage for `/login`.
 - ~~**Brand assets & share meta**~~ — header `BrandMark` (`nav` size), favicon, Apple touch icon, 1200×630 OG image, Open Graph / Twitter tags; `copy.ts` site constants + `site-meta.test.ts` guards `index.html` drift.
 - ~~**Condensed wishlist rows**~~ — two-line `ProductListRow` (title · brand, then price/trend/meta); compact trend labels; dashboard heading **Wishlist** via `DASHBOARD_TITLE` in `copy.ts` (PRD §5.3 U-VIEW-1/3).
+- ~~**User-facing copy em dash cleanup**~~ — replaced em dashes in taglines, share meta, search errors, and generic scraper label with plainer punctuation; regression tests guard `copy.ts`, `index.html`, and `/api/search` error bodies (PRD U-ADD-5).
 - ~~**T6.3** Cron schedules~~ — scrape `0 8 * * *` UTC, digest `0 14 * * *` UTC.
 - ~~**T6.2** Production smoke~~ — done.
 

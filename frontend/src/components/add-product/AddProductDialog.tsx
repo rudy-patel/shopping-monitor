@@ -70,7 +70,7 @@ export function AddProductDialog({ open, onOpenChange }: AddProductDialogProps) 
             <DialogTitle>Add Product</DialogTitle>
             <DialogDescription>
               Paste a Canadian retailer product URL to start tracking. We&apos;ll automatically
-              sort it into the right category — you can change it anytime.
+              sort it into the right category; you can change it anytime.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
